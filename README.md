@@ -40,9 +40,9 @@ The public repository intentionally contains no database password.
 
 `simulation_state.tick_seconds` defaults to exactly 1.0 simulated second.
 
-The cron runner stores `last_tick_at`. Every invocation measures the real elapsed time since that timestamp, multiplies it by `time_scale`, and divides it into 1-second physics steps plus a final fractional step.
+The cron runner stores `last_tick_at`. Each physics update measures the real elapsed time since that timestamp, multiplies it by `time_scale`, and divides it into 1-second physics steps plus a final fractional step.
 
-That means a normal once-per-minute cron still performs roughly sixty separate one-second physics calculations. If two invocations happen close together, the second only integrates the small elapsed interval; it does not invent another full second or minute.
+A normal once-per-minute cron launches a runner that stays alive for about 58 seconds and writes a fresh physics state roughly once per real second. A separate MySQL runner lock prevents the next minute from starting a second copy if the first one is still active. If a tick is late, reset, or closely repeated, `last_tick_at` ensures only the actual elapsed interval is integrated.
 
 Suggested cron:
 
@@ -50,7 +50,7 @@ Suggested cron:
 * * * * * /usr/bin/php /home/ACCOUNT/public_html/moon/cron.php >> /home/ACCOUNT/moon-physics.log 2>&1
 ~~~
 
-You can also invoke `cron.php` more often if the host supports it. The timestamp, not the cron schedule, determines elapsed simulation time.
+For testing, `php cron.php --once` performs one elapsed-time update and exits. The timestamp, not the cron schedule, determines elapsed simulation time.
 
 ## Coordinate system
 
