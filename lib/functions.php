@@ -78,7 +78,7 @@ function instantiateDefinition(
 
         $insert = $pdo->prepare(
             "INSERT INTO live_objects (
-                mission_id, definition_id, name,
+                mission_id, definition_id, cockpit_id, name,
                 parent_object_id, is_attached,
                 dry_mass_kg, radius_m,
                 x_cm, y_cm, z_cm,
@@ -87,7 +87,7 @@ function instantiateDefinition(
                 pitch_rate_deg_s, yaw_rate_deg_s, roll_rate_deg_s,
                 produces_gravity, affected_by_gravity
              ) VALUES (
-                :mission_id, :definition_id, :name,
+                :mission_id, :definition_id, :cockpit_id, :name,
                 :parent_object_id, :is_attached,
                 :dry_mass_kg, :radius_m,
                 :x_cm, :y_cm, :z_cm,
@@ -101,6 +101,9 @@ function instantiateDefinition(
         $insert->execute([
             'mission_id' => $missionId,
             'definition_id' => $definitionId,
+            'cockpit_id' => $definition['default_cockpit_id'] !== null
+                ? (int)$definition['default_cockpit_id']
+                : null,
             'name' => $instanceName,
             'parent_object_id' => $parentObjectId,
             'is_attached' => $attached ? 1 : 0,
