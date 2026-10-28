@@ -43,7 +43,7 @@ CREATE TABLE object_definitions (
     slug VARCHAR(100) NOT NULL,
     name VARCHAR(140) NOT NULL,
     object_type VARCHAR(60) NOT NULL,
-    dry_mass_kg DECIMAL(30,6) NOT NULL,
+    dry_mass_kg DECIMAL(40,6) NOT NULL,
     radius_m DECIMAL(20,6) NULL,
     produces_gravity TINYINT(1) NOT NULL DEFAULT 0,
     affected_by_gravity TINYINT(1) NOT NULL DEFAULT 1,
@@ -136,7 +136,7 @@ CREATE TABLE live_objects (
     attach_yaw_deg DECIMAL(9,4) NOT NULL DEFAULT 0,
     attach_roll_deg DECIMAL(9,4) NOT NULL DEFAULT 0,
 
-    dry_mass_kg DECIMAL(30,6) NOT NULL,
+    dry_mass_kg DECIMAL(40,6) NOT NULL,
     radius_m DECIMAL(20,6) NULL,
 
     x_cm BIGINT NOT NULL DEFAULT 0,
@@ -241,7 +241,7 @@ CREATE TABLE telemetry (
     pitch_deg DECIMAL(9,4) NULL,
     yaw_deg DECIMAL(9,4) NULL,
     roll_deg DECIMAL(9,4) NULL,
-    total_mass_kg DECIMAL(30,6) NOT NULL,
+    total_mass_kg DECIMAL(40,6) NOT NULL,
     PRIMARY KEY (id),
     KEY idx_telemetry_object_time (live_object_id, recorded_at),
     CONSTRAINT fk_telemetry_object
