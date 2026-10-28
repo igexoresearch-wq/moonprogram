@@ -83,6 +83,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new RuntimeException('Parent object not found.');
             }
 
+            $cursor = $parentId;
+            $seen = [];
+            while ($cursor !== 0) {
+                if ($cursor === $childId) {
+                    throw new RuntimeException('That attachment would create a parent cycle.');
+                }
+                if (isset($seen[$cursor])) {
+                    throw new RuntimeException('Existing attachment cycle detected.');
+                }
+                $seen[$cursor] = true;
+
+                $check = $pdo->prepare(
+                    "SELECT parent_object_id, is_attached
+                     FROM live_objects
+                     WHERE id=:id"
+                );
+                $check->execute(['id'=>$cursor]);
+                $row = $check->fetch();
+
+                if (!$row || !$row['is_attached'] || $row['parent_object_id'] === null) {
+                    break;
+                }
+
+                $cursor = (int)$row['parent_object_id'];
+            }
+
             $stmt = $pdo->prepare(
                 "UPDATE live_objects SET
                     parent_object_id=:parent,
@@ -120,8 +146,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($action === 'delete') {
+            $deleteId = (int)$_POST['object_id'];
+
+            $pdo->beginTransaction();
+            $pdo->prepare(
+                "UPDATE live_objects
+                 SET is_attached=0, parent_object_id=NULL
+                 WHERE parent_object_id=:id"
+            )->execute(['id'=>$deleteId]);
+
             $stmt = $pdo->prepare("DELETE FROM live_objects WHERE id=:id");
-            $stmt->execute(['id'=>(int)$_POST['object_id']]);
+            $stmt->execute(['id'=>$deleteId]);
+            $pdo->commit();
+
             $message = 'Live object deleted.';
         }
     } catch (Throwable $e) {
