@@ -1,143 +1,139 @@
 # Moon Program
 
-A PHP/MySQL Earth-Moon physics sandbox intended to deploy at `/moon`.
+A reusable PHP/MySQL real-time space simulation framework.
 
-This first build is deliberately modular. The physics clock, N-body gravity, rigid-stack attachments, reset logic, API, and dashboard are separate so propulsion, staging impulses, docking, guidance, and cockpit controls can be added without rewriting the core.
+## What this version contains
 
-## Files
+- 5×4 gray raised-panel Command Center dashboard
+- Reusable object/component definition library
+- Reusable engine definition library
+- Fuel tank and propellant definitions
+- Engine mounting on object definitions
+- Missions and live object instancing
+- Parent/child attachment and separation
+- Live engine enable/throttle controls
+- Signed BIGINT centimeter XYZ storage plus sub-centimeter remainder
+- Generic N-body gravity
+- Generic propulsion forces
+- Real-time timestamp-driven physics
+- Leapfrog-style position/velocity integration
+- Telemetry history
+- Configurable dashboard instrument slots
+- Ground Control COMMS instrument shell for later OpenAI integration
 
-- `schema.sql` — database schema.
-- `seed.sql` — Earth, Moon, Apollo/Saturn V launch stack, propellant loads, initial attachments, and reset snapshot.
-- `config.php` — PDO/environment configuration. No passwords are committed.
-- `physics.php` — gravity, one-second integration, attachment/root mass handling, collision protection, and orientation rates.
-- `reset.php` — restores the seeded launch state.
-- `cron.php` — CLI physics runner.
-- `api.php` — dashboard state and protected control actions.
-- `index.php` — single-page dashboard.
+There is no vehicle-specific physics. Saturn, Gemini, Apollo, Mercury, Agena, fictional spacecraft, debris, planets, and stages all use the same live-object system.
 
-## Database setup
+## Install
 
-Create/select a MySQL database, then import:
+1. Upload the repository contents to your web folder, for example:
+   `/moon/`
 
-~~~sql
-SOURCE schema.sql;
-SOURCE seed.sql;
-~~~
+2. Edit `db.php` and enter the MySQL host, database name, username, and password.
 
-Configure the web server or PHP-FPM environment:
+3. Import:
+   - `schema.sql`
+   - then `seed_universe.sql`
 
-~~~text
-MOON_DB_HOST=localhost
-MOON_DB_NAME=spacegame
-MOON_DB_USER=your_database_user
-MOON_DB_PASS=your_database_password
-MOON_CONTROL_KEY=choose-a-private-dashboard-control-key
-~~~
+4. Open:
+   - `/moon/index.php`
 
-The public repository intentionally contains no database password.
+5. Set a server cron to run `cron.php` once per minute.
 
-## Physics clock
+Example CLI cron command:
 
-`simulation_state.tick_seconds` defaults to exactly 1.0 simulated second.
+```
+* * * * * /usr/bin/php /full/server/path/to/moon/cron.php >/dev/null 2>&1
+```
 
-The cron runner stores `last_tick_at`. Each physics update measures the real elapsed time since that timestamp, multiplies it by `time_scale`, and divides it into 1-second physics steps plus a final fractional step.
+The cron process stays alive for about 58.5 seconds and updates physics approximately once per second. Physics does **not** assume one second passed. Each update reads the database timestamp and advances only the elapsed real time. A MySQL named lock prevents overlapping workers from double-processing the same time.
 
-A normal once-per-minute cron launches a runner that stays alive for about 58 seconds and writes a fresh physics state roughly once per real second. A separate MySQL runner lock prevents the next minute from starting a second copy if the first one is still active. If a tick is late, reset, or closely repeated, `last_tick_at` ensures only the actual elapsed interval is integrated.
+## Real-time behavior
 
-Suggested cron:
+The universe uses real wall-clock time.
 
-~~~cron
-* * * * * /usr/bin/php /home/ACCOUNT/public_html/moon/cron.php >> /home/ACCOUNT/moon-physics.log 2>&1
-~~~
+If a physics update is delayed by 2.3 seconds, the next update processes 2.3 seconds in smaller physics steps. If the worker is behind for longer, each call processes a bounded catch-up slice and subsequent calls continue catching up.
 
-For testing, `php cron.php --once` performs one elapsed-time update and exits. The timestamp, not the cron schedule, determines elapsed simulation time.
+Mission elapsed time can be derived from `missions.started_at`; there is no separate game clock.
 
-## Coordinate system
+## Definitions versus live objects
 
-Authoritative positions are stored as signed BIGINT centimeters:
+`object_definitions` describes reusable designs.
 
-- `x_cm`
-- `y_cm`
-- `z_cm`
+Examples:
 
-Fractional-centimeter remainder columns preserve precision between updates.
+- Apollo Command Module
+- Saturn V S-II
+- Gemini spacecraft
+- Agena target vehicle
 
-Velocities are stored in centimeters per second as DECIMAL values.
+`live_objects` contains actual physical instances in the running universe.
 
-At reset:
+A definition can therefore be instantiated many times into different missions without duplicating its design.
 
-- Earth is the fixed reference at `(0, 0, 0)`.
-- +X passes from Earth's center through the launch point and the Moon's initial position.
-- +Y is the Moon's initial prograde direction.
-- +Z completes the right-handed frame.
-- The launch stack is placed on Earth's equator at the +X surface point.
-- Craft pitch/yaw/roll begin at `0.000`.
-- Pitch 0 / yaw 0 points along +X, radially upward at the launch point.
+## Dry mass rule
 
-Roll is retained as a real orientation value even though the current gravity-only physics does not use it. It can later rotate cockpit/window imagery.
+`object_definitions.dry_mass_kg` is the complete dry mass of that object/component.
+
+Engine definition dry mass is metadata and is **not automatically added** to live-object mass. This prevents published stage dry masses, which often already include installed engines, from being counted twice.
+
+Current dynamic mass is:
+
+```
+object dry mass + remaining propellant
+```
+
+Attached components are summed into the root stack mass.
 
 ## Attachments
 
-Each rocket/module/stage is a separate row in `space_objects`.
+A free object has:
 
-`object_attachments` contains only current physical connections. While attached, descendants inherit the root object's position, velocity, and orientation, and their mass/propellant contributes to the root stack mass.
+```
+is_attached = 0
+parent_object_id = NULL
+```
 
-For example, the initial launch stack is rooted at S-IC. When staging is added, removing the S-IC -> S-II attachment will make S-II the root of the remaining upper stack and S-IC an independent object. A separation impulse can then be added to either new root.
+An attached object has:
 
-This same mechanism is intended for CSM/LM docking and LM ascent/descent separation.
+```
+is_attached = 1
+parent_object_id = <live parent id>
+```
 
-## Current physics
+During phase-one point-mass physics, attached objects inherit the root object's position, velocity, and orientation. Relative attachment offset fields are already stored for later rigid-body rendering and collision work.
 
-The integrator uses kick-drift-kick leapfrog rather than basic Euler integration.
+When detached, the object retains its current state and becomes independently simulated.
 
-Included now:
+## Propulsion
 
-- Earth gravity
-- Moon gravity
-- Moon orbit initialized from physical parameters
-- complete attached-stack mass
-- independent motion after an attachment is removed
-- position and velocity
-- pitch/yaw/roll and angular rates
-- Earth/Moon surface collision protection
-- fixed launch stack while surface-locked
-- elapsed-time-safe ticking
-- sub-centimeter remainder preservation
+Cockpit or control pages should change engine state, not directly edit velocity.
 
-Not yet included:
+The physics chain is:
 
-- engine thrust
-- fuel consumption during burns
-- atmosphere/drag
-- Earth rotation
-- J2/non-spherical gravity
-- Sun gravity
-- staging impulse
-- docking capture physics
-- RCS torque
-- collision geometry beyond spherical Earth/Moon surfaces
+```
+control/instrument
+    -> engine state
+    -> thrust + propellant use
+    -> force/acceleration
+    -> central physics integration
+```
 
-Those are intentionally separate future modules.
+The same rule will be used later for RCS, guidance, docking, and other systems.
 
-## Seed data sources
+## Instruments
 
-Earth/Moon physical constants and lunar orbital scale are based on NASA/JPL data:
+Dashboard instruments are PHP includes stored in `panels/` and registered in `instrument_definitions`.
 
-- JPL planetary physical parameters: https://ssd.jpl.nasa.gov/planets/phys_par.html
-- JPL astrodynamic parameters / DE440 GM values: https://ssd.jpl.nasa.gov/astro_par.html
-- JPL Moon physical parameters: https://ssd.jpl.nasa.gov/sats/phys_par/
-- Mean lunar distance: https://ssd.jpl.nasa.gov/glossary/LD.html
+The 20 command-center positions are stored in `command_center_panels`.
 
-Apollo 11/Saturn V values are based primarily on NASA's Apollo 11 press kit, flight plan, and mission report:
+Use `admin/panels.php` to place or remove instruments without changing `index.php`.
 
-- https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/A11_PressKit.pdf
-- https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/a11final-fltpln.pdf
-- https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/A11_MissionReport.pdf
+The Ground Control COMMS panel is intentionally only a shell right now. It is ready for a later OpenAI/API layer, but no API key or external AI call is stored in this repository.
 
-The Saturn V seed uses the Apollo 11 nominal stage dry masses and separate loaded fuel/oxidizer quantities. LM DPS/APS values use Apollo 11 actual loaded propellant figures where available.
+## SQL examples
 
-## Dashboard controls
+See `sql_examples/` for reusable patterns for adding component and engine definitions.
 
-The dashboard is readable without a control key. Start, pause, reset, and manual one-second step actions require `MOON_CONTROL_KEY`.
+## Important security note
 
-The key is entered in the browser and sent only with control requests. Do not commit it to this repository.
+This repository is public. Do not commit real database credentials or API keys.
