@@ -24,6 +24,10 @@ function instantiateDefinition(
     ?int $parentObjectId = null,
     bool $attached = false
 ): int {
+    if (!$attached) {
+        $parentObjectId = null;
+    }
+
     $pdo->beginTransaction();
 
     try {
