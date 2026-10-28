@@ -3,6 +3,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS telemetry;
 DROP TABLE IF EXISTS command_center_panels;
+DROP TABLE IF EXISTS cockpit_panels;
 DROP TABLE IF EXISTS instrument_definitions;
 DROP TABLE IF EXISTS live_engines;
 DROP TABLE IF EXISTS live_fuel_tanks;
@@ -12,6 +13,7 @@ DROP TABLE IF EXISTS definition_fuel_tanks;
 DROP TABLE IF EXISTS engine_propellant_requirements;
 DROP TABLE IF EXISTS engine_definitions;
 DROP TABLE IF EXISTS object_definitions;
+DROP TABLE IF EXISTS cockpit_definitions;
 DROP TABLE IF EXISTS missions;
 DROP TABLE IF EXISTS simulation_state;
 
@@ -38,11 +40,24 @@ CREATE TABLE missions (
     UNIQUE KEY uq_mission_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE cockpit_definitions (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(100) NOT NULL,
+    name VARCHAR(140) NOT NULL,
+    description VARCHAR(500) NULL,
+    columns_count TINYINT UNSIGNED NOT NULL DEFAULT 5,
+    rows_count TINYINT UNSIGNED NOT NULL DEFAULT 4,
+    created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_cockpit_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE object_definitions (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     slug VARCHAR(100) NOT NULL,
     name VARCHAR(140) NOT NULL,
     object_type VARCHAR(60) NOT NULL,
+    default_cockpit_id INT UNSIGNED NULL,
     dry_mass_kg DECIMAL(40,6) NOT NULL,
     radius_m DECIMAL(20,6) NULL,
     produces_gravity TINYINT(1) NOT NULL DEFAULT 0,
@@ -51,7 +66,12 @@ CREATE TABLE object_definitions (
     notes TEXT NULL,
     created_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id),
-    UNIQUE KEY uq_object_definition_slug (slug)
+    UNIQUE KEY uq_object_definition_slug (slug),
+    KEY idx_object_default_cockpit (default_cockpit_id),
+    CONSTRAINT fk_object_default_cockpit
+        FOREIGN KEY (default_cockpit_id)
+        REFERENCES cockpit_definitions(id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE engine_definitions (
@@ -124,6 +144,7 @@ CREATE TABLE live_objects (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     mission_id INT UNSIGNED NULL,
     definition_id INT UNSIGNED NULL,
+    cockpit_id INT UNSIGNED NULL,
     name VARCHAR(160) NOT NULL,
 
     parent_object_id BIGINT UNSIGNED NULL,
@@ -170,6 +191,7 @@ CREATE TABLE live_objects (
     KEY idx_live_mission (mission_id),
     KEY idx_live_parent (parent_object_id),
     KEY idx_live_definition (definition_id),
+    KEY idx_live_cockpit (cockpit_id),
     KEY idx_live_surface (surface_body_id),
 
     CONSTRAINT fk_live_mission
@@ -177,6 +199,9 @@ CREATE TABLE live_objects (
         ON DELETE SET NULL,
     CONSTRAINT fk_live_definition
         FOREIGN KEY (definition_id) REFERENCES object_definitions(id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_live_cockpit
+        FOREIGN KEY (cockpit_id) REFERENCES cockpit_definitions(id)
         ON DELETE SET NULL,
     CONSTRAINT fk_live_parent
         FOREIGN KEY (parent_object_id) REFERENCES live_objects(id)
@@ -254,9 +279,25 @@ CREATE TABLE instrument_definitions (
     slug VARCHAR(100) NOT NULL,
     name VARCHAR(140) NOT NULL,
     include_file VARCHAR(255) NOT NULL,
+    context ENUM('ground','cockpit','both') NOT NULL DEFAULT 'both',
     description VARCHAR(500) NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_instrument_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE cockpit_panels (
+    cockpit_id INT UNSIGNED NOT NULL,
+    slot_number TINYINT UNSIGNED NOT NULL,
+    title VARCHAR(120) NULL,
+    instrument_id INT UNSIGNED NULL,
+    PRIMARY KEY (cockpit_id, slot_number),
+    KEY idx_cockpit_panel_instrument (instrument_id),
+    CONSTRAINT fk_cockpit_panel_cockpit
+        FOREIGN KEY (cockpit_id) REFERENCES cockpit_definitions(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_cockpit_panel_instrument
+        FOREIGN KEY (instrument_id) REFERENCES instrument_definitions(id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE command_center_panels (
@@ -276,12 +317,61 @@ INSERT INTO simulation_state (
     1, NOW(6), 1.0000, 1.000, 1
 );
 
-INSERT INTO instrument_definitions (slug, name, include_file, description) VALUES
-('universe-status', 'Universe Status', 'panels/universe_status.php', 'Physics clock and object count.'),
-('live-objects', 'Live Objects', 'panels/live_objects.php', 'Current objects and attachments.'),
-('engines', 'Engines', 'panels/engine_status.php', 'Live engine state.'),
-('quick-links', 'Build / Configure', 'panels/quick_links.php', 'Definition and mission tools.'),
-('ground-comms', 'Ground Control COMMS', 'panels/comms.php', 'Ground-control communications instrument shell.');
+INSERT INTO instrument_definitions (slug, name, include_file, context, description) VALUES
+('universe-status', 'Universe Status', 'panels/universe_status.php', 'ground', 'Physics clock and object count.'),
+('live-objects', 'Live Objects', 'panels/live_objects.php', 'ground', 'Current objects and attachments.'),
+('engines', 'Engines', 'panels/engine_status.php', 'ground', 'Live engine state.'),
+('quick-links', 'Build / Configure', 'panels/quick_links.php', 'ground', 'Definition and mission tools.'),
+('ground-comms', 'Ground Control COMMS', 'panels/comms.php', 'both', 'Ground-control communications instrument shell.'),
+('cockpit-attitude', 'Attitude', 'panels/cockpit_attitude.php', 'cockpit', 'Pitch, yaw and roll for the controlled spacecraft.'),
+('cockpit-velocity', 'Velocity', 'panels/cockpit_velocity.php', 'cockpit', 'Velocity vector and total speed.'),
+('cockpit-position', 'Position', 'panels/cockpit_position.php', 'cockpit', 'World XYZ position.'),
+('cockpit-fuel', 'Propellant', 'panels/cockpit_fuel.php', 'cockpit', 'Propellant tank quantities.'),
+('cockpit-engine-control', 'Engine Control', 'panels/cockpit_engine_control.php', 'cockpit', 'Engine enable and throttle controls.'),
+('cockpit-vehicle', 'Vehicle Status', 'panels/cockpit_vehicle.php', 'cockpit', 'Vehicle, mission, mass and attachment status.');
+
+INSERT INTO cockpit_definitions (slug, name, description, columns_count, rows_count) VALUES
+('generic-flight-deck', 'Generic Flight Deck', 'Starter cockpit. Copy or reconfigure it for Apollo, Gemini, Mercury, LM, or fictional vehicles.', 5, 4);
+
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 1, 'ATTITUDE', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-attitude'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 2, 'VELOCITY', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-velocity'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 3, 'POSITION', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-position'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 4, 'PROPELLANT', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-fuel'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 5, 'ENGINE CONTROL', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-engine-control'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 6, 'VEHICLE', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='cockpit-vehicle'
+WHERE c.slug='generic-flight-deck';
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, 7, 'COMMS', i.id
+FROM cockpit_definitions c JOIN instrument_definitions i ON i.slug='ground-comms'
+WHERE c.slug='generic-flight-deck';
+
+INSERT INTO cockpit_panels (cockpit_id, slot_number, title, instrument_id)
+SELECT c.id, n.slot_number, NULL, NULL
+FROM cockpit_definitions c
+JOIN (
+    SELECT 8 AS slot_number UNION ALL SELECT 9 UNION ALL SELECT 10
+    UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14
+    UNION ALL SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18
+    UNION ALL SELECT 19 UNION ALL SELECT 20
+) n
+WHERE c.slug='generic-flight-deck';
 
 INSERT INTO command_center_panels (slot_number, title, instrument_id)
 SELECT 1, 'Universe', id FROM instrument_definitions WHERE slug='universe-status';
