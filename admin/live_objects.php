@@ -130,6 +130,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Object attached.';
         }
 
+        if ($action === 'set_cockpit') {
+            $cockpitId = $_POST['cockpit_id'] !== ''
+                ? (int)$_POST['cockpit_id']
+                : null;
+
+            $stmt = $pdo->prepare(
+                "UPDATE live_objects
+                 SET cockpit_id=:cockpit_id
+                 WHERE id=:id"
+            );
+            $stmt->execute([
+                'cockpit_id'=>$cockpitId,
+                'id'=>(int)$_POST['object_id'],
+            ]);
+            $message = 'Live cockpit assignment updated.';
+        }
+
         if ($action === 'throttle') {
             $stmt = $pdo->prepare(
                 "UPDATE live_engines
@@ -172,6 +189,7 @@ $objects = $pdo->query(
         m.name AS mission_name,
         d.name AS definition_name,
         p.name AS parent_name,
+        c.name AS cockpit_name,
         o.dry_mass_kg
           + COALESCE((SELECT SUM(t.remaining_kg) FROM live_fuel_tanks t WHERE t.live_object_id=o.id),0)
           AS current_mass_kg
@@ -179,7 +197,12 @@ $objects = $pdo->query(
      LEFT JOIN missions m ON m.id=o.mission_id
      LEFT JOIN object_definitions d ON d.id=o.definition_id
      LEFT JOIN live_objects p ON p.id=o.parent_object_id
+     LEFT JOIN cockpit_definitions c ON c.id=o.cockpit_id
      ORDER BY o.id"
+)->fetchAll();
+
+$cockpits = $pdo->query(
+    "SELECT id,name FROM cockpit_definitions ORDER BY name"
 )->fetchAll();
 
 $engineRows = $pdo->query(
@@ -200,7 +223,7 @@ require __DIR__ . '/../partials/header.php';
 <h1>Live Universe</h1>
 <p class="muted">Authoritative positions are stored as signed centimeter integers plus sub-centimeter remainder. This page displays and edits them in meters.</p>
 <table>
-<thead><tr><th>ID</th><th>Object</th><th>Mission</th><th>Mass</th><th>Attachment</th><th>Position (m)</th><th>Velocity (m/s)</th></tr></thead>
+<thead><tr><th>ID</th><th>Object</th><th>Mission</th><th>Cockpit</th><th>Mass</th><th>Attachment</th><th>Position (m)</th><th>Velocity (m/s)</th></tr></thead>
 <tbody>
 <?php foreach ($objects as $o): ?>
 <?php
@@ -212,6 +235,13 @@ require __DIR__ . '/../partials/header.php';
 <td><?= (int)$o['id'] ?></td>
 <td><strong><?= h($o['name']) ?></strong><br><span class="small muted"><?= h($o['definition_name'] ?? 'custom') ?></span></td>
 <td><?= h($o['mission_name'] ?? 'Universe') ?></td>
+<td>
+  <?php if ($o['cockpit_id']): ?>
+    <a class="button" href="../cockpit.php?object_id=<?= (int)$o['id'] ?>"><?= h($o['cockpit_name'] ?? 'Open Cockpit') ?></a>
+  <?php else: ?>
+    <span class="muted">None</span>
+  <?php endif; ?>
+</td>
 <td><?= number_format((float)$o['current_mass_kg'],3) ?> kg</td>
 <td><?= $o['is_attached'] ? '→ #'.(int)$o['parent_object_id'].' '.h($o['parent_name']) : 'Free' ?></td>
 <td><?= number_format($x,2) ?>, <?= number_format($y,2) ?>, <?= number_format($z,2) ?></td>
@@ -220,6 +250,22 @@ require __DIR__ . '/../partials/header.php';
 <?php endforeach; ?>
 </tbody>
 </table>
+</section>
+
+<section class="page-card">
+<h2>Assign Cockpit to Live Object</h2>
+<p class="muted">This overrides the cockpit inherited from the object definition for this specific live spacecraft.</p>
+<form method="post" class="inline compact">
+<input type="hidden" name="action" value="set_cockpit">
+<select name="object_id">
+<?php foreach ($objects as $o): ?><option value="<?= (int)$o['id'] ?>">#<?= (int)$o['id'] ?> <?= h($o['name']) ?></option><?php endforeach; ?>
+</select>
+<select name="cockpit_id">
+<option value="">No cockpit</option>
+<?php foreach ($cockpits as $c): ?><option value="<?= (int)$c['id'] ?>"><?= h($c['name']) ?></option><?php endforeach; ?>
+</select>
+<button>Assign</button>
+</form>
 </section>
 
 <section class="page-card">
