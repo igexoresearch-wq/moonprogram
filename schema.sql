@@ -280,7 +280,8 @@ INSERT INTO instrument_definitions (slug, name, include_file, description) VALUE
 ('universe-status', 'Universe Status', 'panels/universe_status.php', 'Physics clock and object count.'),
 ('live-objects', 'Live Objects', 'panels/live_objects.php', 'Current objects and attachments.'),
 ('engines', 'Engines', 'panels/engine_status.php', 'Live engine state.'),
-('quick-links', 'Build / Configure', 'panels/quick_links.php', 'Definition and mission tools.');
+('quick-links', 'Build / Configure', 'panels/quick_links.php', 'Definition and mission tools.'),
+('ground-comms', 'Ground Control COMMS', 'panels/comms.php', 'Ground-control communications instrument shell.');
 
 INSERT INTO command_center_panels (slot_number, title, instrument_id)
 SELECT 1, 'Universe', id FROM instrument_definitions WHERE slug='universe-status';
@@ -290,8 +291,10 @@ INSERT INTO command_center_panels (slot_number, title, instrument_id)
 SELECT 3, 'Engines', id FROM instrument_definitions WHERE slug='engines';
 INSERT INTO command_center_panels (slot_number, title, instrument_id)
 SELECT 4, 'Build', id FROM instrument_definitions WHERE slug='quick-links';
+INSERT INTO command_center_panels (slot_number, title, instrument_id)
+SELECT 5, 'COMMS', id FROM instrument_definitions WHERE slug='ground-comms';
 
 INSERT INTO command_center_panels (slot_number, title, instrument_id) VALUES
-(5,NULL,NULL),(6,NULL,NULL),(7,NULL,NULL),(8,NULL,NULL),(9,NULL,NULL),(10,NULL,NULL),
+(6,NULL,NULL),(7,NULL,NULL),(8,NULL,NULL),(9,NULL,NULL),(10,NULL,NULL),
 (11,NULL,NULL),(12,NULL,NULL),(13,NULL,NULL),(14,NULL,NULL),(15,NULL,NULL),
 (16,NULL,NULL),(17,NULL,NULL),(18,NULL,NULL),(19,NULL,NULL),(20,NULL,NULL);
