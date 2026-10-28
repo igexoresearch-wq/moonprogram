@@ -37,7 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $instruments = $pdo->query(
-    "SELECT * FROM instrument_definitions ORDER BY name"
+    "SELECT * FROM instrument_definitions
+     WHERE context IN ('ground','both')
+     ORDER BY name"
 )->fetchAll();
 
 $slots = $pdo->query(
@@ -53,8 +55,8 @@ require __DIR__ . '/../partials/header.php';
 <?php if ($error): ?><div class="flash error"><?= h($error) ?></div><?php endif; ?>
 
 <section class="page-card">
-<h1>Command Center Panel Layout</h1>
-<p class="muted">The dashboard is a fixed 5×4 rack. Each square loads one reusable instrument include. Blank slots remain bare.</p>
+<h1>Ground Command Center Panel Layout</h1>
+<p class="muted">This edits the ground-control dashboard only. Spacecraft cockpits are built separately under Cockpits.</p>
 <table>
 <thead><tr><th>Slot</th><th>Current</th><th>Configure</th></tr></thead>
 <tbody>
