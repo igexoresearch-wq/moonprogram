@@ -29,7 +29,7 @@ function physicsRotateLocalVector(
     $z1 = $y * sin($r) + $z * cos($r);
 
     // Ry(-pitch), so +pitch sends +X toward +Z
-    $x2 = $x1 * cos($p) - $z1 * sin(-$p);
+    $x2 = $x1 * cos($p) - $z1 * sin($p);
     $y2 = $y1;
     $z2 = $x1 * sin($p) + $z1 * cos($p);
 
