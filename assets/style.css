@@ -53,3 +53,20 @@ th{text-transform:uppercase;font-size:11px;letter-spacing:.08em;color:#cdd2d5}
 
 input[type=checkbox]{width:auto;box-shadow:none}
 code{color:#dfe5e8}
+
+.cockpit-grid,.cockpit-editor-grid{display:grid;grid-template-columns:repeat(var(--cockpit-cols,5),minmax(0,1fr));gap:10px}
+.cockpit-banner{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;padding:12px 16px;background:linear-gradient(#343a3f,#24282c);border:2px solid #5f676d;border-right-color:#171a1c;border-bottom-color:#111416;box-shadow:inset 2px 2px #697177,4px 5px 10px #08090a}
+.cockpit-name{font-weight:800;font-size:20px;letter-spacing:.1em;text-transform:uppercase}
+.cockpit-id-readout{white-space:nowrap}
+.cockpit-instrument{min-height:220px}
+.cockpit-editor-slot{min-height:230px}
+.instrument-big{font-size:30px;font-weight:700;line-height:1.1}
+.flight-readout hr{border:0;border-top:1px solid #344238;margin:8px 0}
+.tank-row{margin-bottom:10px}
+.tank-gauge{height:12px;background:#0c100e;border:1px solid #080a09;box-shadow:inset 0 0 5px #000;margin:4px 0}
+.tank-gauge span{display:block;height:100%;background:linear-gradient(90deg,#6e9b72,#bad9b8)}
+.engine-control{padding:8px 0;border-bottom:1px solid #62696e}
+.engine-control:last-child{border-bottom:0}
+.engine-name{margin-bottom:6px}
+@media(max-width:1150px){.cockpit-grid,.cockpit-editor-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.cockpit-grid,.cockpit-editor-grid{grid-template-columns:1fr}.cockpit-banner{align-items:flex-start;flex-direction:column}}
