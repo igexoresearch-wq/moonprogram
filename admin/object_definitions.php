@@ -16,20 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'add_definition') {
             $name = trim((string)$_POST['name']);
             $slug = slugify((string)($_POST['slug'] ?: $name));
+            $cockpitId = $_POST['default_cockpit_id'] !== ''
+                ? (int)$_POST['default_cockpit_id']
+                : null;
 
             $stmt = $pdo->prepare(
                 "INSERT INTO object_definitions (
-                    slug, name, object_type, dry_mass_kg, radius_m,
-                    produces_gravity, affected_by_gravity, has_orientation, notes
+                    slug, name, object_type, default_cockpit_id,
+                    dry_mass_kg, radius_m,
+                    produces_gravity, affected_by_gravity,
+                    has_orientation, notes
                  ) VALUES (
-                    :slug, :name, :object_type, :dry_mass_kg, :radius_m,
-                    :produces_gravity, :affected_by_gravity, :has_orientation, :notes
+                    :slug, :name, :object_type, :default_cockpit_id,
+                    :dry_mass_kg, :radius_m,
+                    :produces_gravity, :affected_by_gravity,
+                    :has_orientation, :notes
                  )"
             );
             $stmt->execute([
                 'slug' => $slug,
                 'name' => $name,
                 'object_type' => trim((string)$_POST['object_type']),
+                'default_cockpit_id' => $cockpitId,
                 'dry_mass_kg' => (string)$_POST['dry_mass_kg'],
                 'radius_m' => $_POST['radius_m'] !== '' ? (string)$_POST['radius_m'] : null,
                 'produces_gravity' => isset($_POST['produces_gravity']) ? 1 : 0,
@@ -37,8 +45,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'has_orientation' => isset($_POST['has_orientation']) ? 1 : 0,
                 'notes' => trim((string)$_POST['notes']) ?: null,
             ]);
-
             $message = 'Object definition created.';
+        }
+
+        if ($action === 'set_cockpit') {
+            $cockpitId = $_POST['default_cockpit_id'] !== ''
+                ? (int)$_POST['default_cockpit_id']
+                : null;
+
+            $stmt = $pdo->prepare(
+                "UPDATE object_definitions
+                 SET default_cockpit_id=:cockpit_id
+                 WHERE id=:id"
+            );
+            $stmt->execute([
+                'cockpit_id'=>$cockpitId,
+                'id'=>(int)$_POST['object_definition_id'],
+            ]);
+            $message = 'Default cockpit updated. New live instances will inherit it.';
         }
 
         if ($action === 'add_tank') {
@@ -85,16 +109,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $definitions = $pdo->query(
     "SELECT
         d.*,
+        c.name AS cockpit_name,
         (SELECT COUNT(*) FROM definition_fuel_tanks t
          WHERE t.object_definition_id=d.id) AS tank_count,
         (SELECT COALESCE(SUM(quantity),0) FROM definition_engine_mounts m
          WHERE m.object_definition_id=d.id) AS engine_count
      FROM object_definitions d
+     LEFT JOIN cockpit_definitions c ON c.id=d.default_cockpit_id
      ORDER BY d.name"
 )->fetchAll();
 
 $engines = $pdo->query(
     "SELECT id,name FROM engine_definitions ORDER BY name"
+)->fetchAll();
+
+$cockpits = $pdo->query(
+    "SELECT id,name FROM cockpit_definitions ORDER BY name"
 )->fetchAll();
 
 require __DIR__ . '/../partials/header.php';
@@ -104,15 +134,26 @@ require __DIR__ . '/../partials/header.php';
 
 <section class="page-card">
   <h1>Object / Component Library</h1>
-  <p class="muted">Definitions are reusable designs. Creating one here does not place it into the live universe.</p>
+  <p class="muted">
+    Definitions are reusable designs. A spacecraft definition can carry a default cockpit;
+    each new live instance inherits that cockpit automatically.
+  </p>
   <form class="grid-form" method="post">
     <input type="hidden" name="action" value="add_definition">
-    <div class="field"><label>Name</label><input name="name" required placeholder="Saturn V S-II"></div>
-    <div class="field"><label>Slug</label><input name="slug" placeholder="saturn-v-s-ii"></div>
-    <div class="field"><label>Type</label><input name="object_type" required placeholder="stage, spacecraft, planet..."></div>
+    <div class="field"><label>Name</label><input name="name" required placeholder="Apollo Command Module"></div>
+    <div class="field"><label>Slug</label><input name="slug" placeholder="apollo-command-module"></div>
+    <div class="field"><label>Type</label><input name="object_type" required placeholder="spacecraft, stage, planet..."></div>
+    <div class="field"><label>Default Cockpit</label>
+      <select name="default_cockpit_id">
+        <option value="">No cockpit</option>
+        <?php foreach ($cockpits as $c): ?>
+          <option value="<?= (int)$c['id'] ?>"><?= h($c['name']) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
     <div class="field"><label>Dry Mass (kg)</label><input type="number" step="0.000001" min="0" name="dry_mass_kg" required></div>
     <div class="field"><label>Radius / collision radius (m)</label><input type="number" step="0.000001" min="0" name="radius_m"></div>
-    <div class="field">
+    <div class="field full">
       <label>Physics flags</label>
       <div class="inline">
         <label><input type="checkbox" name="produces_gravity"> Produces gravity</label>
@@ -128,7 +169,7 @@ require __DIR__ . '/../partials/header.php';
 <section class="page-card">
   <h2>Definition Library</h2>
   <table>
-    <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Dry mass</th><th>Tanks</th><th>Engines</th></tr></thead>
+    <thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Dry mass</th><th>Cockpit</th><th>Tanks</th><th>Engines</th></tr></thead>
     <tbody>
     <?php foreach ($definitions as $d): ?>
       <tr>
@@ -136,6 +177,21 @@ require __DIR__ . '/../partials/header.php';
         <td><strong><?= h($d['name']) ?></strong><br><span class="muted small"><?= h($d['slug']) ?></span></td>
         <td><?= h($d['object_type']) ?></td>
         <td><?= h((string)$d['dry_mass_kg']) ?> kg</td>
+        <td>
+          <form method="post" class="inline compact">
+            <input type="hidden" name="action" value="set_cockpit">
+            <input type="hidden" name="object_definition_id" value="<?= (int)$d['id'] ?>">
+            <select name="default_cockpit_id">
+              <option value="">None</option>
+              <?php foreach ($cockpits as $c): ?>
+                <option value="<?= (int)$c['id'] ?>" <?= (int)$d['default_cockpit_id']===(int)$c['id']?'selected':'' ?>>
+                  <?= h($c['name']) ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+            <button>Set</button>
+          </form>
+        </td>
         <td><?= (int)$d['tank_count'] ?></td>
         <td><?= (int)$d['engine_count'] ?></td>
       </tr>
