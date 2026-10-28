@@ -19,6 +19,7 @@ if (!isset($pageTitle)) { $pageTitle = 'Moon Program'; }
       <a href="<?= h($basePath ?? '') ?>admin/engines.php">Engines</a>
       <a href="<?= h($basePath ?? '') ?>admin/missions.php">Missions</a>
       <a href="<?= h($basePath ?? '') ?>admin/live_objects.php">Live Universe</a>
-      <a href="<?= h($basePath ?? '') ?>admin/panels.php">Panels</a>
+      <a href="<?= h($basePath ?? '') ?>admin/cockpits.php">Cockpits</a>
+      <a href="<?= h($basePath ?? '') ?>admin/panels.php">Ground Panels</a>
     </nav>
   </header>
