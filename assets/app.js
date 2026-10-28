@@ -1,0 +1,7 @@
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-confirm]').forEach(el => {
+    el.addEventListener('click', e => {
+      if (!confirm(el.getAttribute('data-confirm'))) e.preventDefault();
+    });
+  });
+});
