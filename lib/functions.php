@@ -170,11 +170,6 @@ function totalLiveObjectMass(PDO $pdo, int $liveObjectId): float
             + COALESCE((SELECT SUM(remaining_kg)
                         FROM live_fuel_tanks
                         WHERE live_object_id = o.id), 0)
-            + COALESCE((SELECT SUM(ed.dry_mass_kg * le.quantity)
-                        FROM live_engines AS le
-                        JOIN engine_definitions AS ed
-                          ON ed.id = le.engine_definition_id
-                        WHERE le.live_object_id = o.id), 0)
           AS total_mass
          FROM live_objects AS o
          WHERE o.id = :id"
