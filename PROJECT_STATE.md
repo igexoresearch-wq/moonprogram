@@ -326,3 +326,69 @@ At the start of each session:
    - next exact step.
 
 Do not claim a feature is working unless its code/data path has been checked end-to-end.
+
+
+## Audit completion update — 2026-10-29
+
+A full source/database architecture map is now saved in `SYSTEM_MAP.md`.
+
+The audit covered:
+- all principal root/LM operator pages
+- CM cockpit/system pages
+- active physics worker and physics includes
+- CM guidance executor and physics/prog routines
+- ground_control pages
+- uploaded moonland.sql schema/data
+- active vs dormant physics files
+- external NASA reference set for Saturn V, CSM, LM and GNC validation
+
+### Additional confirmed findings
+
+- The active physics worker does not call `physics/land.php`, `physics/launch_stress.php`, `physics/recordtelemetry.php`, prediction files, or legacy `physics.php`.
+- LM landing/contact therefore has no active general body-contact handler.
+- `physics/land.php` itself has inconsistent altitude/body-selection variables and cannot simply be enabled unchanged.
+- Root LM DSKY writes the older `guidance` table but no active LM guidance executor was found. It is currently not equivalent to the CM DSKY/CM_AGC.
+- LM DPS/APS has multiple blockers beyond the engine-stage naming mismatch: no active engine-on path was found, no active descent->ascent stage transition was found, and the root thrust UI caps at 60%.
+- Root LM launch/abort and switch pages contain stale schema assumptions and should not be treated as authoritative mission control.
+- `xz.php` uses telemetry id 19 as map Z even though id 19 is LM RCS propellant.
+- CM RCS translation currently modifies an SPS thrust scalar rather than applying body-axis RCS force.
+- Docking currently captures automatically at <10 m without relative-speed/attitude criteria.
+- Stage sequencing can depend on CM/sound.php being loaded because that UI file clears the staging interlock/event flag.
+- Third-stage engine display/shutdown looks for the wrong engine name.
+- `csm_systems` is a useful subsystem model skeleton but is currently mostly static.
+- The dormant failure simulation references a nonexistent `engine_fuel` table and an invalid `MALF` enum value.
+- CM guidance direct-execute dispatch can stall when more than one execute row is set.
+- Program-level defects include the undefined `$differencer` in program 9, missing `Apollo11LaunchTelemetry`, inconsistent switch mapping, and suspect TLI/TEI calculations.
+- The three constants files disagree materially. One authoritative physical-data source is required.
+- LM/SM mass constants appear to double-count or misclassify propellant and must be historically revalidated.
+- Current launch-pad behavior is artificial: surface gravity/support is suppressed and lseq.php injects initial displacement/velocity.
+- Earth is fixed/non-rotating and the launch site is the +X equatorial point in the current frame.
+
+### Historical validation direction
+
+Official NASA references have been identified for:
+- Saturn V SA-507 flight manual
+- Apollo CSM Operations Handbook
+- Apollo LM Operations Handbook
+- LM propulsion reference
+- Apollo GNC hardware
+- Apollo cockpit/control diagrams
+
+These references support retaining the simulator's existing broad operating concept:
+automatic Saturn launch sequencing, DSKY/program control, rate/manual spacecraft control, independent LM propulsion/RCS, and ground-computed guidance — while correcting the implementation.
+
+### Current confidence level
+
+The active architecture and the main failure points are now understood well enough to begin code repair without replacing the simulator.
+
+The exact source/data-flow reference is `SYSTEM_MAP.md`.
+
+### Next exact step
+
+Before visual consolidation:
+1. make a small compatibility/repair pass for broken names and stale interlocks,
+2. remove physics dependence on cockpit page loads,
+3. add measured real-time physics timing + single-worker locking,
+4. then replace translation and attitude integration behind the existing database/operator interfaces.
+
+No greenfield cockpit/object framework should be introduced.
