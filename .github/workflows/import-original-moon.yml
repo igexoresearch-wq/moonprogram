@@ -1,0 +1,174 @@
+name: Import Original Moon Simulator
+
+on:
+  push:
+    paths:
+      - .github/workflows/import-original-moon.yml
+
+permissions:
+  contents: write
+
+jobs:
+  import-original:
+    if: github.event.head_commit.message == 'Stage original Moon simulator importer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct sanitized source snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64
+          import hashlib
+          import pathlib
+          import tarfile
+
+          repo = pathlib.Path('.')
+          parts = sorted((repo / '.import').glob('moon-source-*.b85'))
+          if len(parts) != 14:
+              raise SystemExit(f'Expected 14 source payload files, found {len(parts)}')
+
+          encoded = ''.join(p.read_text(encoding='utf-8') for p in parts)
+          archive = base64.b85decode(encoded.encode('ascii'))
+          expected = '106bd83137e951d1b4d58f177ea4ee61d82cb3bbacdcc2366e2f6d1d23da1c74'
+          actual = hashlib.sha256(archive).hexdigest()
+          if actual != expected:
+              raise SystemExit(f'Source archive checksum mismatch: {actual}')
+
+          archive_path = pathlib.Path('/tmp/moon_source_text.tar.xz')
+          archive_path.write_bytes(archive)
+
+          target = pathlib.Path('/tmp/newrepo')
+          target.mkdir(parents=True, exist_ok=True)
+          with tarfile.open(archive_path, 'r:xz') as tf:
+              tf.extractall(target)
+
+          count = sum(1 for p in target.rglob('*') if p.is_file())
+          if count != 150:
+              raise SystemExit(f'Expected 150 text/source files after extraction, found {count}')
+          print(f'Reconstructed {count} sanitized source files.')
+          PY
+
+      - name: Retrieve original binary assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import hashlib
+          import pathlib
+          import subprocess
+          import urllib.parse
+
+          manifest = pathlib.Path('.import/binaries.tsv')
+          target_root = pathlib.Path('/tmp/newrepo')
+          bases = [
+              'https://rodriguez0524.com/moon/',
+              'https://www.rodriguez0524.com/moon/',
+              'http://rodriguez0524.com/moon/',
+              'http://www.rodriguez0524.com/moon/',
+          ]
+
+          rows = []
+          for raw in manifest.read_text(encoding='utf-8').splitlines():
+              if not raw.strip():
+                  continue
+              sha, size_text, encoded_path = raw.split('\t', 2)
+              rows.append((sha, int(size_text), encoded_path))
+
+          if len(rows) != 44:
+              raise SystemExit(f'Expected 44 binary assets, found {len(rows)} manifest rows')
+
+          for index, (expected_sha, expected_size, encoded_path) in enumerate(rows, start=1):
+              rel = urllib.parse.unquote(encoded_path)
+              dest = target_root / rel
+              dest.parent.mkdir(parents=True, exist_ok=True)
+
+              ok = False
+              failures = []
+              for base in bases:
+                  url = base + encoded_path
+                  tmp = dest.with_suffix(dest.suffix + '.download')
+                  try:
+                      if tmp.exists():
+                          tmp.unlink()
+                      result = subprocess.run(
+                          [
+                              'curl', '--fail', '--location',
+                              '--retry', '2', '--retry-delay', '1',
+                              '--connect-timeout', '15', '--max-time', '180',
+                              '--user-agent', 'Mozilla/5.0 MoonProgramBaselineImporter/1.0',
+                              '--silent', '--show-error',
+                              url, '--output', str(tmp)
+                          ],
+                          capture_output=True,
+                          text=True,
+                          timeout=200,
+                      )
+                      if result.returncode != 0:
+                          failures.append(f'{url}: curl {result.returncode} {result.stderr.strip()}')
+                          continue
+
+                      data = tmp.read_bytes()
+                      actual_sha = hashlib.sha256(data).hexdigest()
+                      if len(data) != expected_size or actual_sha != expected_sha:
+                          failures.append(
+                              f'{url}: got {len(data)} bytes sha256={actual_sha}'
+                          )
+                          continue
+
+                      tmp.replace(dest)
+                      ok = True
+                      print(f'[{index:02d}/44] verified {rel} ({expected_size} bytes)')
+                      break
+                  finally:
+                      if tmp.exists():
+                          tmp.unlink()
+
+              if not ok:
+                  raise SystemExit(
+                      'Could not retrieve an exact copy of binary asset ' + rel + '\n'
+                      + '\n'.join(failures)
+                  )
+
+          total = sum(1 for p in target_root.rglob('*') if p.is_file())
+          if total != 194:
+              raise SystemExit(f'Expected 194 total files, found {total}')
+
+          print(f'All binary assets verified. Complete snapshot contains {total} files.')
+          PY
+
+      - name: Validate PHP source
+        shell: bash
+        run: |
+          set -euo pipefail
+          find /tmp/newrepo -name '*.php' -print0 | xargs -0 -n1 php -l >/tmp/php-lint.txt
+          cat /tmp/php-lint.txt
+          count="$(find /tmp/newrepo -name '*.php' -type f | wc -l)"
+          test "$count" -eq 146
+          echo "Validated $count PHP files."
+
+      - name: Replace repository with original simulator baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/newrepo/. .
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Replace with original Moon simulator baseline"
+          git push origin HEAD:main
