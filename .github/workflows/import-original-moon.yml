@@ -31,9 +31,27 @@ jobs:
           import tarfile
 
           repo = pathlib.Path('.')
-          parts = sorted((repo / '.import').glob('moon-source-*.b85'))
-          if len(parts) != 14:
-              raise SystemExit(f'Expected 14 source payload files, found {len(parts)}')
+          names = [
+              'moon-source-00.b85',
+              'moon-source-01.b85',
+              'moon-source-02.b85',
+              'moon-source-03.b85',
+              'moon-source-04.b85',
+              'moon-source-05.b85',
+              'moon-source-06.b85',
+              'moon-source-07.b85',
+              'moon-source-08.b85',
+              'moon-source-09.b85',
+              'moon-source-10.b85',
+              'moon-source-11.b85',
+              'moon-source-12a.b85',
+              'moon-source-12b.b85',
+              'moon-source-13.b85',
+          ]
+          parts = [repo / '.import' / name for name in names]
+          missing = [str(p) for p in parts if not p.is_file()]
+          if missing:
+              raise SystemExit('Missing source payload files: ' + ', '.join(missing))
 
           encoded = ''.join(p.read_text(encoding='utf-8') for p in parts)
           archive = base64.b85decode(encoded.encode('ascii'))
