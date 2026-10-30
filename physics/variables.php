@@ -8,6 +8,16 @@ if ($result->num_rows > 0) {
     }
 }
 
+// Compatibility for the original database typo "excape_fuel".
+// Keep both variable names available so old database snapshots and
+// corrected snapshots behave the same during the repair period.
+if (!isset($escape_fuelCM) && isset($excape_fuelCM)) {
+    $escape_fuelCM = $excape_fuelCM;
+}
+if (!isset($excape_fuelCM) && isset($escape_fuelCM)) {
+    $excape_fuelCM = $escape_fuelCM;
+}
+
 $airspeed = sqrt(($delta_xCM * $delta_xCM) + ($delta_yCM * $delta_yCM) + ($delta_zCM * $delta_zCM));
 // Fetch values from 'systems'
 $result = $conn->query("SELECT system, status FROM systems");
