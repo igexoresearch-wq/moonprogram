@@ -98,7 +98,7 @@ if ($s1fuelCM == 0 && $stage1CM == 1) {
     
 }
 // stage 2 ign
-if ($stage1CM == 0   && $s2fuelCM == 456100.00000000 && $stagingCM == 0) {
+if ((int)$stage1CM === 0 && (int)$stage2CM === 1 && (int)$stage3CM === 1 && (float)$thrustCM <= 0.0 && (int)$stagingCM === 0) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 17");
    
 }
@@ -111,7 +111,7 @@ if ($s2fuelCM == 0 && $stage2CM == 1) {
 
 }
 // stage 3 ign
-if ($stage2CM == 0 && $s3fuelCM == 121480.00000000  && $stagingCM == 0) {
+if ((int)$stage1CM === 0 && (int)$stage2CM === 0 && (int)$stage3CM === 1 && (float)$thrustCM <= 0.0 && (int)$stagingCM === 0) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 18");
     
 }
