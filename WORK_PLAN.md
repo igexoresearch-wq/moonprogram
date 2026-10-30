@@ -104,29 +104,29 @@ Goal: make the systems that already exist connect to the correct data.
 
 ## LM propulsion
 
-- [ ] Fix the LM EngineStatus lookup mismatch.
+- [x] Fix the LM EngineStatus lookup mismatch.
   - Current SQL uses `engine_stage='Lunar Module'`.
   - Existing physics looks for `Lunar Module Ascent` and `Lunar Module Descent`.
-- [ ] Distinguish DPS vs APS by engine name/component while preserving the existing table if possible.
-- [ ] Provide a real active path for LM engine ignition.
-- [ ] Provide a real descent-stage jettison / APS activation transition.
-- [ ] Remove the accidental 60% LM throttle limitation unless it is deliberately required by an operating mode.
-- [ ] Verify descent and ascent fuel are deducted from the correct tanks.
+- [x] Distinguish DPS vs APS by engine name/component while preserving the existing table if possible.
+- [x] Provide a real active path for LM engine ignition.
+- [x] Provide a real descent-stage jettison / APS activation transition.
+- [x] Remove the accidental 60% LM throttle limitation unless it is deliberately required by an operating mode.
+- [x] Verify descent and ascent fuel are deducted from the correct tanks.
 
 ## CSM / Saturn naming
 
-- [ ] Normalize `excape_fuel` / `escape_fuel` without losing existing state.
-- [ ] Fix LES thrust to use the LES thrust model rather than first-stage thrust.
-- [ ] Normalize engine failure state to the actual SQL values (`OK` / `FAILED`) or migrate the schema deliberately.
-- [ ] Correct S-IVB engine naming in indicators/shutdown controls.
-- [ ] Remove references to nonexistent `engine_fuel` unless that subsystem is intentionally restored.
+- [x] Normalize `excape_fuel` / `escape_fuel` without losing existing state.
+- [x] Fix LES thrust to use the LES thrust model rather than first-stage thrust.
+- [x] Normalize engine failure state to the actual SQL values (`OK` / `FAILED`) or migrate the schema deliberately.
+- [x] Correct S-IVB engine naming in indicators/shutdown controls.
+- [x] Remove references to nonexistent `engine_fuel` unless that subsystem is intentionally restored.
 
 ## Stale root controls
 
-- [ ] Repair or retire root Launch/Abort code that assumes nonexistent system rows.
-- [ ] Repair or retire stale root switch actions with obsolete coordinate/state assumptions.
-- [ ] Fix XZ map state so it never overwrites LM RCS propellant.
-- [ ] Remove references to nonexistent `eagle` state or implement it deliberately.
+- [x] Repair or retire root Launch/Abort code that assumes nonexistent system rows.
+- [x] Repair or retire stale root switch actions with obsolete coordinate/state assumptions.
+- [x] Fix XZ map state so it never overwrites LM RCS propellant.
+- [x] Remove references to nonexistent `eagle` state or implement it deliberately.
 
 Acceptance:
 - Existing buttons/switches no longer write to the wrong row/table.
@@ -144,8 +144,8 @@ Known example:
 - This can make stage sequencing depend on whether that page is open.
 
 Work:
-- [ ] Replace UI-cleared event flags with durable physics events.
-- [ ] Make sound pages observers only.
+- [x] Replace UI-cleared event flags with durable physics events.
+- [x] Make sound pages observers only.
 - [ ] Make indicators observers only.
 - [ ] Make charts observers only.
 - [ ] Audit every cockpit include for database writes that should belong in physics/control endpoints.
@@ -166,13 +166,13 @@ Goal:
 - the integrator decides how to subdivide that elapsed time.
 
 Work:
-- [ ] Add one authoritative high-resolution `last_physics_at` value.
-- [ ] Use database time or an equivalent shared authoritative clock.
-- [ ] Add a single-worker lock so overlapping cron launches cannot double-simulate time.
-- [ ] Preserve the existing once-per-minute cron + approximately-minute-long worker concept.
-- [ ] Measure elapsed time instead of assuming `sleep(1)` means exactly 1.000 seconds.
-- [ ] Break elapsed time into small fixed physics substeps.
-- [ ] Define a safe catch-up policy after downtime.
+- [x] Add one authoritative high-resolution `last_physics_at` value.
+- [x] Use database time or an equivalent shared authoritative clock.
+- [x] Add a single-worker lock so overlapping cron launches cannot double-simulate time.
+- [x] Preserve the existing once-per-minute cron + approximately-minute-long worker concept.
+- [x] Measure elapsed time instead of assuming `sleep(1)` means exactly 1.000 seconds.
+- [x] Break elapsed time into small fixed physics substeps.
+- [x] Define a safe catch-up policy after downtime.
 - [ ] Keep the mission clock as mission display/procedure time, not as the authoritative numerical integrator clock.
 
 Initial substep target:
@@ -198,9 +198,9 @@ Current problem:
 contain materially different values.
 
 Work:
-- [ ] Create one authoritative physical-data include/table.
+- [x] Create one authoritative physical-data include/table.
 - [ ] Validate values against NASA/source documentation.
-- [ ] Keep display-unit conversions separate from physical values.
+- [x] Keep display-unit conversions separate from physical values.
 - [ ] Audit:
   - Earth mass/radius
   - Moon mass/radius
@@ -217,7 +217,7 @@ Work:
   - DPS/APS thrust and throttle behavior
   - RCS thrust/propellant
   - LES values
-- [ ] Fix the current Moon mass factor-of-ten error.
+- [x] Fix the current Moon mass factor-of-ten error.
 
 Acceptance:
 - physics, cockpit, guidance and ground-control calculations all reference the same physical numbers.
@@ -248,34 +248,34 @@ Preserve:
 - Earth/Moon model.
 
 Replace internally:
-- [ ] use a stable symplectic integrator such as velocity-Verlet / leapfrog,
-- [ ] compute all gravity from one coherent state snapshot per substep,
-- [ ] remove `factorCM` as an orbital-energy correction,
-- [ ] use PHP double precision for local relative calculations,
-- [ ] avoid unnecessary rounding/formatting inside the physics loop,
-- [ ] write full useful precision back to DB.
+- [x] use a stable symplectic integrator such as velocity-Verlet / leapfrog,
+- [x] compute all gravity from one coherent state snapshot per substep,
+- [x] remove `factorCM` as an orbital-energy correction,
+- [x] use PHP double precision for local relative calculations,
+- [x] avoid unnecessary rounding/formatting inside the physics loop,
+- [x] write full useful precision back to DB.
 
 ## Conservation diagnostics
 
 Add a diagnostic module that records, at minimum:
 
 For Earth-only two-body validation:
-- [ ] position and velocity magnitude
+- [x] position and velocity magnitude
 - [ ] radius
-- [ ] specific orbital energy
-- [ ] specific angular momentum vector and magnitude
+- [x] specific orbital energy
+- [x] specific angular momentum vector and magnitude
 - [ ] eccentricity vector/magnitude
 - [ ] semi-major axis
 - [ ] periapsis/apoapsis
-- [ ] drift from initial energy
-- [ ] drift from initial angular momentum
+- [x] drift from initial energy
+- [x] drift from initial angular momentum
 
 Important:
 - in an Earth+Moon perturbed trajectory, spacecraft angular momentum about Earth alone is **not** expected to remain perfectly constant,
 - therefore the strict conservation test must first be run with a controlled Earth-only orbit.
 
 Validation scenarios:
-- [ ] circular LEO for multiple orbits
+- [x] circular LEO for multiple orbits
 - [ ] elliptical Earth orbit
 - [ ] translunar coast with Moon enabled
 - [ ] lunar orbit
@@ -301,11 +301,11 @@ Preserve externally:
 - manual control concept
 
 Internally:
-- [ ] add a robust orientation representation (quaternion or equivalent rotation matrix state),
-- [ ] convert cockpit Euler angles to/from internal orientation,
-- [ ] remove the +/-90-degree pitch reflection hack,
-- [ ] transform engine/RCS thrust from body coordinates to world coordinates using full 3D orientation,
-- [ ] integrate angular velocity consistently with dt,
+- [x] add a robust orientation representation (quaternion or equivalent rotation matrix state),
+- [x] convert cockpit Euler angles to/from internal orientation,
+- [x] remove the +/-90-degree pitch reflection hack,
+- [x] transform main-engine thrust from body coordinates to world coordinates using full 3D orientation; RCS remains pending,
+- [x] integrate angular velocity consistently with dt,
 - [ ] introduce moments of inertia / torque where needed,
 - [ ] make roll physically meaningful for body-frame controls and lift direction.
 
@@ -327,11 +327,11 @@ Current hack:
 - launch sequence gives the rocket a position/velocity kick.
 
 Replace with:
-- [ ] explicit pad/support constraint before liftoff,
-- [ ] engines build thrust while vehicle remains supported,
-- [ ] release when launch conditions/interlocks are satisfied,
-- [ ] natural upward acceleration after support release,
-- [ ] no artificial initial velocity injection.
+- [x] explicit pad/support constraint before liftoff,
+- [x] engines build thrust while vehicle remains supported,
+- [x] release when outward net acceleration exceeds support requirement,
+- [x] natural upward acceleration after support release,
+- [x] no artificial initial velocity injection.
 
 ## Engine/stage behavior
 
@@ -892,3 +892,29 @@ The manual should include a short "I want to..." index, for example:
 12. Preserve the original simulator's operating character unless a specific behavior is broken.
 13. Do not introduce vehicle-specific hacks into gravity/integration merely to force a desired trajectory.
 14. Do not call something "working" until its full input -> physics -> state -> display path has been tested.
+
+
+---
+
+## Implementation note — 2026-10-30
+
+The first repair wave is now committed:
+
+- Broken LM/Saturn/LES wiring repaired.
+- UI staging sound no longer controls launch physics.
+- Real wall-clock accumulator and MySQL worker lock added.
+- Physical constants consolidated into `shared/physical_constants.php`.
+- Derived mass/geometry consolidated into `shared/derived_state.php`.
+- Translational motion now uses a shared velocity-Verlet integrator with 0.1 s substeps.
+- The old `factorCM` spacecraft correction and Moon `0.91` correction are no longer in the active translation path.
+- Earth-only energy/angular-momentum regression test added.
+- Quaternion attitude state added and activated for CSM/LM.
+- Main-engine thrust now uses body-forward quaternion orientation.
+- Saturn launch-pad support now releases from net outward acceleration; the T+1 position/velocity kick was removed.
+- CI definitions now include PHP lint, orbital conservation, and quaternion attitude regressions.
+
+Important testing status:
+- Static source checks and mathematical cross-checks have been performed.
+- The current remote tree has **not yet been proven end-to-end on the production PHP/MySQL host**.
+- GitHub Actions had not returned a workflow run at the time of this update.
+- Do not mark mission-level acceptance tests complete until deployed/runtime-tested.
