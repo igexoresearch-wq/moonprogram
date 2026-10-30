@@ -347,6 +347,10 @@ function moonSimAdvanceTranslation(
                     $impactSpeed, $inward, $tangential
                 );
 
+                // Contact shuts propulsion down in the database; remove the
+                // already-calculated force from the remainder of this second.
+                $cmNonGravityAcceleration = [0.0,0.0,0.0];
+
                 $surfaceContacts['CM'] = [
                     'body'=>$hit['body'],
                     'state'=>$state,
@@ -440,6 +444,10 @@ function moonSimAdvanceTranslation(
                     $conn, 'LM', $hit['body'], $state, $normal,
                     $impactSpeed, $inward, $tangential
                 );
+
+                // Prevent a cached descent/ascent thrust value from releasing
+                // a newly landed vehicle before the next DB reload.
+                $lmNonGravityAcceleration = [0.0,0.0,0.0];
 
                 $surfaceContacts['LM'] = [
                     'body'=>$hit['body'],
