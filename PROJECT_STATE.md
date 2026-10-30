@@ -487,3 +487,30 @@ Continue Phase 4/7 validation:
 2. validate five F-1 / five S-II J-2 / one S-IVB J-2 state logic,
 3. move launch-stage programs out of fragile database-only physical transitions where useful,
 4. replace the missing Apollo11LaunchTelemetry dependency with mission-profile launch data without hard-coding physics to Apollo 11.
+
+
+## Continued coding progress — 2026-10-30
+
+Further repairs completed:
+- corrected the docking command queue schema-migration bug that could have removed newly-added LM command values,
+- repaired CM guidance program 9's undefined roll-difference variable,
+- repaired program 37's undefined lunar-distance input,
+- made CM_AGC process multiple pending direct-execute requests deterministically,
+- added `docs/PHYSICAL_DATA_SOURCES.md` with NASA-based Saturn V/CSM/LM reference values and explicitly documented unresolved mass-accounting issues,
+- implemented an Apollo-style DPS throttle mapping and fixed-thrust APS behavior,
+- replaced launch-sequence /tmp climb-rate tracking with state-derived radial velocity,
+- removed an unsafe launch cutoff tied to potentially uninitialized IMU target data,
+- added a parking-orbit cutoff that preserves S-IVB propellant,
+- added S-IVB restart/shutdown behavior for the existing TLI routine,
+- added `shared/mission_profiles.php` as the mission-configuration foundation. It seeds a generic training profile and an Apollo 11 validation profile with sourced launch-event times and parking-orbit targets.
+
+The mission profile is configuration only; it does not create mission-specific gravity or propulsion code.
+
+### Next exact step
+Wire the selected profile into the launch-sequence controller:
+- center-engine cutoff events,
+- outboard cutoff/separation timing,
+- LES jettison reference,
+- S-II/S-IVB event timing,
+- profile parking-orbit targets,
+then add the simple mission selector while simulation is reset/off.
