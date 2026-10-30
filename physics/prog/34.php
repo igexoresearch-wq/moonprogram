@@ -100,8 +100,24 @@ include 'programshift.php';
     
 
         
-//#############Trigger 1       
+//#############Trigger 1
 if ($trigger == 1) {
+    // TLI restart owns the S-IVB J-2 ignition state. The launch sequence
+    // deliberately shut the engine OFF at parking-orbit insertion while
+    // leaving stage 3 attached and propellant available.
+    if ((int)$stage3CM === 1 && (float)$s3fuelCM > 0.0) {
+        $conn->query(
+            "UPDATE EngineStatus
+             SET status='ON'
+             WHERE engine_stage='Third Stage'
+               AND operational_status='OK'"
+        );
+        $conn->query(
+            "UPDATE mission_clock
+             SET launch_events=3
+             WHERE id=1"
+        );
+    }
             
        
         if ($IMU_delta_V < $IMUHOLD_delta_V || $apogee_altitude < $apogeeRadius2) {
@@ -133,9 +149,14 @@ $thrust = max(10, min(100, $thrust));
       $conn->query("UPDATE command_module SET value = $thrust WHERE attribute = 'thrust'"); } 
          else
      {
-       $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrust'");   
-       $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'yaw_rate'"); 
-          include 'progclear.php';
+       $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrust'");
+       $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'yaw_rate'");
+       $conn->query(
+           "UPDATE EngineStatus
+            SET status='OFF'
+            WHERE engine_stage='Third Stage'"
+       );
+       include 'progclear.php';
     }
     
 }
