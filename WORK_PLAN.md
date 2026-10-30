@@ -89,9 +89,9 @@ Status: AUDIT COMPLETE / BASELINE PRESERVED
 - [x] Save persistent project memory in `PROJECT_STATE.md`.
 
 Before major physics changes:
-- [ ] Create a known-good baseline SQL/reset snapshot.
-- [ ] Add a small diagnostic/status page showing the currently loaded simulator version/commit.
-- [ ] Remove or quarantine the interrupted `.upgrade_payload` directory after confirming nothing useful remains in it.
+- [x] Create a known-good baseline SQL/reset snapshot.
+- [x] Add a small diagnostic/status page showing the currently loaded simulator version/commit.
+- [x] Remove or quarantine the interrupted `.upgrade_payload` directory after confirming nothing useful remains in it.
 
 Acceptance:
 - A clean checkout plus the SQL dump can reproduce the pre-repair simulator state.
@@ -146,10 +146,10 @@ Known example:
 Work:
 - [x] Replace UI-cleared event flags with durable physics events.
 - [x] Make sound pages observers only.
-- [ ] Make indicators observers only.
-- [ ] Make charts observers only.
-- [ ] Audit every cockpit include for database writes that should belong in physics/control endpoints.
-- [ ] Keep genuine operator switch/button writes, but route them to explicit command/state fields.
+- [x] Make indicators observers only.
+- [x] Make charts observers only.
+- [x] Audit every cockpit include for database writes that should belong in physics/control endpoints.
+- [x] Keep genuine operator switch/button writes, but route physical separation/flight events through central physics command/state paths.
 
 Acceptance:
 - A mission produces the same trajectory whether zero, one, or all cockpit pages are open.
@@ -173,7 +173,7 @@ Work:
 - [x] Measure elapsed time instead of assuming `sleep(1)` means exactly 1.000 seconds.
 - [x] Break elapsed time into small fixed physics substeps.
 - [x] Define a safe catch-up policy after downtime.
-- [ ] Keep the mission clock as mission display/procedure time, not as the authoritative numerical integrator clock.
+- [x] Keep the mission clock as mission display/procedure time, not as the authoritative numerical integrator clock.
 
 Initial substep target:
 - start testing around 0.05–0.10 second physics steps,
@@ -261,12 +261,12 @@ Add a diagnostic module that records, at minimum:
 
 For Earth-only two-body validation:
 - [x] position and velocity magnitude
-- [ ] radius
+- [x] radius
 - [x] specific orbital energy
 - [x] specific angular momentum vector and magnitude
-- [ ] eccentricity vector/magnitude
-- [ ] semi-major axis
-- [ ] periapsis/apoapsis
+- [x] eccentricity vector/magnitude
+- [x] semi-major axis
+- [x] periapsis/apoapsis
 - [x] drift from initial energy
 - [x] drift from initial angular momentum
 
@@ -918,3 +918,22 @@ Important testing status:
 - The current remote tree has **not yet been proven end-to-end on the production PHP/MySQL host**.
 - GitHub Actions had not returned a workflow run at the time of this update.
 - Do not mark mission-level acceptance tests complete until deployed/runtime-tested.
+
+
+## Progress note — 2026-10-30 repair pass
+
+Completed in this pass:
+- created `baseline/reset_snapshot.sql` and `baseline/README.md`,
+- added `BUILD_VERSION` and `status.php`,
+- removed the interrupted `.upgrade_payload` staging artifacts,
+- audited cockpit/display database writes,
+- removed the hidden guidance write from `CM/alt.php`,
+- moved Service Module separation to the central physics command queue,
+- moved LM descent-stage separation to the central physics command queue,
+- moved LM landing-abort ascent transition to the central physics command queue,
+- made manual and automatic LES abort request state only; central physics now performs launch-stack separation,
+- added `shared/orbital_mechanics.php` for deterministic orbital elements/vis-viva calculations,
+- extended the conservation regression to include circular and elliptical Earth-only orbits plus energy, angular momentum, eccentricity, semi-major axis, periapsis and apoapsis drift.
+
+Testing note:
+- PHP/GitHub CI execution has not yet been observed for the newest commits. Do not mark the new elliptical regression scenario as passed until it has actually executed.
