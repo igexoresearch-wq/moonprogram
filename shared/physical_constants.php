@@ -80,6 +80,12 @@ $escape_tower_thrust = 147000.0 * 4.4482216152605;  // N, LES main motor
 $service_module_initial_fuel = 40803.0 * 0.45359237; // kg, Apollo 11 SPS loaded propellant
 $csm_rcs_initial_propellant = 1342.4 * 0.45359237;   // kg, Apollo 11 SM-RCS nominal loaded
 
+// Service Module RCS: four quads of four approximately 100-lbf engines.
+// Steady-state reference: 99.8 lbf and 0.361 lb/s per jet.
+$sm_rcs_single_thrust = 99.8 * 4.4482216152605;       // N
+$sm_rcs_single_flow_rate = 0.361 * 0.45359237;         // kg/s
+$sm_rcs_translation_jets = 4;                          // simplified coordinated translation
+
 // SPS flight performance is about 314 s Isp.
 $service_module_fuel_rate =
     $service_module_thrust / (314.0 * $standard_gravity);       // kg/s
@@ -91,6 +97,14 @@ $service_module_fuel_rate =
 $lander_ascent_empty_mass = 4804.0 * 0.45359237;   // kg
 $lander_descent_empty_mass = 4483.0 * 0.45359237;  // kg
 $lm_rcs_initial_propellant = 604.0 * 0.45359237;    // kg
+
+// LM RCS: 16 pulse-modulated approximately 100-lbf thrusters.
+// Nominal performance data are close to the SM RCS; the original navigation
+// characteristics reference gives 102.8 lbf and 0.371 lb/s per jet.
+$lm_rcs_single_thrust = 102.8 * 4.4482216152605;       // N
+$lm_rcs_single_flow_rate = 0.371 * 0.45359237;         // kg/s
+$lm_rcs_translation_jets = 4;                          // simplified coordinated translation
+
 $descent_initial_fuel = 18100.0 * 0.45359237;       // kg
 $ascent_initial_fuel = 5214.0 * 0.45359237;         // kg
 
