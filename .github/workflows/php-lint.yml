@@ -1,0 +1,16 @@
+name: PHP Lint
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP version
+        run: php -v
+      - name: Lint all PHP files
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
