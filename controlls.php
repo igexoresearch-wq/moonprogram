@@ -1,83 +1,165 @@
 <?php
 
+$needs_redirect = false;
 
-// Query for fuel_level
+// Current LM RCS propellant.
 $result = $conn->query("SELECT value FROM telemetry WHERE attribute = 'RCS'");
-if ($result && $row = $result->fetch_assoc()) {
-    $fuel_level = $row['value'];
-} else {
-    die("Error retrieving fuel level: " . $conn->error);
-}
+$fuel_level = ($result && $row = $result->fetch_assoc())
+    ? (float)$row['value']
+    : 0.0;
 
-// Query for rcsStatus
-$result = $conn->query("SELECT status FROM systems WHERE system = 'RCS'");
-if ($result && $row = $result->fetch_assoc()) {
-    $rcsStatus = $row['status'];
-} else {
-    die("Error retrieving RCS status: " . $conn->error);
-}
+// System availability.
+$systemStatus = [
+    'RCS' => 0,
+    'thrust' => 0,
+    'pitch' => 0,
+    'roll' => 0,
+    'propulsion' => 0,
+];
 
-// Fetch current telemetry values
-$telemetry = [];
-$attributes = ['pitch_rate', 'roll_rate', 'thrust'];
-foreach ($attributes as $attribute) {
-    $result = $conn->query("SELECT value FROM telemetry WHERE attribute = '$attribute'");
-    $telemetry[$attribute] = ($result && $result->num_rows > 0) ? floatval($result->fetch_assoc()['value']) : 0;
-}
-
-// Fetch system statuses
-$systems = [];
-$result = $conn->query("SELECT system, status FROM systems WHERE system IN ('thrust', 'pitch', 'roll')");
-if ($result && $result->num_rows > 0) {
+$result = $conn->query(
+    "SELECT system, status
+     FROM systems
+     WHERE system IN ('RCS', 'thrust', 'pitch', 'roll', 'propulsion')"
+);
+if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $systems[$row['system']] = intval($row['status']);
+        $systemStatus[$row['system']] = (int)$row['status'];
     }
 }
 
-// Handle button actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $fuel_level >= 1 && $rcsStatus == 1) {
-        // Deduct 1 unit of RCS fuel
-        $stmt = $conn->prepare("UPDATE telemetry SET value = value - 1 WHERE attribute = 'RCS'");
-        $stmt->execute();
-    if (isset($_POST['increase_pitch']) && $systems['pitch'] === 1) {
-        $telemetry['pitch_rate'] += 0.5;
-        $conn->query("UPDATE telemetry SET value = {$telemetry['pitch_rate']} WHERE attribute = 'pitch_rate'");
+// Current LM control state.
+$telemetry = [
+    'pitch_rate' => 0.0,
+    'roll_rate' => 0.0,
+    'thrust' => 0.0,
+    'descent' => 1,
+];
+
+$result = $conn->query(
+    "SELECT attribute, value
+     FROM telemetry
+     WHERE attribute IN ('pitch_rate', 'roll_rate', 'thrust', 'descent')"
+);
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $telemetry[$row['attribute']] = (float)$row['value'];
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $attitudeCommand =
+        isset($_POST['increase_pitch'])
+        || isset($_POST['decrease_pitch'])
+        || isset($_POST['increase_roll'])
+        || isset($_POST['decrease_roll']);
+
+    // The legacy LM attitude controls are still discrete RCS pulses for now.
+    // Only an actual RCS attitude command consumes RCS propellant; main-engine
+    // throttle/staging must not depend on how much RCS fuel remains.
+    if (
+        $attitudeCommand
+        && $fuel_level >= 1.0
+        && $systemStatus['RCS'] === 1
+    ) {
+        $conn->query(
+            "UPDATE telemetry
+             SET value = GREATEST(0, value - 1)
+             WHERE attribute = 'RCS'"
+        );
+
+        if (isset($_POST['increase_pitch']) && $systemStatus['pitch'] === 1) {
+            $telemetry['pitch_rate'] += 0.5;
+            $conn->query(
+                "UPDATE telemetry
+                 SET value = {$telemetry['pitch_rate']}
+                 WHERE attribute = 'pitch_rate'"
+            );
+        }
+
+        if (isset($_POST['decrease_pitch']) && $systemStatus['pitch'] === 1) {
+            $telemetry['pitch_rate'] -= 0.5;
+            $conn->query(
+                "UPDATE telemetry
+                 SET value = {$telemetry['pitch_rate']}
+                 WHERE attribute = 'pitch_rate'"
+            );
+        }
+
+        if (isset($_POST['increase_roll']) && $systemStatus['roll'] === 1) {
+            $telemetry['roll_rate'] += 0.5;
+            $conn->query(
+                "UPDATE telemetry
+                 SET value = {$telemetry['roll_rate']}
+                 WHERE attribute = 'roll_rate'"
+            );
+        }
+
+        if (isset($_POST['decrease_roll']) && $systemStatus['roll'] === 1) {
+            $telemetry['roll_rate'] -= 0.5;
+            $conn->query(
+                "UPDATE telemetry
+                 SET value = {$telemetry['roll_rate']}
+                 WHERE attribute = 'roll_rate'"
+            );
+        }
+
         $needs_redirect = true;
     }
 
-    if (isset($_POST['decrease_pitch']) && $systems['pitch'] === 1) {
-        $telemetry['pitch_rate'] -= 0.5;
-        $conn->query("UPDATE telemetry SET value = {$telemetry['pitch_rate']} WHERE attribute = 'pitch_rate'");
+    $mainEngineAvailable =
+        $systemStatus['thrust'] === 1
+        && $systemStatus['propulsion'] === 1;
+
+    if (isset($_POST['increase_thrust']) && $mainEngineAvailable) {
+        // 100 now means 100% commanded throttle.  The old 60% cap was paired
+        // with a second hidden reduction in the DPS constant and made the LM
+        // incapable of producing the intended full-throttle command.
+        $telemetry['thrust'] = min(100.0, $telemetry['thrust'] + 1.0);
+        $conn->query(
+            "UPDATE telemetry
+             SET value = {$telemetry['thrust']}
+             WHERE attribute = 'thrust'"
+        );
         $needs_redirect = true;
     }
 
-    if (isset($_POST['increase_roll']) && $systems['roll'] === 1) {
-        $telemetry['roll_rate'] += 0.5;
-        $conn->query("UPDATE telemetry SET value = {$telemetry['roll_rate']} WHERE attribute = 'roll_rate'");
-        $needs_redirect = true;
-    }
-
-    if (isset($_POST['decrease_roll']) && $systems['roll'] === 1) {
-        $telemetry['roll_rate'] -= 0.5;
-        $conn->query("UPDATE telemetry SET value = {$telemetry['roll_rate']} WHERE attribute = 'roll_rate'");
-        $needs_redirect = true;
-    }
-
-    if (isset($_POST['increase_thrust']) && $systems['thrust'] === 1) {
-        $telemetry['thrust'] = min(60, $telemetry['thrust'] + 1);
-        $conn->query("UPDATE telemetry SET value = {$telemetry['thrust']} WHERE attribute = 'thrust'");
-        $needs_redirect = true;
-    }
-
-    if (isset($_POST['decrease_thrust']) && $systems['thrust'] === 1) {
-        $telemetry['thrust'] = max(0, $telemetry['thrust'] - 1);
-        $conn->query("UPDATE telemetry SET value = {$telemetry['thrust']} WHERE attribute = 'thrust'");
+    if (isset($_POST['decrease_thrust']) && $mainEngineAvailable) {
+        $telemetry['thrust'] = max(0.0, $telemetry['thrust'] - 1.0);
+        $conn->query(
+            "UPDATE telemetry
+             SET value = {$telemetry['thrust']}
+             WHERE attribute = 'thrust'"
+        );
         $needs_redirect = true;
     }
 
     if (isset($_POST['shut_off_engine'])) {
-        $telemetry['thrust'] = 0;
+        $telemetry['thrust'] = 0.0;
         $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'thrust'");
+        $conn->query(
+            "UPDATE EngineStatus
+             SET status = 'OFF'
+             WHERE engine_stage = 'Lunar Module'"
+        );
+        $needs_redirect = true;
+    }
+
+    if (isset($_POST['stage_ascent']) && (int)$telemetry['descent'] === 1) {
+        // Separate the descent stage.  A physical separation impulse will be
+        // added in the later docking/staging physics pass; this repair makes
+        // the existing APS path reachable without teleporting the vehicle.
+        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'thrust'");
+        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'descent'");
+        $conn->query("UPDATE systems SET status = 0 WHERE system = 'landed'");
+        $conn->query(
+            "UPDATE EngineStatus
+             SET status = 'OFF'
+             WHERE engine_stage = 'Lunar Module'"
+        );
+
+        $telemetry['thrust'] = 0.0;
+        $telemetry['descent'] = 0;
         $needs_redirect = true;
     }
 
@@ -89,41 +171,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $fuel_level >= 1 && $rcsStatus == 1
 ?>
 
 <div class="controls-container">
-    <!-- Pitch Controls -->
-    
-    <table><tr><td></td><td><button class="control-button" name="increase_pitch" form="control-form">Pitch ↑</button></td><td></td></tr>
-    <tr><td><button class="control-button" name="increase_roll" form="control-form">Roll ←</button></td><td>
-        <table><tr><td><div class="readout">
-            <span class="unit-label">Pitch Rate</span>
-            <div class="digital-display small"><?php echo str_pad(number_format($telemetry['pitch_rate'], 1), 4, '0', STR_PAD_LEFT); ?></div>
-        </div></td></tr><tr><td><div class="readout">
-            <span class="unit-label">Roll Rate</span>
-            <div class="digital-display small"><?php echo str_pad(number_format($telemetry['roll_rate'], 1), 4, '0', STR_PAD_LEFT); ?></div>
-        </div></td></tr></table>
-        
-    </div></td><td>   <button class="control-button" name="decrease_roll" form="control-form">Roll →</button></td></tr>
-    <tr><td></td><td><button class="control-button" name="decrease_pitch" form="control-form">Pitch ↓</button></td><td></td></tr></table>
- 
+    <div class="lm-engine-mode">
+        MAIN ENGINE:
+        <strong><?php echo ((int)$telemetry['descent'] === 1) ? 'DPS / DESCENT' : 'APS / ASCENT'; ?></strong>
+    </div>
 
-    <!-- Thrust Controls -->
+    <table>
+        <tr>
+            <td></td>
+            <td><button class="control-button" name="increase_pitch" form="control-form">Pitch ↑</button></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><button class="control-button" name="increase_roll" form="control-form">Roll ←</button></td>
+            <td>
+                <table>
+                    <tr>
+                        <td>
+                            <div class="readout">
+                                <span class="unit-label">Pitch Rate</span>
+                                <div class="digital-display small"><?php echo str_pad(number_format($telemetry['pitch_rate'], 1), 4, '0', STR_PAD_LEFT); ?></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="readout">
+                                <span class="unit-label">Roll Rate</span>
+                                <div class="digital-display small"><?php echo str_pad(number_format($telemetry['roll_rate'], 1), 4, '0', STR_PAD_LEFT); ?></div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td><button class="control-button" name="decrease_roll" form="control-form">Roll →</button></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button class="control-button" name="decrease_pitch" form="control-form">Pitch ↓</button></td>
+            <td></td>
+        </tr>
+    </table>
+
     <div class="thrust-controls">
         <button class="control-button" name="increase_thrust" form="control-form">Thrust ↑</button>
-        <div class="digital-display"><?php echo str_pad((int)$telemetry['thrust'], 2, '0', STR_PAD_LEFT); ?></div>
+        <div class="digital-display"><?php echo str_pad((int)$telemetry['thrust'], 3, '0', STR_PAD_LEFT); ?>%</div>
         <button class="control-button" name="decrease_thrust" form="control-form">Thrust ↓</button>
     </div>
 
- 
-
-    <!-- Engine Shutoff -->
     <div class="engine-controls">
         <button class="control-button" name="shut_off_engine" form="control-form">Engine Off</button>
+        <?php if ((int)$telemetry['descent'] === 1): ?>
+            <button
+                class="control-button stage-button"
+                name="stage_ascent"
+                form="control-form"
+                onclick="return confirm('Separate the LM descent stage?');"
+            >Descent Stage Sep</button>
+        <?php endif; ?>
     </div>
-
-    <!-- Readouts -->
-    
 </div>
 
-<!-- Control Form -->
 <form method="POST" id="control-form"></form>
 
 <style>
@@ -135,6 +243,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $fuel_level >= 1 && $rcsStatus == 1
         align-items: center;
         background-color: #2e2e2e;
         padding: 20px;
+    }
+
+    .lm-engine-mode {
+        width: 100%;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        letter-spacing: 0.04em;
     }
 
     .pitch-controls,
@@ -154,6 +269,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $fuel_level >= 1 && $rcsStatus == 1
     .engine-controls {
         margin-top: 10px;
         text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .readout-container {
@@ -190,6 +308,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $fuel_level >= 1 && $rcsStatus == 1
     .control-button:active {
         background-color: #777777;
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .stage-button {
+        border-color: #b38a00;
+        color: #ffe878;
     }
 
     .digital-display {
