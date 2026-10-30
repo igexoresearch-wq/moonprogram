@@ -88,14 +88,50 @@ $service_module_fraction = $engineFraction($conn, 'Service Module');
  * work can put a more detailed ignition interlock in front of this without
  * changing the cockpit control.
  */
-$lmThrottle = max(0.0, min(100.0, (float)$thrustLM));
+$lmThrottleCommand = max(0.0, min(100.0, (float)$thrustLM));
 $lmDescentActive = ((int)$descentLM === 1);
 $lmActiveEngine = $lmDescentActive ? 'Descent Engine' : 'Ascent Engine';
 $lmFuelAvailable = $lmDescentActive
     ? ((float)$fuelLM > 0.0)
     : ((float)$fuel_ascentLM > 0.0);
 $lmPropulsionAvailable = !isset($propulsionSYS) || (int)$propulsionSYS === 1;
-$lmShouldIgnite = $lmThrottle > 0.0 && $lmFuelAvailable && $lmPropulsionAvailable;
+$lmShouldIgnite =
+    $lmThrottleCommand > 0.0
+    && $lmFuelAvailable
+    && $lmPropulsionAvailable;
+
+/*
+ * Translate the cockpit's legacy 0-100 command into the actual LM engine
+ * behavior. DPS is throttleable only in its low range; commands above that
+ * range select the fixed full-throttle position. APS has no throttle: any
+ * positive start command produces full nominal thrust.
+ */
+$lmProducedThrustFraction = 0.0;
+
+if ($lmShouldIgnite) {
+    if ($lmDescentActive) {
+        if ($lmThrottleCommand <= $lander_descent_min_throttle_command) {
+            $lmProducedThrust = $lander_descent_min_throttle_thrust;
+        } elseif ($lmThrottleCommand <= $lander_descent_max_throttle_command) {
+            $lmProducedThrust =
+                $lander_descent_design_thrust
+                * ($lmThrottleCommand / 100.0);
+
+            $lmProducedThrust = min(
+                $lander_descent_max_throttle_thrust,
+                max($lander_descent_min_throttle_thrust, $lmProducedThrust)
+            );
+        } else {
+            $lmProducedThrust = $lander_descent_thrust;
+        }
+
+        $lmProducedThrustFraction =
+            $lmProducedThrust / max(1.0, $lander_descent_thrust);
+    } else {
+        // APS is a fixed-thrust engine.
+        $lmProducedThrustFraction = 1.0;
+    }
+}
 
 // Only one LM main engine can be active at a time.
 $conn->query("UPDATE EngineStatus SET status = 'OFF' WHERE engine_stage = 'Lunar Module'");
@@ -180,14 +216,18 @@ $thrustFuelConsumptionCM = $fuel_consumption;
 // Lunar Module main propulsion.
 if ($lmDescentActive) {
     $current_thrust_LM = (float)$lander_descent_thrust
-        * ($lmThrottle / 100.0 * $lunar_descent_fraction);
+        * $lmProducedThrustFraction
+        * $lunar_descent_fraction;
     $fuel_consumption_LM = (float)$descent_stage_fuel_rate
-        * ($lmThrottle / 100.0 * $lunar_descent_fraction);
+        * $lmProducedThrustFraction
+        * $lunar_descent_fraction;
 } else {
     $current_thrust_LM = (float)$lander_ascent_thrust
-        * ($lmThrottle / 100.0 * $lunar_ascent_fraction);
+        * $lmProducedThrustFraction
+        * $lunar_ascent_fraction;
     $fuel_consumption_LM = (float)$ascent_stage_fuel_rate
-        * ($lmThrottle / 100.0 * $lunar_ascent_fraction);
+        * $lmProducedThrustFraction
+        * $lunar_ascent_fraction;
 }
 
 $current_mass_LM = max(1.0, (float)$totalLEM);
