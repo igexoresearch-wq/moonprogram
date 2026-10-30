@@ -33,6 +33,7 @@ include_once 'physics/integrator.php';
 include_once 'physics/attitude.php';
 include_once 'physics/rcs.php';
 include_once 'physics/contact.php';
+include_once 'physics/docking.php';
 
 // Keep the original once-per-minute worker design, but guarantee that only one
 // worker can advance the universe at a time.
