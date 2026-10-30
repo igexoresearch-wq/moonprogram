@@ -1,4 +1,6 @@
 <?php
+include_once __DIR__ . '/../shared/physical_constants.php';
+
 
 // Reset Saturn / CSM live state to the original launch-site configuration.
 $updates = [
@@ -12,12 +14,12 @@ $updates = [
     ['attribute' => 'stage1', 'value' => '1'],
     ['attribute' => 'stage2', 'value' => '1'],
     ['attribute' => 'stage3', 'value' => '1'],
-    ['attribute' => 's1fuel', 'value' => '2077000'],
-    ['attribute' => 's2fuel', 'value' => '456100'],
-    ['attribute' => 's3fuel', 'value' => '121480'],
+    ['attribute' => 's1fuel', 'value' => number_format($stage1_initial_fuel, 9, '.', '')],
+    ['attribute' => 's2fuel', 'value' => number_format($stage2_initial_fuel, 9, '.', '')],
+    ['attribute' => 's3fuel', 'value' => number_format($stage3_initial_fuel, 9, '.', '')],
     ['attribute' => 'service_module', 'value' => '1'],
-    ['attribute' => 'fuel', 'value' => '40590'],
-    ['attribute' => 'RCS', 'value' => '3329'],
+    ['attribute' => 'fuel', 'value' => number_format($service_module_initial_fuel, 9, '.', '')],
+    ['attribute' => 'RCS', 'value' => number_format($csm_rcs_initial_propellant, 9, '.', '')],
     ['attribute' => 'pitch', 'value' => '0'],
     ['attribute' => 'roll', 'value' => '0'],
     ['attribute' => 'yaw', 'value' => '0'],
@@ -63,8 +65,8 @@ $updates = [
     ['attribute' => 'map_x', 'value' => '0'],
     ['attribute' => 'map_y', 'value' => '0'],
     ['attribute' => 'map_zoom', 'value' => '1'],
-    ['attribute' => 'fuel', 'value' => '8242'],
-    ['attribute' => 'RCS', 'value' => '3329'],
+    ['attribute' => 'fuel', 'value' => number_format($descent_initial_fuel, 9, '.', '')],
+    ['attribute' => 'RCS', 'value' => number_format($lm_rcs_initial_propellant, 9, '.', '')],
     ['attribute' => 'pitch', 'value' => '0'],
     ['attribute' => 'roll', 'value' => '0'],
     ['attribute' => 'yaw', 'value' => '0'],
@@ -72,7 +74,7 @@ $updates = [
     ['attribute' => 'roll_rate', 'value' => '0'],
     ['attribute' => 'yaw_rate', 'value' => '0'],
     ['attribute' => 'thrust', 'value' => '0'],
-    ['attribute' => 'fuel_ascent', 'value' => '2378'],
+    ['attribute' => 'fuel_ascent', 'value' => number_format($ascent_initial_fuel, 9, '.', '')],
     ['attribute' => 'crash', 'value' => '0'],
 ];
 
