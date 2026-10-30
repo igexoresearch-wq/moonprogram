@@ -20,3 +20,5 @@ jobs:
         run: php tests/attitude_quaternion.php
       - name: Moving-body collision regression
         run: php tests/contact_collision.php
+      - name: Docking physics regression
+        run: php tests/docking_physics.php
