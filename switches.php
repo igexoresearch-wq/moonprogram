@@ -51,43 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['land_abort'])) {
-        /*
-         * LM landing abort / ascent command.
-         * The old code teleported both vehicles into an obsolete coordinate
-         * frame and wrote to system IDs that no longer exist.  Preserve the
-         * intended "get off the descent stage and go" behavior instead.
-         */
-        $result = $conn->query(
-            "SELECT value
-             FROM telemetry
-             WHERE attribute = 'fuel_ascent'
-             LIMIT 1"
-        );
-        $ascentFuel = ($result && $row = $result->fetch_assoc())
-            ? (float)$row['value']
-            : 0.0;
-
-        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'descent'");
-        $conn->query("UPDATE systems SET status = 0 WHERE system = 'landed'");
-        $conn->query(
-            "UPDATE EngineStatus
-             SET status = 'OFF'
-             WHERE engine_stage = 'Lunar Module'"
-        );
-
-        if ($ascentFuel > 0.0) {
-            $conn->query("UPDATE telemetry SET value = 100 WHERE attribute = 'thrust'");
-            $conn->query(
-                "UPDATE EngineStatus
-                 SET status = 'ON'
-                 WHERE engine_stage = 'Lunar Module'
-                   AND engine_name = 'Ascent Engine'
-                   AND operational_status = 'OK'"
-            );
-        } else {
-            $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'thrust'");
-        }
-
+        // Request descent-stage separation + immediate APS ascent through the
+        // central physics worker. Do not change vehicle state from this page.
+        moonSimQueueDockingCommand($conn, 'LM_ABORT_ASCENT');
         $needs_redirect = true;
     }
 
