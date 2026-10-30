@@ -149,6 +149,14 @@ $conn->query("TRUNCATE TABLE CMtelemetry");
 // TRUNCATE calls are harmless until their migration/self-creation occurs.
 $conn->query("TRUNCATE TABLE rcs_pulse_queue");
 $conn->query("TRUNCATE TABLE surface_contact");
+$conn->query("TRUNCATE TABLE docking_command_queue");
+$conn->query(
+    "UPDATE docking_runtime
+     SET redock_inhibit_until=NULL,
+         last_capture_at=NULL,
+         last_release_at=NULL
+     WHERE id=1"
+);
 
 // Quaternion orientation is derived again from the reset pitch/yaw/roll values
 // on the first active physics step.
