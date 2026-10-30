@@ -32,6 +32,42 @@ if (moonSimConsumeDockingCommands($conn, $cmQuaternion, $lmQuaternion)) {
     $lmQuaternion = moonSimLoadVehicleQuaternion($conn, 'LM');
 }
 
+/*
+ * Launch Escape System separation.
+ *
+ * Cockpit/EDS code only requests ABORT. The physical worker removes the
+ * Saturn stages and Service Module here, before mass/thrust are calculated,
+ * so an abort cannot be performed merely by rendering a page.
+ */
+if (
+    (int)($ABORTCM ?? 0) === 1
+    && (int)($escapeCM ?? 0) === 1
+    && (
+        (int)($stage1CM ?? 0) === 1
+        || (int)($stage2CM ?? 0) === 1
+        || (int)($stage3CM ?? 0) === 1
+        || (int)($service_moduleCM ?? 0) === 1
+    )
+) {
+    $conn->query(
+        "UPDATE command_module
+         SET value = 0
+         WHERE attribute IN ('stage1','stage2','stage3','service_module')"
+    );
+    $conn->query(
+        "UPDATE EngineStatus
+         SET status='OFF'
+         WHERE engine_stage IN (
+            'First Stage','Second Stage','Third Stage','Service Module'
+         )"
+    );
+
+    // Reload so the LES mass/thrust calculation sees the separated stack.
+    include 'physics/variables.php';
+    include 'physics/constants.php';
+    include 'physics/coordinate.php';
+}
+
 // Preserve the current atmosphere/reentry model for now. It produces a
 // one-second drag estimate and, for legacy parachutes, may modify current
 // velocity before the central integrator receives it.
