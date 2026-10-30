@@ -66,7 +66,7 @@ $conn->query("UPDATE command_module SET value = $IMUHOLD_yaw WHERE attribute = '
     if ($differenceR <= 0.0001) {
 $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'pitch_rate'");
 $conn->query("UPDATE command_module SET value = $IMUHOLD_pitch WHERE attribute = 'pitch'");  $tg = $tg +1;}
-if ($differencer <= 0.0001) {
+if (abs($differenceR) <= 0.0001) {
 $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'roll_rate'");
 $conn->query("UPDATE command_module SET value = $IMUHOLD_roll WHERE attribute = 'roll'"); $tg = $tg +1;}
     
