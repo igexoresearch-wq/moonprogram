@@ -122,6 +122,9 @@ if ($result && $result->num_rows > 0) {
     </style>
 </head>
 <body>
+<div style="padding:8px;text-align:center">
+  <a href="ground_control/orbit_diagnostics.php" style="color:#ffff66">ORBIT DIAGNOSTICS</a>
+</div>
     <div class="container">
         <!-- Left Div -->
         <div class="left-div">
