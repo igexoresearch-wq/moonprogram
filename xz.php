@@ -28,13 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch telemetry data for x, z, deltaX, deltaZ, map_x, map_z, and map_zoom
+// Fetch telemetry data for x, z, deltaX, deltaZ and display-only map offsets.
 $xQuery = "SELECT value FROM telemetry WHERE id = 3";
 $zQuery = "SELECT value FROM telemetry WHERE id = 5";
 $deltaXQuery = "SELECT value FROM telemetry WHERE id = 6";
 $deltaZQuery = "SELECT value FROM telemetry WHERE id = 8";
 $mapXQuery = "SELECT value FROM telemetry WHERE id = 16";
-$mapZQuery = "SELECT value FROM telemetry WHERE id = 19";
+// The original X/Z chart accidentally used telemetry id 19, which is LM RCS
+// propellant in the current database.  The second legacy map_y slot (id 17)
+// is the existing display-only slot paired with map_x id 16.
+$mapZQuery = "SELECT value FROM telemetry WHERE id = 17";
 $mapZoomQuery = "SELECT value FROM telemetry WHERE id = 18";
 
 $xResult = $conn->query($xQuery);
