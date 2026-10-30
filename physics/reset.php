@@ -144,4 +144,14 @@ $conn->query(
 );
 
 $conn->query("TRUNCATE TABLE CMtelemetry");
+
+// Quaternion orientation is derived again from the reset pitch/yaw/roll values
+// on the first active physics step.
+if (function_exists('moonSimResetAttitudeState')) {
+    moonSimResetAttitudeState($conn);
+} else {
+    // Safe fallback when reset.php is run outside the normal physics worker.
+    $conn->query("DROP TABLE IF EXISTS attitude_state");
+}
+
 ?>
