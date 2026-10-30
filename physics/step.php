@@ -51,9 +51,18 @@ $rcsAcceleration = moonSimConsumeRcsPulses(
 );
 
 $cmNonGravityAcceleration = [
-    (float)$thrustAccelerationCMx - (float)$drag_acc_x + $rcsAcceleration['CM'][0],
-    (float)$thrustAccelerationCMy - (float)$drag_acc_y + $rcsAcceleration['CM'][1],
-    (float)$thrustAccelerationCMz - (float)$drag_acc_z + $rcsAcceleration['CM'][2],
+    (float)$thrustAccelerationCMx
+        + (float)$drag_acc_x
+        + (float)$lift_acc_x
+        + $rcsAcceleration['CM'][0],
+    (float)$thrustAccelerationCMy
+        + (float)$drag_acc_y
+        + (float)$lift_acc_y
+        + $rcsAcceleration['CM'][1],
+    (float)$thrustAccelerationCMz
+        + (float)$drag_acc_z
+        + (float)$lift_acc_z
+        + $rcsAcceleration['CM'][2],
 ];
 
 $lmNonGravityAcceleration = [
@@ -61,16 +70,6 @@ $lmNonGravityAcceleration = [
     (float)$thrustAccelerationLMy + $rcsAcceleration['LM'][1],
     (float)$thrustAccelerationLMz + $rcsAcceleration['LM'][2],
 ];
-
-// Preserve the old heat-shield wear behavior until the dedicated reentry pass.
-if ((float)$altitude < 100000.0 && (float)$temp > 800.0) {
-    $newHeat = max(0.0, (float)$heat_shieldCM - (float)$temp);
-    $conn->query(
-        "UPDATE command_module
-         SET value = " . sprintf('%.6f', $newHeat) . "
-         WHERE attribute = 'heat_shield'"
-    );
-}
 
 moonSimAdvanceTranslation(
     $conn,
