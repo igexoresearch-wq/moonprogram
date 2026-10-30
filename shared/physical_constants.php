@@ -108,12 +108,25 @@ $lm_rcs_translation_jets = 4;                          // simplified coordinated
 $descent_initial_fuel = 18100.0 * 0.45359237;       // kg
 $ascent_initial_fuel = 5214.0 * 0.45359237;         // kg
 
-$lander_descent_thrust = 9870.0 * 4.4482216152605; // N, Apollo 11 max-rated DPS
-$lander_ascent_thrust = 3500.0 * 4.4482216152605;  // N, APS nominal
+$lander_descent_thrust = 9870.0 * 4.4482216152605; // N, nominal full-throttle position
+$lander_ascent_thrust = 3500.0 * 4.4482216152605;  // N, APS nominal fixed thrust
+
+/*
+ * DPS throttle law.
+ *
+ * Apollo documentation describes a 10,500-lbf design scale, with continuous
+ * throttling from about 1,050 to 6,300 lbf (10-60 percent on that scale).
+ * Commands above the throttleable range automatically select the fixed
+ * full-throttle position, whose nominal flight thrust was about 9,870 lbf.
+ */
+$lander_descent_design_thrust = 10500.0 * 4.4482216152605; // N, command scale
+$lander_descent_min_throttle_command = 10.0;               // percent
+$lander_descent_max_throttle_command = 60.0;               // percent
+$lander_descent_min_throttle_thrust = 1050.0 * 4.4482216152605; // N
+$lander_descent_max_throttle_thrust = 6300.0 * 4.4482216152605; // N
 
 // Full-throttle flow derived from documented flight-performance Isp.
-// Throttle-dependent DPS behavior is handled by multiplying this flow by
-// the same commanded fraction used for thrust.
+// DPS flow is scaled by actual produced thrust; APS is fixed full thrust.
 $descent_stage_fuel_rate =
     $lander_descent_thrust / (304.0 * $standard_gravity);       // kg/s
 $ascent_stage_fuel_rate =
