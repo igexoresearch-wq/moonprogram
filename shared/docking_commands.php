@@ -5,7 +5,7 @@ function moonSimEnsureDockingCommandTables(mysqli $conn): void
     $conn->query(
         "CREATE TABLE IF NOT EXISTS docking_command_queue (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            command_type ENUM('UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE') NOT NULL,
+            command_type ENUM('UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE','LM_ABORT_ASCENT') NOT NULL,
             requested_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
             processed_at DATETIME(6) NULL,
             PRIMARY KEY (id),
@@ -44,7 +44,7 @@ function moonSimQueueDockingCommand(mysqli $conn, string $commandType): int
     moonSimEnsureDockingCommandTables($conn);
 
     $commandType = strtoupper($commandType);
-    if (!in_array($commandType, ['UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE'], true)) {
+    if (!in_array($commandType, ['UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE','LM_ABORT_ASCENT'], true)) {
         throw new InvalidArgumentException('Unknown docking command.');
     }
 
