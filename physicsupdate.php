@@ -28,48 +28,20 @@ function calculate_anglemoonx($xm, $ym) {
     return $theta_degrees;
 }
 
-/**
- * Run one legacy one-second physics tick.
- *
- * Phase 3 deliberately fixes wall-clock accounting before replacing the
- * numerical integrator.  These includes still represent one simulated second.
- */
-function runLegacyPhysicsSecond(mysqli $conn): void
-{
-    include 'physics/variables.php';
-    include 'physics/constants.php';
-
-    include 'physics/coordinate.php';
-    include 'physics/gravity.php';
-    include 'physics/air.php';
-    include 'physics/thrust.php';
-    include 'physics/fuel.php';
-    include 'physics/telemetry.php';
-
-    // Reload state after the physical update so guidance sees current values.
-    include 'physics/variables.php';
-    include 'physics/constants.php';
-    include 'physics/CM_AGC.php';
-}
-
 include 'physics/db.php';
+include_once 'physics/integrator.php';
+include_once 'physics/attitude_legacy.php';
 
-// Keep the existing once-per-minute worker design, but guarantee that only one
+// Keep the original once-per-minute worker design, but guarantee that only one
 // worker can advance the universe at a time.
 $lockResult = $conn->query("SELECT GET_LOCK('moon_sim_physics_worker', 0) AS acquired");
 $lockRow = $lockResult ? $lockResult->fetch_assoc() : null;
 
 if (!$lockRow || (int)$lockRow['acquired'] !== 1) {
-    // Another cron-launched worker is already responsible for physics.
     exit;
 }
 
 try {
-    /*
-     * This table is intentionally tiny and self-creating so an existing
-     * deployment can upgrade without replacing the moonland schema.
-     * A matching SQL migration is also kept in /migrations for documentation.
-     */
     $conn->query(
         "CREATE TABLE IF NOT EXISTS simulation_runtime (
             id TINYINT UNSIGNED NOT NULL,
@@ -103,7 +75,6 @@ try {
     $resetApplied = false;
 
     while ((microtime(true) - $workerStarted) < $workerRunSeconds) {
-        // Read only enough current state to decide whether time should advance.
         $simResult = $conn->query(
             "SELECT status
              FROM systems
@@ -119,11 +90,7 @@ try {
                 $resetApplied = true;
             }
 
-            /*
-             * While reset/off, wall time is deliberately consumed rather than
-             * accumulated.  Starting the mission therefore begins "now"
-             * instead of catching up all the time spent sitting on the pad.
-             */
+            // Time spent reset/off is not owed to the next mission.
             $conn->query(
                 "UPDATE simulation_runtime
                  SET last_wall_at = NOW(6),
@@ -137,11 +104,6 @@ try {
 
         $resetApplied = false;
 
-        /*
-         * Add real elapsed wall time to a persistent accumulator.  We do not
-         * throw away a long backlog: each worker processes it in bounded
-         * batches and later cron workers continue catching up.
-         */
         $runtimeResult = $conn->query(
             "SELECT
                 accumulator_seconds,
@@ -172,7 +134,8 @@ try {
              WHERE id = 1"
         );
 
-        // Current modules are still one-second modules. Process a bounded batch.
+        // Each completed include below represents one simulated second.
+        // Translation inside that second is divided into 0.1 s substeps.
         $ticksToRun = min(10, (int)floor($accumulator));
 
         if ($ticksToRun <= 0) {
@@ -181,12 +144,9 @@ try {
         }
 
         for ($tick = 0; $tick < $ticksToRun; $tick++) {
-            runLegacyPhysicsSecond($conn);
+            include 'physics/step.php';
 
-            /*
-             * Only consume accumulated time after a successful physics tick.
-             * If PHP throws/fails mid-tick, the owed second remains recorded.
-             */
+            // Consume time only after a successful physics/guidance second.
             $conn->query(
                 "UPDATE simulation_runtime
                  SET accumulator_seconds = GREATEST(0, accumulator_seconds - 1),
