@@ -151,7 +151,8 @@ if (function_exists('moonSimResetAttitudeState')) {
     moonSimResetAttitudeState($conn);
 } else {
     // Safe fallback when reset.php is run outside the normal physics worker.
-    $conn->query("DROP TABLE IF EXISTS attitude_state");
+    // A missing table simply makes this query return false; reset continues.
+    $conn->query("DELETE FROM attitude_state");
 }
 
 ?>
