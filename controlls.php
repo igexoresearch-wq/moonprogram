@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/shared/docking_commands.php';
+
 $needs_redirect = false;
 
 // Current LM RCS propellant.
@@ -146,20 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['stage_ascent']) && (int)$telemetry['descent'] === 1) {
-        // Separate the descent stage.  A physical separation impulse will be
-        // added in the later docking/staging physics pass; this repair makes
-        // the existing APS path reachable without teleporting the vehicle.
-        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'thrust'");
-        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'descent'");
-        $conn->query("UPDATE systems SET status = 0 WHERE system = 'landed'");
-        $conn->query(
-            "UPDATE EngineStatus
-             SET status = 'OFF'
-             WHERE engine_stage = 'Lunar Module'"
-        );
-
-        $telemetry['thrust'] = 0.0;
-        $telemetry['descent'] = 0;
+        moonSimQueueDockingCommand($conn, 'LM_ASCENT_STAGE');
         $needs_redirect = true;
     }
 
