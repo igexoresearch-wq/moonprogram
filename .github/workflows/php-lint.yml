@@ -18,3 +18,5 @@ jobs:
         run: php tests/orbit_conservation.php
       - name: Quaternion attitude regression
         run: php tests/attitude_quaternion.php
+      - name: Moving-body collision regression
+        run: php tests/contact_collision.php
