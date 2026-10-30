@@ -4,6 +4,8 @@ ini_set('display_errors', 1);
 
 $needs_redirect = false;
 
+require_once __DIR__ . '/shared/docking_commands.php';
+
 if (!$conn) {
     die("Database connection failed.");
 }
@@ -90,9 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['command_module_release'])) {
-        // Release the LM/CSM docking latch.  The later docking-physics phase
-        // will add a physical separation impulse; do not teleport either craft.
-        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'dock'");
+        moonSimQueueDockingCommand($conn, 'UNDOCK');
         $needs_redirect = true;
     }
 }
