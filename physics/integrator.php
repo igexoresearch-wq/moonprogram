@@ -148,6 +148,36 @@ function moonSimAdvanceTranslation(
         $aCm0 = moonSimVecAdd($aCmGravity0, $cmNonGravityAcceleration);
         $aLm0 = moonSimVecAdd($aLmGravity0, $lmNonGravityAcceleration);
 
+        /*
+         * Pad/support constraint.
+         *
+         * At reset the stack sits exactly on the spherical Earth surface.
+         * While net acceleration points into the pad, support cancels that
+         * acceleration and holds position/velocity. As soon as thrust makes
+         * the radial net acceleration positive, support releases and the same
+         * Verlet step produces natural liftoff.
+         *
+         * This is deliberately a simple spherical-pad model. Launch-site
+         * latitude/Earth rotation belong to mission profiles later.
+         */
+        if ($cmPadHeld) {
+            $rx = $cmPos[0] - $earth[0];
+            $ry = $cmPos[1] - $earth[1];
+            $rz = $cmPos[2] - $earth[2];
+            $rmag = sqrt($rx*$rx + $ry*$ry + $rz*$rz);
+
+            if ($rmag > 0.0) {
+                $outwardAcceleration =
+                    $aCm0[0]*($rx/$rmag)
+                    + $aCm0[1]*($ry/$rmag)
+                    + $aCm0[2]*($rz/$rmag);
+
+                if ($outwardAcceleration > 0.0) {
+                    $cmPadHeld = false;
+                }
+            }
+        }
+
         // Drift positions using v*dt + 1/2*a*dt^2.
         $moonPosNew = [
             $moonPos[0] + $moonVel[0]*$h + 0.5*$aMoon0[0]*$h*$h,
