@@ -1,115 +1,180 @@
 <?php
 
-// Default values for descent rate and alert classes
-$descent_rate = 0;
-$descent_alert_class = "alt-black-box";
+$earthCenter = [10000000000.0, 10000000000.0, 10000000000.0];
+$earthRadius = 6371000.0;
+$moonRadius = 1737100.0;
 
-// Fetch radar status from the systems table
-$radar_status = 0; // Default to 0
+$radar_status = 0;
 $result = $conn->query("SELECT status FROM systems WHERE system = 'radar' LIMIT 1");
-if ($result && $result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $radar_status = intval($row['status']);
+if ($result && $row = $result->fetch_assoc()) {
+    $radar_status = (int)$row['status'];
 }
 
-// Determine radar alert class
-$radar_alert_class = $radar_status == 1 ? "alt-green-box" : "alt-red-box";
+$lm = [
+    'x' => 0.0,
+    'y' => 0.0,
+    'z' => 0.0,
+    'delta_x' => 0.0,
+    'delta_y' => 0.0,
+    'delta_z' => 0.0,
+];
 
-// Fetch altitude value
-$altitude = 0; // Default altitude
-$result = $conn->query("SELECT value FROM telemetry WHERE attribute = 'altitude' LIMIT 1");
-if ($result && $result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $altitude = floatval($row['value']);
-}
-// Default values for descent rate and alert classes
-$descent_rate = 0;
-$descent_alert_class = "alt-black-box";
-$radar_alert_class = $radar_status == 1 ? "alt-green-box" : "alt-red-box";
-
-// Fetch current position and deltas from telemetry table
-$current_position = ['x' => 0, 'y' => 0, 'z' => 0];
-$deltas = ['delta_x' => 0, 'delta_y' => 0, 'delta_z' => 0];
-
-$sql = "SELECT attribute, value FROM telemetry WHERE attribute IN ('x', 'y', 'z', 'delta_x', 'delta_y', 'delta_z')";
-$result = $conn->query($sql);
-if ($result && $result->num_rows > 0) {
+$result = $conn->query(
+    "SELECT attribute, value
+     FROM telemetry
+     WHERE attribute IN ('x','y','z','delta_x','delta_y','delta_z')"
+);
+if ($result) {
     while ($row = $result->fetch_assoc()) {
-        if (array_key_exists($row['attribute'], $current_position)) {
-            $current_position[$row['attribute']] = $row['value'];
-        }
-        if (array_key_exists($row['attribute'], $deltas)) {
-            $deltas[$row['attribute']] = $row['value'];
-        }
+        $lm[$row['attribute']] = (float)$row['value'];
     }
 }
 
-// Calculate descent rate
-$previous_origin_distance = sqrt(
-    $current_position['x'] ** 2 +
-    $current_position['y'] ** 2 +
-    $current_position['z'] ** 2
+$moon = [
+    'x' => 0.0,
+    'y' => 0.0,
+    'z' => 0.0,
+    'delta_x' => 0.0,
+    'delta_y' => 0.0,
+    'delta_z' => 0.0,
+];
+
+$result = $conn->query(
+    "SELECT attribute, value
+     FROM moon
+     WHERE attribute IN ('x','y','z','delta_x','delta_y','delta_z')"
 );
-
-$current_origin_distance = sqrt(
-    ($current_position['x'] + $deltas['delta_x']) ** 2 +
-    ($current_position['y'] + $deltas['delta_y']) ** 2 +
-    ($current_position['z'] + $deltas['delta_z']) ** 2
-);
-
-$descent_rate = $previous_origin_distance - $current_origin_distance;
-
-// Update alert classes based on altitude and descent rate
-if ($altitude < 1000) {
-    if (($altitude >= 500 && $descent_rate > 16) ||
-        ($altitude >= 100 && $altitude < 500 && $descent_rate > 6) ||
-        ($altitude < 100 && $altitude >= 50 && $descent_rate > 3) ||
-        ($altitude < 50 && $descent_rate > 2)) {
-        $descent_alert_class = "alt-red-box";
-    } else {
-        $descent_alert_class = "alt-green-box";
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $moon[$row['attribute']] = (float)$row['value'];
     }
 }
 
-// Fetch the status of 'landed' and 'eagle' from the systems table
+$earthRelative = [
+    $lm['x'] - $earthCenter[0],
+    $lm['y'] - $earthCenter[1],
+    $lm['z'] - $earthCenter[2],
+];
+
+$moonRelative = [
+    $lm['x'] - $moon['x'],
+    $lm['y'] - $moon['y'],
+    $lm['z'] - $moon['z'],
+];
+
+$earthDistance = sqrt(
+    $earthRelative[0] ** 2
+    + $earthRelative[1] ** 2
+    + $earthRelative[2] ** 2
+);
+$moonDistance = sqrt(
+    $moonRelative[0] ** 2
+    + $moonRelative[1] ** 2
+    + $moonRelative[2] ** 2
+);
+
+$earthAltitude = $earthDistance - $earthRadius;
+$moonAltitude = $moonDistance - $moonRadius;
+
+// Use the nearer body surface for the landing-radar style display.
+$targetIsMoon = ($moonAltitude < $earthAltitude);
+$altitude = $targetIsMoon ? $moonAltitude : $earthAltitude;
+
+if ($targetIsMoon) {
+    $relativePosition = $moonRelative;
+    $relativeVelocity = [
+        $lm['delta_x'] - $moon['delta_x'],
+        $lm['delta_y'] - $moon['delta_y'],
+        $lm['delta_z'] - $moon['delta_z'],
+    ];
+    $distance = $moonDistance;
+    $targetName = 'MOON';
+} else {
+    $relativePosition = $earthRelative;
+    $relativeVelocity = [
+        $lm['delta_x'],
+        $lm['delta_y'],
+        $lm['delta_z'],
+    ];
+    $distance = $earthDistance;
+    $targetName = 'EARTH';
+}
+
+// Positive descent_rate means motion toward the selected body surface.
+$descent_rate = 0.0;
+if ($distance > 0.0) {
+    $radialVelocity =
+        ($relativePosition[0] * $relativeVelocity[0]
+        + $relativePosition[1] * $relativeVelocity[1]
+        + $relativePosition[2] * $relativeVelocity[2])
+        / $distance;
+
+    $descent_rate = -$radialVelocity;
+}
+
+$descent_alert_class = 'alt-black-box';
+if ($altitude < 1000.0) {
+    $unsafe =
+        ($altitude >= 500.0 && $descent_rate > 16.0)
+        || ($altitude >= 100.0 && $altitude < 500.0 && $descent_rate > 6.0)
+        || ($altitude >= 50.0 && $altitude < 100.0 && $descent_rate > 3.0)
+        || ($altitude < 50.0 && $descent_rate > 2.0);
+
+    $descent_alert_class = $unsafe ? 'alt-red-box' : 'alt-green-box';
+}
+
+$radar_alert_class = $radar_status === 1 ? 'alt-green-box' : 'alt-red-box';
+
 $landed_status = 0;
-$eagle_status = 0;
-
-$result = $conn->query("SELECT system, status FROM systems WHERE system IN ('landed', 'eagle')");
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        if ($row['system'] == 'landed') {
-            $landed_status = $row['status'];
-        } elseif ($row['system'] == 'eagle') {
-            $eagle_status = $row['status'];
-        }
-    }
+$result = $conn->query("SELECT status FROM systems WHERE system = 'landed' LIMIT 1");
+if ($result && $row = $result->fetch_assoc()) {
+    $landed_status = (int)$row['status'];
 }
 
-// Determine light color based on the landed status
-$light_class = $landed_status == 1 ? 'contact-light-on' : 'contact-light-off';
+$light_class = $landed_status === 1
+    ? 'contact-light-on'
+    : 'contact-light-off';
 
-// Handle sound playback and update 'eagle' if necessary
-if ($landed_status == 1 && $eagle_status == 0) {
-    if ($descent_rate < 2) {
-        echo '<audio autoplay>
-                <source src="the-eagle-has-landed.mp3" type="audio/mpeg">
-              </audio>';
-    } else {
-        echo '<audio autoplay>
-                <source src="v0001.mp3" type="audio/mpeg">
-              </audio>';
-    }
-
-    $conn->query("UPDATE systems SET status = 1 WHERE system = 'eagle'");
-}
+$landingSound = $descent_rate < 2.0
+    ? 'the-eagle-has-landed.mp3'
+    : 'v0001.mp3';
 ?>
+
+<?php if ($landed_status === 1): ?>
+<audio id="lmLandingAudio" preload="auto">
+    <source src="<?php echo htmlspecialchars($landingSound); ?>" type="audio/mpeg">
+</audio>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (!sessionStorage.getItem('lmLandingSoundPlayed')) {
+        const audio = document.getElementById('lmLandingAudio');
+        if (audio) {
+            audio.play().catch(() => {});
+        }
+        sessionStorage.setItem('lmLandingSoundPlayed', '1');
+    }
+});
+</script>
+<?php else: ?>
+<script>
+sessionStorage.removeItem('lmLandingSoundPlayed');
+</script>
+<?php endif; ?>
 
 <table class="alt-table">
     <tr>
         <td><h2 class="alt-label">Altitude</h2></td>
-        <td><div class="alt-digital-display"><?php echo $radar_status == 1 ? number_format($altitude, 0) : '0'; echo $pitchCM; ?></div></td>
+        <td>
+            <div class="alt-digital-display">
+                <?php echo $radar_status === 1 ? number_format(max(0.0, $altitude), 0) : '0'; ?>
+            </div>
+        </td>
         <td><span class="alt-unit-label">m</span></td>
+    </tr>
+    <tr>
+        <td><h2 class="alt-label">Target</h2></td>
+        <td><div class="alt-digital-display"><?php echo $targetName; ?></div></td>
+        <td></td>
     </tr>
     <tr>
         <td><h2 class="alt-label">Descent Rate</h2></td>
@@ -118,26 +183,25 @@ if ($landed_status == 1 && $eagle_status == 0) {
     </tr>
     <tr>
         <td colspan="3">
-            <div class="alt-alert-box <?php echo $descent_alert_class; ?>">Dec Rate</div>
+            <div class="alt-alert-box <?php echo $descent_alert_class; ?>">DEC RATE</div>
         </td>
     </tr>
     <tr>
         <td colspan="3">
-            <div class="alt-alert-box <?php echo $radar_alert_class; ?>">Radar</div>
+            <div class="alt-alert-box <?php echo $radar_alert_class; ?>">RADAR</div>
         </td>
     </tr>
     <tr>
         <td colspan="3">
             <div class="contact-container">
                 <div class="contact-light <?php echo $light_class; ?>"></div>
-                <div class="contact-label">Contact</div>
+                <div class="contact-label">CONTACT</div>
             </div>
         </td>
     </tr>
 </table>
 
 <style>
-    /* Altitude Module Independent Styles */
     .alt-table {
         width: 100%;
         border-spacing: 10px;
@@ -157,7 +221,7 @@ if ($landed_status == 1 && $eagle_status == 0) {
         background-color: #000000;
         padding: 5px;
         border-radius: 5px;
-        width: 7ch;
+        min-width: 7ch;
         text-align: right;
     }
 
@@ -211,11 +275,11 @@ if ($landed_status == 1 && $eagle_status == 0) {
     }
 
     .contact-light-on {
-        background-color: #FFFF00; /* Yellow */
+        background-color: #FFFF00;
     }
 
     .contact-light-off {
-        background-color: #000000; /* Black */
+        background-color: #000000;
     }
 
     .contact-label {
