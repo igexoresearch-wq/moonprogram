@@ -63,13 +63,16 @@ if ($result && $row = $result->fetch_assoc()) {
 
 
 
-if ($secondsx == -1) {$conn->query("UPDATE command_module SET value = 2 WHERE attribute = 'staging'");
-    $conn->query("UPDATE mission_clock SET launch_events = 1 WHERE id = 1");   
+if ($secondsx == -1) {
+    $conn->query("UPDATE command_module SET value = 2 WHERE attribute = 'staging'");
+    $conn->query("UPDATE mission_clock SET launch_events = 1 WHERE id = 1");
+    $stagingCM = 2;
 }
 
 if ($secondsx == 0) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 16");
-     
+    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'staging'");
+    $stagingCM = 0;
 }
 if ($secondsx == 1) {
      $conn->query("UPDATE command_module SET value = 10006371005 WHERE attribute = 'x'");
