@@ -7,7 +7,7 @@ $xMOOND = $xMOON - 10000000000;
 $yMOOND = $yMOON - 10000000000;
 $zMOOND = $zMOON - 10000000000;
 
-
+$moondistance = sqrt($xMOOND * $xMOOND + $yMOOND * $yMOOND + $zMOOND * $zMOOND);
 
 $earthRadius = 6371000; // Earth's radius in meters
 $mu = 3.98589196e14; // Gravitational parameter (m^3/s^2)
