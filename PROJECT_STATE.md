@@ -461,3 +461,29 @@ The next high-value work is:
 ### Testing caution
 
 The remote PHP tree has not yet run an end-to-end production-host validation after these changes. The mathematical Verlet/quaternion methods have been separately sanity-checked, and repository CI definitions exist, but no successful GitHub Actions run was observed yet. Do not describe the complete mission as validated until deployment tests are run.
+
+
+## Coding progress — 2026-10-30
+
+The current repair pass continued from the authoritative WORK_PLAN rather than changing the visual architecture.
+
+### Completed
+- Added a reproducible launch/reset snapshot in `baseline/reset_snapshot.sql`.
+- Added `status.php` and `BUILD_VERSION` for deployment/runtime identification.
+- Removed the interrupted `.upgrade_payload` artifacts.
+- Audited cockpit/chart/indicator writes. Display-only pages are no longer allowed to advance staging or silently modify guidance.
+- Removed `CM/alt.php`'s render-time write into CMguidance.
+- Service Module separation, LM descent-stage separation, and LM landing-abort ascent are now applied by the central physics worker through the existing command queue.
+- Manual LES abort and automatic EDS now request abort state; central physics owns physical Saturn/SM separation.
+- Added deterministic orbital-element helpers in `shared/orbital_mechanics.php`.
+- Expanded orbit-conservation test code to track energy, angular momentum, eccentricity, semi-major axis, periapsis and apoapsis for both circular and elliptical Earth-only cases.
+
+### Important test status
+The new code has been inspected but the newest GitHub workflow has not produced a visible run through the available GitHub interface, and the execution environment cannot clone GitHub directly. Therefore the new elliptical regression must not yet be described as a passing runtime test.
+
+### Next exact work
+Continue Phase 4/7 validation:
+1. document/resolve authoritative Saturn/CSM/LM mass and propulsion values,
+2. validate five F-1 / five S-II J-2 / one S-IVB J-2 state logic,
+3. move launch-stage programs out of fragile database-only physical transitions where useful,
+4. replace the missing Apollo11LaunchTelemetry dependency with mission-profile launch data without hard-coding physics to Apollo 11.
