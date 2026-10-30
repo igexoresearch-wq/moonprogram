@@ -147,6 +147,28 @@ function moonSimConsumeDockingCommands(
             $changed = true;
         }
 
+        if ($type === 'SM_SEPARATE' && (int)($GLOBALS['service_moduleCM'] ?? 0) === 1) {
+            // The cockpit requests separation; the physics worker owns the
+            // actual state transition so page loads/refreshes cannot perform it.
+            $conn->query(
+                "UPDATE command_module
+                 SET value = CASE attribute
+                    WHEN 'service_module' THEN 0
+                    WHEN 'thrust' THEN 0
+                    ELSE value
+                 END
+                 WHERE attribute IN ('service_module','thrust')"
+            );
+            $conn->query(
+                "UPDATE EngineStatus
+                 SET status='OFF'
+                 WHERE engine_stage='Service Module'"
+            );
+
+            $GLOBALS['service_moduleCM'] = 0;
+            $changed = true;
+        }
+
         if ($type === 'SIVB_SEPARATE' && (int)$stage3CM === 1) {
             /*
              * The original simulator does not retain S-IVB as an independent
