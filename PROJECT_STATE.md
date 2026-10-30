@@ -392,3 +392,30 @@ Before visual consolidation:
 4. then replace translation and attitude integration behind the existing database/operator interfaces.
 
 No greenfield cockpit/object framework should be introduced.
+
+
+## Permanent step-by-step work order
+
+The authoritative implementation sequence is now stored in `WORK_PLAN.md`.
+
+Future sessions must read, in order:
+1. `PROJECT_STATE.md`
+2. `SYSTEM_MAP.md`
+3. `WORK_PLAN.md`
+
+Then continue from the first incomplete step unless the user explicitly changes priorities.
+
+## Additional user requirements confirmed 2026-10-29
+
+- The old simulator suffered gradual orbital precession / conservation drift even in situations where the orbit should have remained stable. The upgrade must explicitly measure specific orbital energy and angular momentum instead of hiding drift with tuning factors.
+- Lunar collision/contact must account for the Moon moving through the universal frame. A spacecraft must not tunnel through the lunar sphere between physics steps.
+- Reset must restore a launch-ready mission state and the existing automated launch/staging flow must remain recognizable.
+- The simulator must support CSM/LM docking, undocking, independent LM flight, lunar landing, ascent, rendezvous and redocking.
+- Reentry needs substantially better physical behavior, including atmosphere, heating, lift/bank effects at an appropriate simplified fidelity, parachute deployment and final Earth contact/splashdown.
+- All four principal operator pages will eventually carry one shared Ground Control voice button.
+- That button should record speech, stop on command/click, then wait for a Ground Control response.
+- Ground Control AI should receive live simulator context and use deterministic calculators for burn times, orbital changes, rendezvous, entry and other numeric answers rather than inventing values.
+- API credentials must remain outside this public repository. The deployment may read an existing private server-side secret/config from the parent site or environment, but the key itself must never be copied into GitHub.
+- Ground Control AI should initially be read-only to physical simulator state. It may advise; actual control remains with the operator. A separately approved uplink feature can be considered later.
+
+The detailed implementation and acceptance criteria for all of the above are in `WORK_PLAN.md`.
