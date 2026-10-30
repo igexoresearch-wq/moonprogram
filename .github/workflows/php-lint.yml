@@ -16,3 +16,5 @@ jobs:
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Orbit conservation regression
         run: php tests/orbit_conservation.php
+      - name: Quaternion attitude regression
+        run: php tests/attitude_quaternion.php
