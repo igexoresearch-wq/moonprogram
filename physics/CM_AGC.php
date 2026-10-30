@@ -148,7 +148,7 @@ if ($Guidance_Computer_SWITCH == 1) {
 
 
 // Handle abort sequence
-$malf_query = $conn->query("SELECT COUNT(*) AS malf_count FROM EngineStatus WHERE component = 'Combustion Chamber' AND operational_status = 'MALF'");
+$malf_query = $conn->query("SELECT COUNT(*) AS malf_count FROM EngineStatus WHERE component = 'Combustion Chamber' AND operational_status = 'FAILED'");
 if ($malf_query && $malf_data = $malf_query->fetch_assoc()) {
     $malf_count = intval($malf_data['malf_count']);
 } else {
@@ -158,36 +158,15 @@ if ($malf_query && $malf_data = $malf_query->fetch_assoc()) {
 $status_70_query = $conn->query("SELECT status FROM CMswitches WHERE id = 70");
 $status_70 = ($status_70_query && $status_70_row = $status_70_query->fetch_assoc()) ? intval($status_70_row['status']) : 0;
 
-if ($malf_count > 0 && $status_70 === 1 && $escape == 1) {
+if ($malf_count > 0 && $status_70 === 1 && $escapeCM == 1) {
     $conn->query("UPDATE CMswitches SET status = 1 WHERE id = 76");
     $conn->query("UPDATE command_module SET value = 0 WHERE attribute IN ('stage1', 'stage2', 'stage3', 'service_module')");
-    if ($escape_fuel <= 0 && $altitude < 3000) {
+    if ($escape_fuelCM <= 0 && $altitude < 3000) {
         $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'escape'");
     }
 }
 include 'physics/IMU.php';
-//##############################abort
-$malf_query = $conn->query("SELECT COUNT(*) AS malf_count FROM EngineStatus WHERE component = 'Combustion Chamber' AND operational_status = 'MALF'");
-$malf_data = $malf_query->fetch_assoc();
-$malf_count = intval($malf_data['malf_count']);
-
-// Step 2: Check if ID 70 status is 1 in CMswitches
-$status_70_query = $conn->query("SELECT status FROM CMswitches WHERE id = 70");
-$status_70_data = $status_70_query->fetch_assoc();
-$status_70 = intval($status_70_data['status'] ?? 0);
-
-// Step 3: Update ID 76 status to 1 if conditions are met
-if ($malf_count > 0 && $status_70 === 1 && $escape == 1) {
-    $conn->query("UPDATE CMswitches SET status = 1 WHERE id = 76");
-    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'stage1'");
-    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'stage2'");
-    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'stage3'");
-    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'service_module'");
-    if ($escape_fuel <= 0 && $altitude < 3000) {
-        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'escape'");
-    }
-}
-//######################################abort
+// Abort sequence handled once above.
 
 // Update navigation deltas and relative velocity
 if ($altitudemoon < $altitude) {
