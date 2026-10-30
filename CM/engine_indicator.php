@@ -45,11 +45,11 @@ if ($stages['stage1'] === 0 && $stages['stage2'] === 0 && $stages['stage3'] === 
         }
     }
 
-    // Stage 3: Check SPS Engine
+    // Stage 3: Check the single S-IVB J-2 engine
     if ($stages['stage1'] == 0 && $stages['stage2'] == 0 && $stages['stage3'] == 1) {
         $engine_query = $conn->query("SELECT engine_name, status FROM EngineStatus WHERE engine_stage = 'Third Stage'");
         while ($engine = $engine_query->fetch_assoc()) {
-            if ($engine['engine_name'] === 'SPS Engine' && $engine['status'] !== 'ON') {
+            if ($engine['engine_name'] === 'J-2 Engine' && $engine['status'] !== 'ON') {
                 $ON5 = 0;
             }
         }
