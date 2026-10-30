@@ -145,6 +145,11 @@ $conn->query(
 
 $conn->query("TRUNCATE TABLE CMtelemetry");
 
+// Runtime command/contact tables are optional on older databases. Failed
+// TRUNCATE calls are harmless until their migration/self-creation occurs.
+$conn->query("TRUNCATE TABLE rcs_pulse_queue");
+$conn->query("TRUNCATE TABLE surface_contact");
+
 // Quaternion orientation is derived again from the reset pitch/yaw/roll values
 // on the first active physics step.
 if (function_exists('moonSimResetAttitudeState')) {
