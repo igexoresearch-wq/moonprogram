@@ -65,11 +65,11 @@
                 <td><button onclick="activateThruster('rever3')">↓</button></td>
             </tr>
             <tr>
-                <td>0.05%</td>
+                <td>0.05 s</td>
                 <td>&nbsp;&nbsp;</td>
-                <td>0.50%</td>
+                <td>0.50 s</td>
                 <td>&nbsp;&nbsp;</td>
-                <td>5.0%</td>
+                <td>5.0 s</td>
             </tr>
         </table>
     </div>
