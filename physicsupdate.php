@@ -30,7 +30,7 @@ function calculate_anglemoonx($xm, $ym) {
 
 include 'physics/db.php';
 include_once 'physics/integrator.php';
-include_once 'physics/attitude_legacy.php';
+include_once 'physics/attitude.php';
 
 // Keep the original once-per-minute worker design, but guarantee that only one
 // worker can advance the universe at a time.
