@@ -8,15 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['sm_release'])) {
-        // Service-module separation is still represented by the original
-        // service_module state. Reentry physics will make this a full event.
-        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'service_module'");
-        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrust'");
-        $conn->query(
-            "UPDATE EngineStatus
-             SET status = 'OFF'
-             WHERE engine_stage = 'Service Module'"
-        );
+        moonSimQueueDockingCommand($conn, 'SM_SEPARATE');
         $needs_redirect = true;
     }
 
