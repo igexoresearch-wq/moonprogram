@@ -31,16 +31,25 @@ include 'physics/air.php';
 include 'physics/thrust.php';
 include 'physics/fuel.php';
 
+// Translational RCS commands are queued by the cockpit pages and consumed only
+// here, so clicking/refreshing a UI can no longer edit velocity directly.
+$rcsAcceleration = moonSimConsumeRcsPulses(
+    $conn,
+    $cmQuaternion,
+    $lmQuaternion,
+    1.0
+);
+
 $cmNonGravityAcceleration = [
-    (float)$thrustAccelerationCMx - (float)$drag_acc_x,
-    (float)$thrustAccelerationCMy - (float)$drag_acc_y,
-    (float)$thrustAccelerationCMz - (float)$drag_acc_z,
+    (float)$thrustAccelerationCMx - (float)$drag_acc_x + $rcsAcceleration['CM'][0],
+    (float)$thrustAccelerationCMy - (float)$drag_acc_y + $rcsAcceleration['CM'][1],
+    (float)$thrustAccelerationCMz - (float)$drag_acc_z + $rcsAcceleration['CM'][2],
 ];
 
 $lmNonGravityAcceleration = [
-    (float)$thrustAccelerationLMx,
-    (float)$thrustAccelerationLMy,
-    (float)$thrustAccelerationLMz,
+    (float)$thrustAccelerationLMx + $rcsAcceleration['LM'][0],
+    (float)$thrustAccelerationLMy + $rcsAcceleration['LM'][1],
+    (float)$thrustAccelerationLMz + $rcsAcceleration['LM'][2],
 ];
 
 // Preserve the old heat-shield wear behavior until the dedicated reentry pass.
