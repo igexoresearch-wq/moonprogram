@@ -47,8 +47,7 @@ file_put_contents($temp_file, json_encode($new_data));
 
 
 
-// Include the database connection
-echo $horrizonCM;
+// Launch-sequence state is owned by physics, not by a display page.
 $query = "SELECT seconds FROM mission_clock WHERE id = 1";
 $result = $conn->query($query);
 
@@ -76,6 +75,16 @@ if ($secondsx == 1) {
      $conn->query("UPDATE command_module SET value = 10006371005 WHERE attribute = 'x'");
      $conn->query("UPDATE command_module SET value = 10 WHERE attribute = 'delta_x'");
 }
+/*
+ * A separation event remains at staging=1 for one physics pass so displays
+ * can observe it.  Physics clears it on the following pass; cockpit audio is
+ * no longer allowed to advance the launch sequence.
+ */
+if ((int)$stagingCM === 1) {
+    $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'staging'");
+    $stagingCM = 0;
+}
+
 // stage 1 sep
 if ($s1fuelCM == 0 && $stage1CM == 1) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 19");
@@ -86,7 +95,7 @@ if ($s1fuelCM == 0 && $stage1CM == 1) {
     
 }
 // stage 2 ign
-if ($stage1CM == 0   && $s2fuelCM == 456100.00000000 && $staging == 0) {
+if ($stage1CM == 0   && $s2fuelCM == 456100.00000000 && $stagingCM == 0) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 17");
    
 }
@@ -99,7 +108,7 @@ if ($s2fuelCM == 0 && $stage2CM == 1) {
 
 }
 // stage 3 ign
-if ($stage2CM == 0 && $s3fuelCM == 121480.00000000  && $staging == 0) {
+if ($stage2CM == 0 && $s3fuelCM == 121480.00000000  && $stagingCM == 0) {
     $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 18");
     
 }
