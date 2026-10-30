@@ -2,10 +2,19 @@
 
 function moonSimEnsureDockingCommandTables(mysqli $conn): void
 {
+    $allowedEnum =
+        "ENUM(" .
+        "'UNDOCK'," .
+        "'SIVB_SEPARATE'," .
+        "'SM_SEPARATE'," .
+        "'LM_ASCENT_STAGE'," .
+        "'LM_ABORT_ASCENT'" .
+        ")";
+
     $conn->query(
         "CREATE TABLE IF NOT EXISTS docking_command_queue (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            command_type ENUM('UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE','LM_ABORT_ASCENT') NOT NULL,
+            command_type $allowedEnum NOT NULL,
             requested_at DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
             processed_at DATETIME(6) NULL,
             PRIMARY KEY (id),
@@ -13,14 +22,39 @@ function moonSimEnsureDockingCommandTables(mysqli $conn): void
         ) ENGINE=InnoDB"
     );
 
-    // Existing deployments may already have the earlier two-value ENUM.
-    // Widen it in place so the cockpit can queue Service Module separation
-    // without directly changing physical state.
-    $conn->query(
-        "ALTER TABLE docking_command_queue
-         MODIFY command_type
-         ENUM('UNDOCK','SIVB_SEPARATE','SM_SEPARATE') NOT NULL"
+    /*
+     * Existing deployments can have an older narrower ENUM. Inspect the
+     * column before issuing ALTER TABLE so normal cockpit requests do not
+     * take a metadata lock on every use.
+     */
+    $columnResult = $conn->query(
+        "SHOW COLUMNS FROM docking_command_queue LIKE 'command_type'"
     );
+    $columnRow = $columnResult ? $columnResult->fetch_assoc() : null;
+    $columnType = strtolower((string)($columnRow['Type'] ?? ''));
+
+    $requiredValues = [
+        'undock',
+        'sivb_separate',
+        'sm_separate',
+        'lm_ascent_stage',
+        'lm_abort_ascent',
+    ];
+
+    $needsAlter = ($columnType === '');
+    foreach ($requiredValues as $requiredValue) {
+        if (strpos($columnType, $requiredValue) === false) {
+            $needsAlter = true;
+            break;
+        }
+    }
+
+    if ($needsAlter) {
+        $conn->query(
+            "ALTER TABLE docking_command_queue
+             MODIFY command_type $allowedEnum NOT NULL"
+        );
+    }
 
     $conn->query(
         "CREATE TABLE IF NOT EXISTS docking_runtime (
@@ -44,8 +78,16 @@ function moonSimQueueDockingCommand(mysqli $conn, string $commandType): int
     moonSimEnsureDockingCommandTables($conn);
 
     $commandType = strtoupper($commandType);
-    if (!in_array($commandType, ['UNDOCK','SIVB_SEPARATE','SM_SEPARATE','LM_ASCENT_STAGE','LM_ABORT_ASCENT'], true)) {
-        throw new InvalidArgumentException('Unknown docking command.');
+    $allowed = [
+        'UNDOCK',
+        'SIVB_SEPARATE',
+        'SM_SEPARATE',
+        'LM_ASCENT_STAGE',
+        'LM_ABORT_ASCENT',
+    ];
+
+    if (!in_array($commandType, $allowed, true)) {
+        throw new InvalidArgumentException('Unknown docking/separation command.');
     }
 
     $stmt = $conn->prepare(
