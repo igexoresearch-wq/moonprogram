@@ -75,8 +75,8 @@ if ($secondsx == 0) {
     $stagingCM = 0;
 }
 if ($secondsx == 1) {
-     $conn->query("UPDATE command_module SET value = 10006371005 WHERE attribute = 'x'");
-     $conn->query("UPDATE command_module SET value = 10 WHERE attribute = 'delta_x'");
+    // No artificial liftoff kick. The central integrator now releases the
+    // launch-pad support constraint when thrust exceeds local gravity.
 }
 /*
  * A separation event remains at staging=1 for one physics pass so displays
