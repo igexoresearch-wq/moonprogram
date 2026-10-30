@@ -937,3 +937,30 @@ Completed in this pass:
 
 Testing note:
 - PHP/GitHub CI execution has not yet been observed for the newest commits. Do not mark the new elliptical regression scenario as passed until it has actually executed.
+
+
+## Progress note — 2026-10-30 continued repair pass
+
+Additional work completed:
+- fixed docking/separation command queue migration so existing databases keep all current command types,
+- fixed CM guidance program 9 roll-completion variable,
+- fixed TEI program 37 missing lunar-distance value,
+- changed CM_AGC direct-execute dispatch so multiple pending execute requests no longer block one another,
+- added sourced physical-data notes in `docs/PHYSICAL_DATA_SOURCES.md`,
+- corrected LM DPS command mapping to the Apollo throttleable range plus fixed full-throttle position,
+- corrected APS behavior to fixed thrust rather than linear throttle,
+- repaired launch-sequence climb-rate measurement so it comes from live radial velocity rather than a wall-clock /tmp file,
+- removed the unsafe generic IMU-target cutoff from the launch sequence,
+- added parking-orbit cutoff logic that leaves S-IVB propellant for restart,
+- added S-IVB J-2 restart/shutdown behavior around the existing TLI program,
+- added the first mission-profile configuration layer in `shared/mission_profiles.php` with:
+  - generic Apollo training profile,
+  - Apollo 11 / AS-506 validation profile,
+  - sourced launch-event reference times,
+  - parking-orbit targets.
+
+Still incomplete:
+- mission-profile event data is not yet fully wired into `physics/lseq.php`,
+- historical center-engine cutoff and timed stage events still need to be applied from the selected profile,
+- a mission-selection operator page still needs to be added,
+- full launch/TLI validation has not yet been executed end-to-end.
