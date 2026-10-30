@@ -59,7 +59,7 @@ function moonSimConsumeDockingCommands(
     array $lmQuaternion
 ): bool {
     global
-        $dockCM, $stage3CM,
+        $dockCM, $stage3CM, $descentLM,
         $delta_xCM, $delta_yCM, $delta_zCM,
         $delta_xLM, $delta_yLM, $delta_zLM,
         $totalSaturnV, $totalLEM,
@@ -144,6 +144,30 @@ function moonSimConsumeDockingCommands(
                  WHERE id=1"
             );
 
+            $changed = true;
+        }
+
+        if ($type === 'LM_ASCENT_STAGE' && (int)$descentLM === 1 && (int)$dockCM === 0) {
+            // Descent-stage separation is a physical state transition and is
+            // therefore applied by the physics worker, not by the LM page.
+            // The ascent stage remains on the current surface contact until
+            // APS thrust produces positive outward acceleration.
+            $conn->query(
+                "UPDATE telemetry
+                 SET value = CASE attribute
+                    WHEN 'descent' THEN 0
+                    WHEN 'thrust' THEN 0
+                    ELSE value
+                 END
+                 WHERE attribute IN ('descent','thrust')"
+            );
+            $conn->query(
+                "UPDATE EngineStatus
+                 SET status='OFF'
+                 WHERE engine_stage='Lunar Module'"
+            );
+
+            $descentLM = 0;
             $changed = true;
         }
 
