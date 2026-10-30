@@ -14,3 +14,5 @@ jobs:
         run: php -v
       - name: Lint all PHP files
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Orbit conservation regression
+        run: php tests/orbit_conservation.php
