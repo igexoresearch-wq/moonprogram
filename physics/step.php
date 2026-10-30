@@ -11,6 +11,17 @@ include 'physics/variables.php';
 include 'physics/constants.php';
 include 'physics/coordinate.php';
 
+// Load authoritative orientation before propulsion is evaluated. Guidance may
+// still write Euler targets directly; moonSimLoadVehicleQuaternion() detects
+// those writes and resynchronizes the internal quaternion automatically.
+$cmQuaternion = moonSimLoadVehicleQuaternion($conn, 'CM');
+$lmQuaternion = moonSimLoadVehicleQuaternion($conn, 'LM');
+
+if ((int)$dockCM === 1 || (int)$stage3CM === 1) {
+    $lmQuaternion = $cmQuaternion;
+    moonSimStoreVehicleQuaternion($conn, 'LM', $lmQuaternion);
+}
+
 // Preserve the current atmosphere/reentry model for now. It produces a
 // one-second drag estimate and, for legacy parachutes, may modify current
 // velocity before the central integrator receives it.
@@ -50,7 +61,7 @@ moonSimAdvanceTranslation(
     $lmNonGravityAcceleration
 );
 
-moonSimAdvanceLegacyAttitude($conn, 1.0);
+moonSimAdvanceAttitude($conn, 1.0);
 
 // Guidance must see the state resulting from the completed physical second.
 include 'physics/variables.php';
