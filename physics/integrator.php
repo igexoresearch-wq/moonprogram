@@ -91,7 +91,8 @@ function moonSimAdvanceTranslation(
         $earth_radius, $moon_radius,
         $earth_mass, $moon_mass, $gravitational_constant,
         $dockCM, $stage3CM,
-        $descentLM, $service_moduleCM, $parachutes_deployedCM;
+        $descentLM, $service_moduleCM, $parachutes_deployedCM,
+        $cmQuaternion, $lmQuaternion;
 
     $earth = [
         (float)$earth_center_x,
@@ -582,17 +583,26 @@ function moonSimAdvanceTranslation(
          WHERE attribute IN ('x','y','z','delta_x','delta_y','delta_z')"
     );
 
-    // Preserve the original automatic docking behavior for now. Phase 11
-    // replaces this with closure-speed and alignment capture criteria.
-    if (!$attached && (int)$stage3CM === 0) {
-        $dx = $lmPos[0] - $cmPos[0];
-        $dy = $lmPos[1] - $cmPos[1];
-        $dz = $lmPos[2] - $cmPos[2];
-
-        if (sqrt($dx*$dx + $dy*$dy + $dz*$dz) < 10.0) {
-            $conn->query("UPDATE command_module SET value = 1 WHERE attribute = 'dock'");
-            $dockCM = 1;
-        }
+    if (
+        !$attached
+        && !isset($surfaceContacts['CM'])
+        && !isset($surfaceContacts['LM'])
+        && moonSimTryDockCapture(
+            $conn,
+            $cmPos,
+            $cmVel,
+            $lmPos,
+            $lmVel,
+            $cmQuaternion,
+            $lmQuaternion,
+            (int)$stage3CM,
+            (int)$dockCM
+        )
+    ) {
+        $dockCM = 1;
+        $lmPos = $cmPos;
+        $lmVel = $cmVel;
+        $lmQuaternion = $cmQuaternion;
     }
 }
 ?>
