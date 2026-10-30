@@ -126,14 +126,16 @@ if ((int)$escapeCM === 1 && (int)$ABORTCM === 1) {
 
 $current_mass = max(1.0, $current_mass);
 
-$pitch_rad = deg2rad((float)$pitchCM);
-$yaw_rad = deg2rad((float)$yawCM);
-$roll_rad = deg2rad((float)$rollCM); // retained for the later full 3-D attitude pass
+// Main engines thrust along spacecraft-local +X. The quaternion converts that
+// body-forward vector into the universal XYZ frame without an Euler singularity.
+if (!isset($cmQuaternion)) {
+    $cmQuaternion = moonSimLoadVehicleQuaternion($conn, 'CM');
+}
+$cmForward = moonSimRotateBodyVector($cmQuaternion, [1.0, 0.0, 0.0]);
 
-// Existing pitch/yaw transform is intentionally preserved in this wiring pass.
-$thrust_x = $current_thrust * cos($pitch_rad) * cos($yaw_rad);
-$thrust_y = $current_thrust * cos($pitch_rad) * (-1.0 * sin($yaw_rad));
-$thrust_z = $current_thrust * sin($pitch_rad);
+$thrust_x = $current_thrust * $cmForward[0];
+$thrust_y = $current_thrust * $cmForward[1];
+$thrust_z = $current_thrust * $cmForward[2];
 
 $thrustAccelerationCMx = $thrust_x / $current_mass;
 $thrustAccelerationCMy = $thrust_y / $current_mass;
@@ -155,13 +157,14 @@ if ($lmDescentActive) {
 
 $current_mass_LM = max(1.0, (float)$totalLEM);
 
-$pitch_rad = deg2rad((float)$pitchLM);
-$yaw_rad = deg2rad((float)$yawLM);
-$roll_rad = deg2rad((float)$rollLM); // retained for the later full 3-D attitude pass
+if (!isset($lmQuaternion)) {
+    $lmQuaternion = moonSimLoadVehicleQuaternion($conn, 'LM');
+}
+$lmForward = moonSimRotateBodyVector($lmQuaternion, [1.0, 0.0, 0.0]);
 
-$thrust_x = $current_thrust_LM * cos($pitch_rad) * cos($yaw_rad);
-$thrust_y = $current_thrust_LM * cos($pitch_rad) * sin($yaw_rad);
-$thrust_z = $current_thrust_LM * sin($pitch_rad);
+$thrust_x = $current_thrust_LM * $lmForward[0];
+$thrust_y = $current_thrust_LM * $lmForward[1];
+$thrust_z = $current_thrust_LM * $lmForward[2];
 
 $thrustAccelerationLMx = $thrust_x / $current_mass_LM;
 $thrustAccelerationLMy = $thrust_y / $current_mass_LM;
