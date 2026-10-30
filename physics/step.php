@@ -22,6 +22,16 @@ if ((int)$dockCM === 1 || (int)$stage3CM === 1) {
     moonSimStoreVehicleQuaternion($conn, 'LM', $lmQuaternion);
 }
 
+// Separation and undocking are requested by the cockpit but applied here.
+if (moonSimConsumeDockingCommands($conn, $cmQuaternion, $lmQuaternion)) {
+    include 'physics/variables.php';
+    include 'physics/constants.php';
+    include 'physics/coordinate.php';
+
+    $cmQuaternion = moonSimLoadVehicleQuaternion($conn, 'CM');
+    $lmQuaternion = moonSimLoadVehicleQuaternion($conn, 'LM');
+}
+
 // Preserve the current atmosphere/reentry model for now. It produces a
 // one-second drag estimate and, for legacy parachutes, may modify current
 // velocity before the central integrator receives it.
