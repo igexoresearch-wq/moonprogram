@@ -1,129 +1,115 @@
-<?php error_reporting(E_ALL);
+<?php
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
 $needs_redirect = false;
-// Ensure database connection exists
+
 if (!$conn) {
     die("Database connection failed.");
 }
 
-// Handle toggle actions for switches
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {  $needs_redirect = true;
-    // Toggle a specific switch
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['toggle_id'])) {
-        $toggle_id = intval($_POST['toggle_id']);
+        $toggle_id = (int)$_POST['toggle_id'];
 
-        // Fetch current status of the switch
-        $result = $conn->query("SELECT status FROM switches WHERE id = $toggle_id");
-        if ($result && $result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $new_status = $row['status'] == 1 ? 0 : 1;
+        if ($toggle_id >= 1 && $toggle_id <= 10) {
+            $result = $conn->query("SELECT status FROM switches WHERE id = $toggle_id");
+            if ($result && $row = $result->fetch_assoc()) {
+                $new_status = ((int)$row['status'] === 1) ? 0 : 1;
 
-            // Update the switch's status in the switches table
-            $conn->query("UPDATE switches SET status = $new_status WHERE id = $toggle_id");
+                $conn->query("UPDATE switches SET status = $new_status WHERE id = $toggle_id");
+                $conn->query("UPDATE systems SET status = $new_status WHERE id = $toggle_id");
 
-            // Update the corresponding status in the systems table
-            $conn->query("UPDATE systems SET status = $new_status WHERE id = $toggle_id");
+                if ($new_status === 1) {
+                    $conn->query(
+                        "UPDATE systems
+                         SET probability = 10000
+                         WHERE id = $toggle_id
+                           AND probability < 1"
+                    );
+                }
 
-            // Update probability if toggling on
-            if ($new_status == 1) {
-                $conn->query("UPDATE systems SET probability = FLOOR(1 + (RAND() * 1000)) WHERE id = $toggle_id AND probability = 1");
+                $needs_redirect = true;
             }
         }
     }
 
-    // Master Off: Turn off all switches (1–10)
-    if (isset($_POST['master_off'])) { $needs_redirect = true;
+    if (isset($_POST['master_off'])) {
         $conn->query("UPDATE switches SET status = 0 WHERE id BETWEEN 1 AND 10");
         $conn->query("UPDATE systems SET status = 0 WHERE id BETWEEN 1 AND 10");
+        $needs_redirect = true;
     }
 
-// Prog. Abort: Reset guidance table to original state
-if (isset($_POST['prog_abort'])) {  $needs_redirect = true;
-    $conn->query("UPDATE guidance SET verb = 'X' WHERE id BETWEEN 1 AND 10"); // Reset guidance verbs 1-10
-    $conn->query("UPDATE guidance SET verb = 'O' WHERE id = 12"); // Set ID 12's verb to 'O'
-    $conn->query("UPDATE guidance SET verb = 'X' WHERE id = 11"); // Reset ID 11 verb
-    $conn->query("UPDATE guidance SET verb = 'X' WHERE id >= 13"); // Reset any remaining verbs to 'X'
-}
-
-    // Land Abort: Reset telemetry and systems
-    if (isset($_POST['land_abort'])) { $needs_redirect = true;
-        $conn->query("UPDATE telemetry SET value = CASE
-            WHEN attribute = 'x' THEN 0
-            WHEN attribute = 'y' THEN 1850000
-            WHEN attribute = 'z' THEN 0
-            WHEN attribute = 'delta_x' THEN 1642
-            WHEN attribute = 'delta_y' THEN 0
-            WHEN attribute = 'delta_z' THEN 0
-            WHEN attribute = 'map_zoom' THEN 1
-            WHEN attribute = 'fuel' THEN 8242
-            WHEN attribute = 'altitude' THEN 110000
-            WHEN attribute = 'roll_rate' THEN 0
-            WHEN attribute = 'pitch_rate' THEN 0
-            WHEN attribute = 'thrust' THEN 0
-            WHEN attribute = 'rcs' THEN 3368
-            ELSE 0
-        END");
-        $conn->query("UPDATE systems SET status = 1 WHERE id BETWEEN 1 AND 10");
-        $conn->query("UPDATE telemetry SET value = 0 WHERE id BETWEEN 14 AND 17");
-        $conn->query("UPDATE systems SET status = 0 WHERE id BETWEEN 11 AND 14");
-          $conn->query("UPDATE systems SET status = 1 WHERE id = 17");
-          $conn->query("UPDATE systems SET status = 0 WHERE id = 18");
-                    $conn->query("UPDATE systems SET status = 0 WHERE id = 20");
-          $conn->query("UPDATE switches SET status = 0 WHERE id = 11");
-                    $conn->query("UPDATE switches SET status = 0 WHERE id = 12");
-          // Database credentials
-$db_host = 'localhost';
-$db_name = 'moonland';
-$db_user = 'victorywebproductions';
-$db_pass = 'CHANGE_ME';
-
-try {
-    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
-}
-
-// Default values
-$defaults = [
-    'x' => 0,
-    'y' => 1850000,
-    'z' => 0,
-    'delta_x' => 1642,
-    'delta_y' => 0,
-    'delta_z' => 0,
-        'docking' => 0
-];
-
-// Reset command_module table
-$stmt = $pdo->prepare("UPDATE command_module SET value = :value WHERE attribute = :attribute");
-
-foreach ($defaults as $attribute => $value) {
-    $stmt->execute(['value' => $value, 'attribute' => $attribute]);
-}
-
-          
-          
+    // Abort the older LM/root guidance entry without moving the spacecraft.
+    if (isset($_POST['prog_abort'])) {
+        $conn->query("UPDATE guidance SET verb = 'X' WHERE id BETWEEN 1 AND 10");
+        $conn->query("UPDATE guidance SET verb = 'O' WHERE id = 12");
+        $conn->query("UPDATE guidance SET noun = 'X', verb = 'X' WHERE id IN (11, 13)");
+        $needs_redirect = true;
     }
 
-    // Command Module Release: Set system ID 11 to 1
-    if (isset($_POST['command_module_release'])) {  $needs_redirect = true;
-        $conn->query("UPDATE systems SET status = 1 WHERE id = 11");
+    if (isset($_POST['land_abort'])) {
+        /*
+         * LM landing abort / ascent command.
+         * The old code teleported both vehicles into an obsolete coordinate
+         * frame and wrote to system IDs that no longer exist.  Preserve the
+         * intended "get off the descent stage and go" behavior instead.
+         */
+        $result = $conn->query(
+            "SELECT value
+             FROM telemetry
+             WHERE attribute = 'fuel_ascent'
+             LIMIT 1"
+        );
+        $ascentFuel = ($result && $row = $result->fetch_assoc())
+            ? (float)$row['value']
+            : 0.0;
+
+        $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'descent'");
+        $conn->query("UPDATE systems SET status = 0 WHERE system = 'landed'");
+        $conn->query(
+            "UPDATE EngineStatus
+             SET status = 'OFF'
+             WHERE engine_stage = 'Lunar Module'"
+        );
+
+        if ($ascentFuel > 0.0) {
+            $conn->query("UPDATE telemetry SET value = 100 WHERE attribute = 'thrust'");
+            $conn->query(
+                "UPDATE EngineStatus
+                 SET status = 'ON'
+                 WHERE engine_stage = 'Lunar Module'
+                   AND engine_name = 'Ascent Engine'
+                   AND operational_status = 'OK'"
+            );
+        } else {
+            $conn->query("UPDATE telemetry SET value = 0 WHERE attribute = 'thrust'");
+        }
+
+        $needs_redirect = true;
+    }
+
+    if (isset($_POST['command_module_release'])) {
+        // Release the LM/CSM docking latch.  The later docking-physics phase
+        // will add a physical separation impulse; do not teleport either craft.
+        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'dock'");
+        $needs_redirect = true;
     }
 }
 
-// Fetch switch statuses and corresponding system names
 $switches = [];
-$result = $conn->query("SELECT switches.id AS switch_id, switches.status, systems.system 
-                        FROM switches 
-                        JOIN systems ON switches.id = systems.id 
-                        WHERE switches.id BETWEEN 1 AND 10");
+$result = $conn->query(
+    "SELECT switches.id AS switch_id, switches.status, systems.system
+     FROM switches
+     JOIN systems ON switches.id = systems.id
+     WHERE switches.id BETWEEN 1 AND 10"
+);
 
-if ($result && $result->num_rows > 0) {
+if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $switches[$row['switch_id']] = [
-            'status' => $row['status'],
-            'name' => ucfirst($row['system'])
+        $switches[(int)$row['switch_id']] = [
+            'status' => (int)$row['status'],
+            'name' => ucfirst((string)$row['system']),
         ];
     }
 }
@@ -134,16 +120,21 @@ if ($result && $result->num_rows > 0) {
         <table class="switches-table">
             <?php for ($row = 0; $row < 4; $row++): ?>
                 <tr>
-                    <?php for ($col = 0; $col < 5; $col++): 
+                    <?php for ($col = 0; $col < 5; $col++):
                         $switch_id = $row * 5 + $col + 1;
-                        if ($switch_id > 10) break; 
+                        if ($switch_id > 10) {
+                            break;
+                        }
                         $switch = $switches[$switch_id] ?? null;
-                        if ($switch): ?>
+                    ?>
+                        <?php if ($switch): ?>
                             <td>
-                                <button type="submit" name="toggle_id" value="<?php echo $switch_id; ?>" 
-                                        class="switch-toggle <?php echo $switch['status'] == 1 ? 'switch-on' : 'switch-off'; ?>">
-                                    <?php echo htmlspecialchars($switch['name']); ?>
-                                </button>
+                                <button
+                                    type="submit"
+                                    name="toggle_id"
+                                    value="<?php echo $switch_id; ?>"
+                                    class="switch-toggle <?php echo $switch['status'] === 1 ? 'switch-on' : 'switch-off'; ?>"
+                                ><?php echo htmlspecialchars($switch['name']); ?></button>
                             </td>
                         <?php else: ?>
                             <td></td>
@@ -152,20 +143,32 @@ if ($result && $result->num_rows > 0) {
                 </tr>
             <?php endfor; ?>
         </table>
+
         <div class="master-controls">
             <button type="submit" name="master_off" class="master-off-button">Master Off</button>
             <button type="submit" name="prog_abort" class="prog-abort-button">Prog. Abort</button>
-            <button type="submit" name="land_abort" class="land-abort-button">Land Abort</button>
-            <button type="submit" name="command_module_release" class="command-module-release-button">Command Module Release</button>
+            <button
+                type="submit"
+                name="land_abort"
+                class="land-abort-button"
+                onclick="return confirm('Abort descent and command LM ascent stage?');"
+            >Land Abort</button>
+            <button
+                type="submit"
+                name="command_module_release"
+                class="command-module-release-button"
+            >CSM Dock Release</button>
         </div>
     </form>
 </div>
-    <?php
-    if ($needs_redirect) {
-        echo '<script>window.location.href = window.location.href;</script>';
-        exit();
-    }
-    ?>
+
+<?php
+if ($needs_redirect) {
+    echo '<script>window.location.href = window.location.href;</script>';
+    exit();
+}
+?>
+
 <style>
     .switches-container {
         padding: 20px;
