@@ -4,7 +4,8 @@ $audioFile = 'staging.mp3';?>
 <?php
 $thr = $thrustCM;
 $stag = $stagingCM;
-if ($stagingCM == 1) {$conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'staging'");
+if ($stagingCM == 1) {
+   // Display/audio only: physics owns staging state.
    ?> 
 <script>
         // Play the sound once when the page loads
