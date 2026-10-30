@@ -147,16 +147,23 @@ function moonSimConsumeDockingCommands(
             $changed = true;
         }
 
-        if ($type === 'LM_ASCENT_STAGE' && (int)$descentLM === 1 && (int)$dockCM === 0) {
+        if (
+            in_array($type, ['LM_ASCENT_STAGE','LM_ABORT_ASCENT'], true)
+            && (int)$descentLM === 1
+            && (int)$dockCM === 0
+        ) {
             // Descent-stage separation is a physical state transition and is
             // therefore applied by the physics worker, not by the LM page.
-            // The ascent stage remains on the current surface contact until
-            // APS thrust produces positive outward acceleration.
+            // A landing abort also commands full APS thrust immediately after
+            // the separation transition.
+            $abortAscent = ($type === 'LM_ABORT_ASCENT');
+            $postSeparationThrust = $abortAscent ? 100 : 0;
+
             $conn->query(
                 "UPDATE telemetry
                  SET value = CASE attribute
                     WHEN 'descent' THEN 0
-                    WHEN 'thrust' THEN 0
+                    WHEN 'thrust' THEN $postSeparationThrust
                     ELSE value
                  END
                  WHERE attribute IN ('descent','thrust')"
