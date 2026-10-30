@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['shutdown'])) {
     // Perform shutdown for the current stage and engine
     if ($current_stage) {
         $conn->query("UPDATE EngineStatus SET status = 'OFF' WHERE engine_stage = '$current_stage' AND engine_name LIKE '%Engine $engine_number%'");
-
-        // If it's the SPS engine for Stage 3, ensure only Engine 5 is affected
-        if ($current_stage === 'Third Stage') {
-            $conn->query("UPDATE EngineStatus SET status = 'OFF' WHERE engine_stage = 'Third Stage' AND engine_name = 'SPS Engine'");
+        // The S-IVB has one J-2. The center "Engine 5" button represents
+        // that single engine on this legacy five-light control layout.
+        if ($current_stage === 'Third Stage' && $engine_number === 5) {
+            $conn->query("UPDATE EngineStatus SET status = 'OFF' WHERE engine_stage = 'Third Stage' AND engine_name = 'J-2 Engine'");
         }
     }
 }
