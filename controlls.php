@@ -114,10 +114,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         && $systemStatus['propulsion'] === 1;
 
     if (isset($_POST['increase_thrust']) && $mainEngineAvailable) {
-        // 100 now means 100% commanded throttle.  The old 60% cap was paired
-        // with a second hidden reduction in the DPS constant and made the LM
-        // incapable of producing the intended full-throttle command.
-        $telemetry['thrust'] = min(100.0, $telemetry['thrust'] + 1.0);
+        if ((int)$telemetry['descent'] === 1) {
+            $telemetry['thrust'] = min(100.0, $telemetry['thrust'] + 1.0);
+        } else {
+            // APS is fixed thrust: any positive start command means ON.
+            $telemetry['thrust'] = 100.0;
+        }
+
         $conn->query(
             "UPDATE telemetry
              SET value = {$telemetry['thrust']}
@@ -127,7 +130,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (isset($_POST['decrease_thrust']) && $mainEngineAvailable) {
-        $telemetry['thrust'] = max(0.0, $telemetry['thrust'] - 1.0);
+        if ((int)$telemetry['descent'] === 1) {
+            $telemetry['thrust'] = max(0.0, $telemetry['thrust'] - 1.0);
+        } else {
+            // APS cannot be throttled; the down command is cutoff.
+            $telemetry['thrust'] = 0.0;
+        }
+
         $conn->query(
             "UPDATE telemetry
              SET value = {$telemetry['thrust']}
