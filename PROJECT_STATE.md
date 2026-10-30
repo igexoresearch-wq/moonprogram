@@ -419,3 +419,45 @@ Then continue from the first incomplete step unless the user explicitly changes 
 - Ground Control AI should initially be read-only to physical simulator state. It may advise; actual control remains with the operator. A separately approved uplink feature can be considered later.
 
 The detailed implementation and acceptance criteria for all of the above are in `WORK_PLAN.md`.
+
+
+## Coding progress — 2026-10-30
+
+The repair work has moved from audit into implementation.
+
+### Completed/committed
+
+- LM DPS/APS engine lookup and ignition path repaired.
+- LM descent/ascent fuel selection repaired.
+- LM throttle no longer incorrectly depends on RCS fuel or stops at 60%.
+- LM descent-stage separation now reaches the ascent engine state.
+- LES fuel spelling compatibility added.
+- LES/EDS abort uses valid engine failure state and dedicated LES thrust path.
+- stale root launch/abort/switch/map wiring repaired.
+- S-IVB engine display/shutdown naming repaired.
+- staging progression no longer depends on CM/sound.php loading.
+- physics worker now uses shared real wall time and a single MySQL named lock.
+- simulator runtime accumulator persists owed time and does not count reset/off time.
+- one authoritative Apollo physical-data baseline now feeds physics, CSM and ground control.
+- Moon mass factor-of-ten error corrected.
+- LM mass remains part of combined stack mass when docked after S-IVB separation.
+- central velocity-Verlet translation integrates CSM, LM and Moon coherently at 0.1 s substeps.
+- old factorCM and Moon 0.91 translational tuning are removed from the active path.
+- orbital energy/angular-momentum regression added.
+- quaternion attitude state is now active for CSM and LM.
+- main-engine thrust direction is derived from spacecraft body orientation.
+- Saturn launch support constraint now releases naturally when outward net acceleration becomes positive.
+- artificial T+1 launch displacement/velocity kick removed.
+
+### Current boundary
+
+The next high-value work is:
+1. centralize CSM/LM RCS into body-axis physics rather than direct HTTP velocity edits/scalar SPS additions,
+2. add continuous moving-Moon/Earth collision/contact and landing support,
+3. replace automatic <10 m docking with relative-speed/attitude capture,
+4. continue Saturn launch/stage validation and guidance repair,
+5. then reentry/parachutes and mission profiles.
+
+### Testing caution
+
+The remote PHP tree has not yet run an end-to-end production-host validation after these changes. The mathematical Verlet/quaternion methods have been separately sanity-checked, and repository CI definitions exist, but no successful GitHub Actions run was observed yet. Do not describe the complete mission as validated until deployment tests are run.
