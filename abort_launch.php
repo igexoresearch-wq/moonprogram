@@ -37,20 +37,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 
     if ($action === 'abort' && $cmState['escape'] === 1) {
-        // Manual LES abort: separate the CM/LES from the launch stack and
-        // enter the same abort propulsion state used by automatic EDS abort.
+        // Request the LES abort. The physics worker owns physical separation
+        // of the launch stack and the resulting propulsion state.
         $conn->query("UPDATE command_module SET value = 1 WHERE attribute = 'ABORT'");
         $conn->query("UPDATE command_module SET value = 100 WHERE attribute = 'thrust'");
-        $conn->query(
-            "UPDATE command_module
-             SET value = 0
-             WHERE attribute IN ('stage1', 'stage2', 'stage3', 'service_module')"
-        );
-        $conn->query(
-            "UPDATE EngineStatus
-             SET status = 'OFF'
-             WHERE engine_stage IN ('First Stage', 'Second Stage', 'Third Stage', 'Service Module')"
-        );
         $conn->query("UPDATE CMswitches SET status = 1 WHERE id = 76");
     }
 
