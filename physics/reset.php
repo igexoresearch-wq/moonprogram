@@ -157,6 +157,18 @@ $conn->query(
          last_release_at=NULL
      WHERE id=1"
 );
+$conn->query(
+    "UPDATE reentry_state
+     SET chute_state='STOWED',
+         chute_timer_seconds=0,
+         density_kg_m3=0,
+         mach=0,
+         dynamic_pressure_pa=0,
+         heat_flux_w_m2=0,
+         heat_load_j_m2=0,
+         aero_deceleration_g=0
+     WHERE id=1"
+);
 
 // Quaternion orientation is derived again from the reset pitch/yaw/roll values
 // on the first active physics step.
