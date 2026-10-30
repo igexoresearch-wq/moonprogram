@@ -45,6 +45,39 @@ $engineFraction = static function (
 $first_stage_fraction = $engineFraction($conn, 'First Stage');
 $second_stage_fraction = $engineFraction($conn, 'Second Stage');
 $third_stage_fraction = $engineFraction($conn, 'Third Stage');
+
+// SPS ignition follows the existing Service Propulsion Engine cockpit switch
+// and thrust command. RCS no longer piggybacks on SPS throttle.
+$spsSwitchResult = $conn->query(
+    "SELECT status
+     FROM CMswitches
+     WHERE name = 'Service_Propulsion_Engine'
+     LIMIT 1"
+);
+$spsSwitchRow = $spsSwitchResult ? $spsSwitchResult->fetch_assoc() : null;
+$spsEnabled = !$spsSwitchRow || (int)$spsSwitchRow['status'] === 1;
+
+$spsShouldIgnite =
+    (int)$service_moduleCM === 1
+    && $spsEnabled
+    && (float)$thrustCM > 0.0
+    && (float)$fuelCM > 0.0;
+
+$conn->query(
+    "UPDATE EngineStatus
+     SET status = 'OFF'
+     WHERE engine_stage = 'Service Module'"
+);
+
+if ($spsShouldIgnite) {
+    $conn->query(
+        "UPDATE EngineStatus
+         SET status = 'ON'
+         WHERE engine_stage = 'Service Module'
+           AND operational_status = 'OK'"
+    );
+}
+
 $service_module_fraction = $engineFraction($conn, 'Service Module');
 
 /*
@@ -171,6 +204,6 @@ $thrustAccelerationLMy = $thrust_y / $current_mass_LM;
 $thrustAccelerationLMz = $thrust_z / $current_mass_LM;
 $thrustFuelConsumptionLM = $fuel_consumption_LM;
 
-// The legacy CSM translation-RCS command is a one-tick pulse.
+// The legacy scalar "thrusters" field is no longer used for physics.
 $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrusters'");
 ?>
