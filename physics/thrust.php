@@ -1,145 +1,173 @@
 <?php
 
+/*
+ * Propulsion availability is still based on the original EngineStatus model.
+ * This pass intentionally preserves the existing stage/throttle behavior while
+ * fixing broken engine lookups and the LES/LM wiring.
+ */
 
-//engines off calc
-// First Stage: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'First Stage' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
+$engineFraction = static function (
+    mysqli $conn,
+    string $stage,
+    ?string $engineName = null
+): float {
+    $stageEsc = $conn->real_escape_string($stage);
+    $engineClause = '';
 
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'First Stage' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
+    if ($engineName !== null) {
+        $engineEsc = $conn->real_escape_string($engineName);
+        $engineClause = " AND engine_name = '$engineEsc'";
+    }
 
-$first_stage_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
+    $totalQuery = $conn->query(
+        "SELECT COUNT(*) AS total
+         FROM EngineStatus
+         WHERE engine_stage = '$stageEsc'
+           $engineClause
+           AND component = 'Combustion Chamber'"
+    );
+    $total = $totalQuery ? (int)($totalQuery->fetch_assoc()['total'] ?? 0) : 0;
 
-// Second Stage: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'Second Stage' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
+    $onQuery = $conn->query(
+        "SELECT COUNT(*) AS on_count
+         FROM EngineStatus
+         WHERE engine_stage = '$stageEsc'
+           $engineClause
+           AND component = 'Combustion Chamber'
+           AND status = 'ON'
+           AND operational_status = 'OK'"
+    );
+    $on = $onQuery ? (int)($onQuery->fetch_assoc()['on_count'] ?? 0) : 0;
 
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'Second Stage' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
+    return $total > 0 ? $on / $total : 0.0;
+};
 
-$second_stage_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
+$first_stage_fraction = $engineFraction($conn, 'First Stage');
+$second_stage_fraction = $engineFraction($conn, 'Second Stage');
+$third_stage_fraction = $engineFraction($conn, 'Third Stage');
+$service_module_fraction = $engineFraction($conn, 'Service Module');
 
+/*
+ * LM engine state was previously impossible to use after reset:
+ * reset correctly turns every EngineStatus row OFF, but there was no active
+ * path that turned the selected LM engine back ON.  Treat the existing LM
+ * thrust command as the ignition/throttle command for now.  Later guidance
+ * work can put a more detailed ignition interlock in front of this without
+ * changing the cockpit control.
+ */
+$lmThrottle = max(0.0, min(100.0, (float)$thrustLM));
+$lmDescentActive = ((int)$descentLM === 1);
+$lmActiveEngine = $lmDescentActive ? 'Descent Engine' : 'Ascent Engine';
+$lmFuelAvailable = $lmDescentActive
+    ? ((float)$fuelLM > 0.0)
+    : ((float)$fuel_ascentLM > 0.0);
+$lmPropulsionAvailable = !isset($propulsionSYS) || (int)$propulsionSYS === 1;
+$lmShouldIgnite = $lmThrottle > 0.0 && $lmFuelAvailable && $lmPropulsionAvailable;
 
-// Third Stage: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'Third Stage' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
-
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'Third Stage' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
-
-$third_stage_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
-// Service Module: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'Service Module' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
-
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'Service Module' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
-
-$service_module_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
-
-
-// Lunar Module Ascent: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'Lunar Module Ascent' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
-
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'Lunar Module Ascent' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
-
-$lunar_ascent_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
-
-// Lunar Module Descent: Combustion Chambers ON Fraction
-$total_query = $conn->query("SELECT COUNT(*) AS total FROM EngineStatus WHERE engine_stage = 'Lunar Module Descent' AND component = 'Combustion Chamber'");
-$total_data = $total_query->fetch_assoc();
-$total_chambers = intval($total_data['total']);
-
-$on_query = $conn->query("SELECT COUNT(*) AS on_count FROM EngineStatus WHERE engine_stage = 'Lunar Module Descent' AND component = 'Combustion Chamber' AND status = 'ON'");
-$on_data = $on_query->fetch_assoc();
-$on_chambers = intval($on_data['on_count']);
-
-$lunar_descent_fraction = $total_chambers > 0 ? $on_chambers / $total_chambers : 0;
-
-
-
-// Calculate thrust and fuel consumption for the Command Module
-if ($escapeCM == 1 && $ABORT_SWITCH == 1) {
-    $current_thrust = $stage1_thrust * ($thrustCM / 100 * $first_stage_fraction);
-    $fuel_consumption = 1;
-    $current_mass = $totalSaturnV; // Use total Saturn V mass
-} elseif ($stage1CM == 1) {
-    $current_thrust = $stage1_thrust * ($thrustCM / 100 * $first_stage_fraction);
-    $fuel_consumption = $stage1_fuel_rate * ($thrustCM / 100 * $first_stage_fraction);
-    $current_mass = $totalSaturnV; // Use total Saturn V mass
-} elseif ($stage2CM == 1) {
-    $current_thrust = $stage2_thrust * ($thrustCM / 100 * $second_stage_fraction);
-    $fuel_consumption = $stage2_fuel_rate * ($thrustCM / 100 * $second_stage_fraction);
-    $current_mass = $totalSaturnV; // Still within Saturn V
-} elseif ($stage3CM == 1) {
-    $current_thrust = $stage3_thrust * ($thrustCM / 100 * $third_stage_fraction);
-    $fuel_consumption = $stage3_fuel_rate * ($thrustCM / 100 * $third_stage_fraction);
-    $current_mass = $totalSaturnV; // Adjust if you split off the upper stage
-} elseif ($service_moduleCM == 1) {
-    $current_thrust = $service_module_thrust * (($thrustCM + $thrustersCM) / 100) ;
-    $fuel_consumption = $service_module_fuel_rate * (($thrustCM + abs($thrustersCM)) / 100);
-    $current_mass = $totalSaturnV; // Post-Saturn mass, depending on configuration
-} else {
-    $current_thrust = 0;
-    $fuel_consumption = 0;
-    $current_mass = $totalSaturnV; // Assume intact for fallback
+// Only one LM main engine can be active at a time.
+$conn->query("UPDATE EngineStatus SET status = 'OFF' WHERE engine_stage = 'Lunar Module'");
+if ($lmShouldIgnite) {
+    $lmEngineEsc = $conn->real_escape_string($lmActiveEngine);
+    $conn->query(
+        "UPDATE EngineStatus
+         SET status = 'ON'
+         WHERE engine_stage = 'Lunar Module'
+           AND engine_name = '$lmEngineEsc'
+           AND operational_status = 'OK'"
+    );
 }
 
+$lunar_ascent_fraction = $engineFraction($conn, 'Lunar Module', 'Ascent Engine');
+$lunar_descent_fraction = $engineFraction($conn, 'Lunar Module', 'Descent Engine');
 
+// Calculate thrust and fuel consumption for the Saturn/CSM stack.
+if ((int)$escapeCM === 1 && (int)$ABORTCM === 1) {
+    // Launch Escape System.  Manual/automatic abort code sets ABORT and thrust.
+    $current_thrust = (float)$escape_tower_thrust * ((float)$thrustCM / 100.0);
+    $fuel_consumption = 1.0;
 
+    // After abort the launch vehicle/service module are separated.  Keep this
+    // mass calculation local until the full authoritative mass pass.
+    $current_mass = (float)$command_module_empty_mass
+        + (float)$escape_tower_empty_mass
+        + (float)$rcscm
+        + (float)($escape_fuelCM ?? 0);
+} elseif ((int)$stage1CM === 1) {
+    $current_thrust = (float)$stage1_thrust
+        * ((float)$thrustCM / 100.0 * $first_stage_fraction);
+    $fuel_consumption = (float)$stage1_fuel_rate
+        * ((float)$thrustCM / 100.0 * $first_stage_fraction);
+    $current_mass = (float)$totalSaturnV;
+} elseif ((int)$stage2CM === 1) {
+    $current_thrust = (float)$stage2_thrust
+        * ((float)$thrustCM / 100.0 * $second_stage_fraction);
+    $fuel_consumption = (float)$stage2_fuel_rate
+        * ((float)$thrustCM / 100.0 * $second_stage_fraction);
+    $current_mass = (float)$totalSaturnV;
+} elseif ((int)$stage3CM === 1) {
+    $current_thrust = (float)$stage3_thrust
+        * ((float)$thrustCM / 100.0 * $third_stage_fraction);
+    $fuel_consumption = (float)$stage3_fuel_rate
+        * ((float)$thrustCM / 100.0 * $third_stage_fraction);
+    $current_mass = (float)$totalSaturnV;
+} elseif ((int)$service_moduleCM === 1) {
+    // Preserve the original temporary CSM-RCS behavior for this repair pass.
+    // Dedicated body-axis RCS physics is scheduled later in WORK_PLAN.md.
+    $current_thrust = (float)$service_module_thrust
+        * (((float)$thrustCM + (float)$thrustersCM) / 100.0);
+    $fuel_consumption = (float)$service_module_fuel_rate
+        * (((float)$thrustCM + abs((float)$thrustersCM)) / 100.0);
+    $current_mass = (float)$totalSaturnV;
+} else {
+    $current_thrust = 0.0;
+    $fuel_consumption = 0.0;
+    $current_mass = max(1.0, (float)$totalSaturnV);
+}
 
+$current_mass = max(1.0, $current_mass);
 
-    $pitch_rad = deg2rad($pitchCM);
-    $yaw_rad = deg2rad($yawCM);
-    $roll_rad = deg2rad($rollCM);
+$pitch_rad = deg2rad((float)$pitchCM);
+$yaw_rad = deg2rad((float)$yawCM);
+$roll_rad = deg2rad((float)$rollCM); // retained for the later full 3-D attitude pass
 
-    // Transform thrust vector based on pitch, yaw, and roll
-    $thrust_x = $current_thrust * cos($pitch_rad) * cos($yaw_rad);
-    $thrust_y = $current_thrust * cos($pitch_rad) * (-1 * sin($yaw_rad));
-    $thrust_z = $current_thrust * sin($pitch_rad);
-       $thrustAccelerationCMx = $thrust_x / $current_mass;
-      $thrustAccelerationCMy = $thrust_y / $current_mass;
-     $thrustAccelerationCMz = $thrust_z / $current_mass;
+// Existing pitch/yaw transform is intentionally preserved in this wiring pass.
+$thrust_x = $current_thrust * cos($pitch_rad) * cos($yaw_rad);
+$thrust_y = $current_thrust * cos($pitch_rad) * (-1.0 * sin($yaw_rad));
+$thrust_z = $current_thrust * sin($pitch_rad);
+
+$thrustAccelerationCMx = $thrust_x / $current_mass;
+$thrustAccelerationCMy = $thrust_y / $current_mass;
+$thrustAccelerationCMz = $thrust_z / $current_mass;
 $thrustFuelConsumptionCM = $fuel_consumption;
 
-// Calculate thrust and fuel consumption for the Lunar Module
-if ($descentLM == 1) {
-    $current_thrust_LM = $lander_descent_thrust * ($thrustLM / 100 * $lunar_descent_fraction);
-    $fuel_consumption_LM = $descent_stage_fuel_rate * ($thrustLM / 100 *$lunar_descent_fraction);
-    $current_mass_LM = $totalLEM;
+// Lunar Module main propulsion.
+if ($lmDescentActive) {
+    $current_thrust_LM = (float)$lander_descent_thrust
+        * ($lmThrottle / 100.0 * $lunar_descent_fraction);
+    $fuel_consumption_LM = (float)$descent_stage_fuel_rate
+        * ($lmThrottle / 100.0 * $lunar_descent_fraction);
 } else {
-     $current_thrust_LM = $lander_ascent_thrust * ($thrustLM / 100 * $lunar_ascent_fraction);
-    $fuel_consumption_LM = $ascent_stage_fuel_rate * ($thrustLM / 100 * $lunar_ascent_fraction);
-    $current_mass_LM = $totalLEM;
+    $current_thrust_LM = (float)$lander_ascent_thrust
+        * ($lmThrottle / 100.0 * $lunar_ascent_fraction);
+    $fuel_consumption_LM = (float)$ascent_stage_fuel_rate
+        * ($lmThrottle / 100.0 * $lunar_ascent_fraction);
 }
 
-    $pitch_rad = deg2rad($pitchLM);
-    $yaw_rad = deg2rad($yawLM);
-    $roll_rad = deg2rad($rollLM);
+$current_mass_LM = max(1.0, (float)$totalLEM);
 
-    // Transform thrust vector based on pitch, yaw, and roll
-    $thrust_x = $current_thrust_LM * cos($pitch_rad) * cos($yaw_rad);
-    $thrust_y = $current_thrust_LM * cos($pitch_rad) * sin($yaw_rad);
-    $thrust_z = $current_thrust_LM * sin($pitch_rad);
-       $thrustAccelerationLMx = $thrust_x / $current_mass_LM;
-      $thrustAccelerationLMy = $thrust_y / $current_mass_LM;
-     $thrustAccelerationLMz = $thrust_z / $current_mass_LM;
+$pitch_rad = deg2rad((float)$pitchLM);
+$yaw_rad = deg2rad((float)$yawLM);
+$roll_rad = deg2rad((float)$rollLM); // retained for the later full 3-D attitude pass
+
+$thrust_x = $current_thrust_LM * cos($pitch_rad) * cos($yaw_rad);
+$thrust_y = $current_thrust_LM * cos($pitch_rad) * sin($yaw_rad);
+$thrust_z = $current_thrust_LM * sin($pitch_rad);
+
+$thrustAccelerationLMx = $thrust_x / $current_mass_LM;
+$thrustAccelerationLMy = $thrust_y / $current_mass_LM;
+$thrustAccelerationLMz = $thrust_z / $current_mass_LM;
 $thrustFuelConsumptionLM = $fuel_consumption_LM;
 
-$update_query = "UPDATE command_module SET value = 0 WHERE attribute = 'thrusters'";
- if ($conn->query($update_query) === TRUE) {
-        }  
+// The legacy CSM translation-RCS command is a one-tick pulse.
+$conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrusters'");
 ?>
