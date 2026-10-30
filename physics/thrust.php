@@ -144,12 +144,14 @@ if ((int)$escapeCM === 1 && (int)$ABORTCM === 1) {
         * ((float)$thrustCM / 100.0 * $third_stage_fraction);
     $current_mass = (float)$totalSaturnV;
 } elseif ((int)$service_moduleCM === 1) {
-    // Preserve the original temporary CSM-RCS behavior for this repair pass.
-    // Dedicated body-axis RCS physics is scheduled later in WORK_PLAN.md.
+    $spsThrottle = max(0.0, min(100.0, (float)$thrustCM)) / 100.0;
+
     $current_thrust = (float)$service_module_thrust
-        * (((float)$thrustCM + (float)$thrustersCM) / 100.0);
+        * $spsThrottle
+        * $service_module_fraction;
     $fuel_consumption = (float)$service_module_fuel_rate
-        * (((float)$thrustCM + abs((float)$thrustersCM)) / 100.0);
+        * $spsThrottle
+        * $service_module_fraction;
     $current_mass = (float)$totalSaturnV;
 } else {
     $current_thrust = 0.0;
