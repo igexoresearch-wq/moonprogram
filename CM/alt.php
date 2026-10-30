@@ -139,8 +139,11 @@ if ($result && $row = $result->fetch_assoc()) {
             <div class="alt-digital-display4"><?php  echo $pitchVCMM;?></div></td><td>
             <div class="alt-digital-display4"><?php echo number_format($yawVCMM,2);?></div></td></tr><tr><td>Pitch</td><td>Yaw</td></tr></table>
 <?php
-             $precess = $reentryangle - $yawVCMM; $precess2 = (($precess - $IMUHOLD_pitch_rate)/5)*1000;
-            $conn->query("UPDATE CMguidance SET pitch_rate = $precess WHERE id = 2"); ?>
+            // Display-only calculation. This page must never modify guidance
+            // or physical state merely because the Commander screen is open.
+            $precess = $reentryangle - $yawVCMM;
+            $precess2 = (($precess - $IMUHOLD_pitch_rate) / 5) * 1000;
+            ?>
         </td>
         <td></td>
     </tr>
