@@ -159,10 +159,16 @@ $status_70_query = $conn->query("SELECT status FROM CMswitches WHERE id = 70");
 $status_70 = ($status_70_query && $status_70_row = $status_70_query->fetch_assoc()) ? intval($status_70_row['status']) : 0;
 
 if ($malf_count > 0 && $status_70 === 1 && $escapeCM == 1) {
+    // Emergency Detection System: separate the CM/LES from the launch stack
+    // and explicitly enter the abort propulsion state.
     $conn->query("UPDATE CMswitches SET status = 1 WHERE id = 76");
+    $conn->query("UPDATE command_module SET value = 1 WHERE attribute = 'ABORT'");
+    $conn->query("UPDATE command_module SET value = 100 WHERE attribute = 'thrust'");
     $conn->query("UPDATE command_module SET value = 0 WHERE attribute IN ('stage1', 'stage2', 'stage3', 'service_module')");
+
     if ($escape_fuelCM <= 0 && $altitude < 3000) {
         $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'escape'");
+        $conn->query("UPDATE command_module SET value = 0 WHERE attribute = 'thrust'");
     }
 }
 include 'physics/IMU.php';
