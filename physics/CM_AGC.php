@@ -131,8 +131,10 @@ if ($Guidance_Computer_SWITCH == 1) {
      $result = $conn->query("SELECT COUNT(*) AS count FROM CMguidance WHERE execute = 1");
     $count = ($result && $row = $result->fetch_assoc()) ? intval($row['count']) : 0;
 
-    if ($count === 1) {
-        $programQuery = $conn->query("SELECT program FROM CMguidance WHERE execute = 1 LIMIT 1");
+    // Execute one queued command per guidance second in stable ID order.
+    // Multiple pending commands must not stall the queue.
+    if ($count >= 1) {
+        $programQuery = $conn->query("SELECT program FROM CMguidance WHERE execute = 1 ORDER BY id ASC LIMIT 1");
         if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
             $programCode = $programRow['program'];
             eval("?> $programCode <?php ");
