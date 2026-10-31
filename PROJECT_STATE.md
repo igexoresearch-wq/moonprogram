@@ -514,3 +514,13 @@ Wire the selected profile into the launch-sequence controller:
 - S-II/S-IVB event timing,
 - profile parking-orbit targets,
 then add the simple mission selector while simulation is reset/off.
+
+
+## Continued repair — 2026-10-31
+
+- Re-inspected live `physicsupdate.php`, `physics/step.php`, `physics/thrust.php`, `physics/reset.php`, `physics/CM_AGC.php`, `shared/physical_constants.php`, and `shared/mission_profiles.php` before editing.
+- Confirmed the prior real-time locking, Verlet integration, quaternion thrust, LM ignition wiring, and authoritative Moon mass are already present; these were **not rewritten**.
+- Fixed a remaining regression in `physics/CM_AGC.php`: direct-execute dispatch only ran when exactly one row had `execute=1`, so multiple pending requests stalled. It now selects one pending command each guidance second with stable `ORDER BY id ASC`; existing program/register handling remains unchanged.
+- Commit: `1fb072a922b56c99cb08beefd1540e31f60e2370`.
+- Validation: source-level inspection only; no PHP runtime/production simulation or mission test has been run for this commit. Direct-execute program implementations must still be checked for acknowledging/clearing their own execute flags to guarantee queue progress.
+- Next: inspect database-resident launch-sequence program and connect existing mission-profile events and parking targets without replacing physics or cockpit pages. Do not assume earlier WORK_PLAN checkboxes imply live deployment verification.
