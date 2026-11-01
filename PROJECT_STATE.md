@@ -524,3 +524,12 @@ then add the simple mission selector while simulation is reset/off.
 - Commit: `1fb072a922b56c99cb08beefd1540e31f60e2370`.
 - Validation: source-level inspection only; no PHP runtime/production simulation or mission test has been run for this commit. Direct-execute program implementations must still be checked for acknowledging/clearing their own execute flags to guarantee queue progress.
 - Next: inspect database-resident launch-sequence program and connect existing mission-profile events and parking targets without replacing physics or cockpit pages. Do not assume earlier WORK_PLAN checkboxes imply live deployment verification.
+
+
+## Mission profile integration — 2026-10-31
+
+- Committed AGC context wiring in `physics/CM_AGC.php`: it loads `shared/mission_profiles.php` and exposes `$activeMissionProfile` and `$activeMissionEvents` to existing database-resident guidance programs. Commit `5098dee6c2b773be3822ff7affdbb1c9d89ebaa1`.
+- No Saturn engine firing, staging, timing, pitch or cockpit controls changed in this commit. Historical timing entries remain reference values only.
+- Caution: `moonSimActiveMissionProfile()` currently calls schema/table setup and profile seeding; doing this every guidance tick may be costly. Optimize/correct initialization before comprehensive runtime testing.
+- Remaining: validate database-resident AGC launch programs, then map event timing and orbital targets into the controller with explicit guardrails. The mission-selection UI is still not committed.
+- Validation: GitHub source commit confirmed, no deployed execution/flight validation.
