@@ -1,5 +1,9 @@
 <?php
 include_once 'physics/functions.php';
+require_once __DIR__ . '/../shared/mission_profiles.php';
+$activeMissionProfile = moonSimActiveMissionProfile($conn);
+$activeMissionEvents = $activeMissionProfile ? moonSimMissionLaunchEvents($conn, (int)$activeMissionProfile['id']) : [];
+
 $query = "SELECT seconds FROM mission_clock WHERE id = 1";
 $stmt = $conn->query($query);
 $result = $stmt ? $stmt->fetch_assoc() : null;
