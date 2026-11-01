@@ -10,6 +10,11 @@ declare(strict_types=1);
 
 function moonSimEnsureMissionProfileTables(mysqli $conn): void
 {
+    // Initialization is idempotent; avoid DDL and reseeding every AGC second.
+    static $initialized = false;
+    if ($initialized) {
+        return;
+    }
     $conn->query(
         "CREATE TABLE IF NOT EXISTS mission_profiles (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -154,6 +159,7 @@ function moonSimEnsureMissionProfileTables(mysqli $conn): void
             );
         }
     }
+    $initialized = true;
 }
 
 function moonSimActiveMissionProfile(mysqli $conn): array
