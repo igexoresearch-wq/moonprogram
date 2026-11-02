@@ -31,6 +31,7 @@
 - [ ] Calculate state-specific TLI direction, delta-v and burn time with live masses.
 - [ ] Connect TLI guidance to existing AGC/DSKY and manual control.
 - [ ] Add midcourse-correction calculator and command procedure.
+- [x] Display approximate Moon position at reference transfer arrival and departure phase geometry (not a lunar intercept solution).
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -145,3 +146,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - `shared/orbit_maneuver_planner.php` and `orbit_maneuver.php` expose a state-driven Earth-centered Hohmann reference with a clear warning about unsolved lunar phase, interception and finite burn. Commits `5fefa00`, `b187b67`. Full TLI targeting and guidance remain unchecked.
 
 **Checklist implementation completion: 32/80 = 40.0%.**
+
+## 2026-11-02 lunar ephemeris reference
+- Added circular-rate Moon position extrapolation and departure phase reference, then displayed on maneuver advisor; commits `3120fba`, `e5d7526`. This is not reliable lunar intercept guidance and does not actuate the vehicle.
+
+**Current progress: 33/81 = 40.7%.**
