@@ -533,3 +533,12 @@ then add the simple mission selector while simulation is reset/off.
 - Caution: `moonSimActiveMissionProfile()` currently calls schema/table setup and profile seeding; doing this every guidance tick may be costly. Optimize/correct initialization before comprehensive runtime testing.
 - Remaining: validate database-resident AGC launch programs, then map event timing and orbital targets into the controller with explicit guardrails. The mission-selection UI is still not committed.
 - Validation: GitHub source commit confirmed, no deployed execution/flight validation.
+
+
+## Mission selector — 2026-11-01
+
+- Added standalone `mission_select.php` with a dropdown populated by existing `mission_profiles`, CSRF token, and the existing named physics-worker lock.
+- Writes `mission_runtime.profile_id` only if `systems.sim_on=0` and `mission_clock.seconds=-900`; does not touch cockpit, staging, thrust or physical constants.
+- Commit: `ce9fe8ea97402382e5b36c910fc78d6f57a69fa8`.
+- Deployment warning: the selector currently has no application-specific user authentication; configure server access control before exposing it on a public internet host. The CSRF token is not authentication.
+- No live server test yet. Next: audit the SQL-resident launch-program source and wire profile targets safely; avoid treating reference event times as forced engine events until validated.
