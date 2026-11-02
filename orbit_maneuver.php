@@ -21,7 +21,7 @@ function v3(array $a,string $prefix=''):array {
 }
 function renderV($x):string {
     if(is_bool($x))return $x?'YES':'NO';
-    if(is_array($x))return htmlspecialchars(implode(', ',array_map(static fn($n)=>number_format($n,3,'.',''),$x)),ENT_QUOTES,'UTF-8');
+    if(is_array($x))return htmlspecialchars((string)json_encode($x,JSON_UNESCAPED_SLASHES),ENT_QUOTES,'UTF-8');
     if(is_numeric($x))return number_format((float)$x,3,'.','');
     return htmlspecialchars((string)$x,ENT_QUOTES,'UTF-8');
 }
