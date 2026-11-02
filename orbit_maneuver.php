@@ -30,7 +30,7 @@ $body=(string)($_GET['body']??'EARTH');if(!in_array($body,['EARTH','MOON'],true)
 $altitude=filter_input(INPUT_GET,'altitude',FILTER_VALIDATE_FLOAT);
 if($altitude===false || $altitude===null)$altitude=$body==='MOON'?100000.0:180000.0;
 $altitude=max(0.0,min(5000000.0,$altitude));
-$solution=null;$error='';
+$solution=null;$budget=null;$error='';
 try{
     $craft=rowsManeuver($conn,$vehicle==='CM'?'command_module':'telemetry');
     $moon=rowsManeuver($conn,'moon');
@@ -39,6 +39,24 @@ try{
     $mu=$gravitational_constant*($body==='EARTH'?$earth_mass:$moon_mass);
     $radius=$body==='EARTH'?$earth_radius:$moon_radius;
     $solution=moonSimCircularizationEstimate(v3($craft),v3($craft,'delta_'),$center,$velocity,$mu,$radius,(float)$altitude);
+    // Only quote an engine budget when the stage configuration is known.
+    $cm= $vehicle==='CM' ? $craft : rowsManeuver($conn,'command_module');
+    if ($vehicle==='CM' && (int)($cm['service_module']??0)===1
+        && (int)($cm['stage1']??0)===0 && (int)($cm['stage2']??0)===0
+        && (int)($cm['stage3']??0)===0 && (int)($cm['dock']??0)===0) {
+        $fuel=max(0.0,(float)($cm['fuel']??0.0));
+        $mass=$command_module_empty_mass+$service_module_empty_mass+$fuel
+            +max(0.0,(float)($cm['RCS']??0.0));
+        $budget=moonSimBurnBudget($mass,$fuel,$service_module_thrust,314.0,abs($solution['signed_delta_v_m_s']));
+    } elseif ($vehicle==='LM' && (int)($cm['dock']??0)===0 && (int)($cm['stage3']??0)===0) {
+        $ascent=(int)($craft['descent']??0)!==1;
+        $fuel=max(0.0,(float)($craft[$ascent?'fuel_ascent':'fuel']??0.0));
+        $otherFuel=$ascent?0.0:max(0.0,(float)($craft['fuel_ascent']??0.0));
+        $mass=$lander_ascent_empty_mass+$fuel+$otherFuel
+            +($ascent?0.0:$lander_descent_empty_mass)+$lm_rcs_initial_propellant;
+        $budget=moonSimBurnBudget($mass,$fuel,$ascent?$lander_ascent_thrust:$lander_descent_thrust,
+            $ascent?310.0:304.0,abs($solution['signed_delta_v_m_s']));
+    }
 } catch(Throwable $e){$error='Required telemetry unavailable: '.$e->getMessage();}
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit Maneuver Advisor</title>
 <style>body{font:16px system-ui;background:#15202c;color:#edf3fc;padding:22px}main{max-width:900px;margin:auto}dt{color:#9fd4ec}dd{margin:0 0 12px}form{padding:18px;border:1px solid #526679}input,select,button{font:inherit;padding:8px;background:#293c4f;color:white}</style></head><body><main><h1>ORBIT MANEUVER ADVISOR</h1>
@@ -49,4 +67,7 @@ try{
 <?php if($error):?><p><?=htmlspecialchars($error,ENT_QUOTES,'UTF-8')?></p><?php elseif($solution):?>
 <h2><?=renderV($solution['applicable_now'])==='YES'?'Circularization estimate':'CAUTION — not at target orbit'?></h2>
 <dl><?php foreach($solution as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
+<?php if($budget):?><h2>Available propulsion budget (ideal approximation)</h2><dl>
+<?php foreach($budget as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
+<p>Budget assumes nominal thrust and engine performance. It does not verify ignition, engine damage, throttling, attitude, other attached loads, or safe burn geometry.</p><?php endif;?>
 <?php endif;?><p>This is a two-body, instantaneous-impulse advisory calculator only. It does not command burns, predict lunar intercept, or account for a finite engine burn. Use cockpit controls and real propellant limits.</p></main></body></html>
