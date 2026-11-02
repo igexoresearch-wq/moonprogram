@@ -108,3 +108,35 @@ function moonSimTranslunarReference(
         'warning'=>'REFERENCE ONLY: does not solve lunar encounter geometry, departure phase or finite burn. Do not treat as an executable TLI command.',
     ];
 }
+
+/** Constant-angular-rate lunar ephemeris approximation, advisory only. */
+function moonSimMoonPhaseReference(
+    array $craftPosition, array $earthPosition, array $moonPosition,
+    array $moonVelocity, float $coastSeconds
+): array {
+    $r=moonSimRelativeVector($moonPosition,$earthPosition);
+    $radius=moonSimVectorMagnitude($r);
+    if ($radius<1.0 || $coastSeconds<=0) throw new InvalidArgumentException('Invalid lunar ephemeris');
+    $normal=array_map(static fn($x)=>$x/$radius,$r);
+    $radial=moonSimVectorDot($moonVelocity,$normal);
+    $tangent=array_map(static fn($v,$u)=>$v-$radial*$u,$moonVelocity,$normal);
+    $speed=moonSimVectorMagnitude($tangent);
+    if ($speed<1e-6) throw new RuntimeException('Lunar orbital direction unknown');
+    $t=array_map(static fn($v)=>$v/$speed,$tangent);
+    $angle=$speed*$coastSeconds/$radius;
+    $predicted=array_map(
+        static fn($u,$v,$e)=>$e+$radius*($u*cos($angle)+$v*sin($angle)),
+        $normal,$t,$earthPosition
+    );
+    $departure=moonSimRelativeVector($craftPosition,$earthPosition);
+    $departRadius=moonSimVectorMagnitude($departure);
+    $departUnit=array_map(static fn($x)=>$x/$departRadius,$departure);
+    $departurePhase=acos(max(-1.0,min(1.0,moonSimVectorDot($departUnit,$normal))));
+    return [
+        'moon_predicted_xyz_m'=>$predicted,
+        'moon_rotation_deg'=>rad2deg($angle),
+        'departure_moon_angle_deg'=>rad2deg($departurePhase),
+        'coast_seconds'=>$coastSeconds,
+        'warning'=>'Circular-orbit approximation only. Not an encounter solver; Moon gravity, orbital inclination and required lead geometry are unresolved.'
+    ];
+}
