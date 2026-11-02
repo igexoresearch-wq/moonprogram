@@ -89,7 +89,7 @@ try{
 <form method="get"><label>Craft <select name="vehicle"><option <?=$vehicle==='CM'?'selected':''?>>CM</option><option <?=$vehicle==='LM'?'selected':''?>>LM</option></select></label>
 <label>Central body <select name="body"><option <?=$body==='EARTH'?'selected':''?>>EARTH</option><option <?=$body==='MOON'?'selected':''?>>MOON</option></select></label>
 <label>Target altitude (m) <input name="altitude" type="number" min="0" max="5000000" value="<?=(int)$altitude?>"></label>
-<button>Calculate</button><button name="search" value="1">Search nearby lunar encounter burns</button></form>
+<button>Calculate</button><button name="search" value="1">Search 75 departure timing and burn candidates</button></form>
 <?php if($error):?><p><?=htmlspecialchars($error,ENT_QUOTES,'UTF-8')?></p><?php elseif($solution):?>
 <h2><?=renderV($solution['applicable_now'])==='YES'?'Circularization estimate':'CAUTION — not at target orbit'?></h2>
 <dl><?php foreach($solution as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
@@ -100,7 +100,7 @@ try{
 <?php foreach($phase as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($encounter):?><h2>Predicted closest lunar approach — ideal impulsive reference</h2><dl>
 <?php foreach($encounter as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
-<?php if($search):?><h2>Best of 25 local departure candidates — advisory only</h2><dl>
+<?php if($search):?><h2>Best of 75 departure candidates (now, +1h, +2h) — advisory only</h2><dl>
 <?php foreach($search as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($budget):?><h2>Available propulsion budget (ideal approximation)</h2><dl>
 <?php foreach($budget as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
