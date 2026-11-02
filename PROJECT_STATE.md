@@ -575,3 +575,13 @@ then add the simple mission selector while simulation is reset/off.
 - Central stage-separation code now disarms optional descent assist on ascent staging. Commit `7d2e5a5669bfb7dd3bd25f7e45c745d690224644`.
 - User prefers attempting real missions and diagnosing/recovering in-mission rather than delaying features for extensive preflight testing. Keep real failures, fuel, momentum and stage state persistent; do not auto-reset or repair damage. No complete automated rendezvous controller is claimed. Live server execution remains unverified.
 - Next development: operator-visible failure/event log and practical abort/return guidance using existing deterministic calculators; keep remaining propulsion and guidance manual when autopilot unavailable.
+
+
+## User clarification — 2026-11-01: real implementation defects, not simulated failures
+
+- Do NOT create a random, scheduled, scripted, or intentional system-failure generator.
+- The user wants to fly missions with the simulator as actually coded, including the possibility of discovering real guidance/physics/UI defects during a flight.
+- If a real defect becomes apparent mid-mission, retain the current physical state, fuel, velocity and equipment state; attempt manual guidance, independent calculations, alternative controls, abort or return with whatever functionality remains.
+- Do not automatically repair software, insert a guaranteed recovery, fake a breakdown, or reset the mission to conceal a defect.
+- After the flight, diagnose what failed in implementation and correct it for subsequent missions. Incremental development can prioritize flying over exhaustive preflight perfection.
+- Keep existing manual control paths and diagnostic telemetry accessible; these are genuine fallback capabilities, not a scripted malfunction game.
