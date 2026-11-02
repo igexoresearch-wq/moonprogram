@@ -566,3 +566,12 @@ then add the simple mission selector while simulation is reset/off.
 - Added authenticated operator UI at `lm_descent_assist.php`, using server `MOON_OPERATOR_PASSWORD` to arm/disarm assistance, default OFF. Commit `9e2093c`.
 - Descent assist is intentionally not a fully autonomous landing program: it does not steer or cancel orbital velocity, and works only when the pilot first makes a suitable lunar approach and aligns the engine. Initial controller is untested in live flight; expect tuning and possible corrections during flight trials.
 - Future steps: fully integrate LM ascent/orbit/rendezvous guidance and Ground Control voice, finish Saturn launch event validation, consolidate the four operator stations, produce a flight manual. Live deployment and real flight remain unverified.
+
+
+## LM ascent and rendezvous station — 2026-11-01
+
+- Added `shared/lm_flight_computer.php` providing read-only Moon-relative LM altitude/radial/tangential velocity, local circular-speed reference, orbital energy estimate, CM range/relative speed/closing speed, and relative vectors. Commit `270cf3b4e0bf1988eb35136007896aa746223a92`.
+- Added authenticated `lm_ascent.php` operator display with existing `LM_ASCENT_STAGE` and `LM_ABORT_ASCENT` queue commands; no direct physics writes and no invented delta-v. Commit `230aaeffad3ebc7a04cdeb7854b5dd1d43336708`.
+- Central stage-separation code now disarms optional descent assist on ascent staging. Commit `7d2e5a5669bfb7dd3bd25f7e45c745d690224644`.
+- User prefers attempting real missions and diagnosing/recovering in-mission rather than delaying features for extensive preflight testing. Keep real failures, fuel, momentum and stage state persistent; do not auto-reset or repair damage. No complete automated rendezvous controller is claimed. Live server execution remains unverified.
+- Next development: operator-visible failure/event log and practical abort/return guidance using existing deterministic calculators; keep remaining propulsion and guidance manual when autopilot unavailable.
