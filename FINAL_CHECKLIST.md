@@ -32,6 +32,7 @@
 - [ ] Connect TLI guidance to existing AGC/DSKY and manual control.
 - [ ] Add midcourse-correction calculator and command procedure.
 - [x] Display approximate Moon position at reference transfer arrival and departure phase geometry (not a lunar intercept solution).
+- [x] Add read-only Earth–Moon gravitational propagation of a reference departure burn and display closest approach.
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -151,3 +152,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Added circular-rate Moon position extrapolation and departure phase reference, then displayed on maneuver advisor; commits `3120fba`, `e5d7526`. This is not reliable lunar intercept guidance and does not actuate the vehicle.
 
 **Current progress: 33/81 = 40.7%.**
+
+## 2026-11-02 encounter preview
+- `shared/orbit_maneuver_planner.php` now numerically previews reference-burn closest approach under Earth and Moon gravity. `orbit_maneuver.php` displays distance, encounter time, and relative speed. Commits `a1dfdcc`, `c169baa`. It is an advisory model only, not a validated TLI optimizer, free-return solution, or engine control.
+
+**Current completion: 34/82 = 41.5%.**
