@@ -174,6 +174,8 @@ function moonSimConsumeDockingCommands(
                  WHERE engine_stage='Lunar Module'"
             );
 
+            // A staged LM must no longer receive descent-assist commands.
+            $conn->query("UPDATE lm_descent_assist SET enabled=0, status='ASCENT STAGE' WHERE id=1");
             $descentLM = 0;
             $changed = true;
         }
