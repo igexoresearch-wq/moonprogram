@@ -167,7 +167,7 @@ function moonSimEncounterPreview(
         $factor=-$mu/($len*$len*$len);
         return [$r[0]*$factor,$r[1]*$factor,$r[2]*$factor];
     };
-    $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;$initialRadius=moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth));
+    $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;
     $earthImpact=false;
     $steps=(int)ceil($duration/$step);
     if($steps>10000)throw new InvalidArgumentException('Preview exceeds time step limit');
@@ -208,6 +208,7 @@ function moonSimEncounterPreview(
         'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
         'time_of_closest_approach_h'=>$closestAt/3600.0,
         'relative_speed_at_approach_m_s'=>$relativeSpeed,
+        'lunar_100km_pass'=>$closest<=$moonRadius+100000.0,
         'warning'=>'Impulsive transfer preview only; fixed Earth, simplified Moon dynamics, finite step and no fuel/attitude effects. Not flight guidance.'
     ];
 }
