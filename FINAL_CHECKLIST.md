@@ -33,6 +33,7 @@
 - [ ] Add midcourse-correction calculator and command procedure.
 - [x] Display approximate Moon position at reference transfer arrival and departure phase geometry (not a lunar intercept solution).
 - [x] Add read-only Earth–Moon gravitational propagation of a reference departure burn and display closest approach.
+- [x] Add opt-in local TLI candidate search over prograde impulse magnitude and in-plane direction, displaying estimated closest lunar approach.
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -157,3 +158,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - `shared/orbit_maneuver_planner.php` now numerically previews reference-burn closest approach under Earth and Moon gravity. `orbit_maneuver.php` displays distance, encounter time, and relative speed. Commits `a1dfdcc`, `c169baa`. It is an advisory model only, not a validated TLI optimizer, free-return solution, or engine control.
 
 **Current completion: 34/82 = 41.5%.**
+
+## 2026-11-02 local encounter targeting
+- Added bounded 25-candidate impulsive departure search in `shared/orbit_maneuver_planner.php`, with opt-in button in `orbit_maneuver.php`; commits `8933c85` and `7b059bb`. Local search does not optimize departure timing, inclination, finite burns, or guarantee lunar intercept. Full TLI remains unchecked.
+
+**Latest checklist completion: 35/83 = 42.2%.**
