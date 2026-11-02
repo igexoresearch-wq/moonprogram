@@ -179,7 +179,7 @@ function moonSimEncounterPreview(
         }
         if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < 6371000.0) $earthImpact=true;
         $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
-        if($range<$closest){
+        if($burnApplied && $range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
             $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($craftVelocity,$moonVelocity));
         }
@@ -204,6 +204,7 @@ function moonSimEncounterPreview(
     }
     return [
         'earth_impact_detected'=>$earthImpact,
+        'departure_delay_seconds'=>$departureDelay,
         'closest_approach_km'=>$closest/1000.0,
         'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
         'time_of_closest_approach_h'=>$closestAt/3600.0,
@@ -255,6 +256,7 @@ function moonSimEncounterLocalSearch(
     }
     if ($best===null) throw new RuntimeException('Every candidate intersects Earth in the preview.');
     $best['sampled_candidates']=150;
+    $best['postburn_only_comparison']=true;
     $best['lunar_surface_clearance_status']=$best['closest_surface_altitude_km']<0?'PREDICTED LUNAR IMPACT':($best['closest_surface_altitude_km']<100?'LOW PASS':'DISTANT PASS');
     $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or finite-burn optimization; departure delay is sampled hourly from 0 through 5 hours. Compare independently before any manual burn.';
     return $best;
