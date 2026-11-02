@@ -21,13 +21,13 @@ $outcome=moonSimMissionOutcome(
 );
 $range=null; $speed=null; $periapsis=null;
 if (isset($cm['x'],$cm['y'],$cm['z'],$cm['delta_x'],$cm['delta_y'],$cm['delta_z'])) {
-    $radius=sqrt($cm['x']**2+$cm['y']**2+$cm['z']**2);
+    $radius=sqrt(($cm['x']-$earth_center_x)**2+($cm['y']-$earth_center_y)**2+($cm['z']-$earth_center_z)**2);
     $range=$radius-$earth_radius;
     $speed=sqrt($cm['delta_x']**2+$cm['delta_y']**2+$cm['delta_z']**2);
     $orbit=moonSimOrbitalElements(
         [$cm['x'],$cm['y'],$cm['z']],
         [$cm['delta_x'],$cm['delta_y'],$cm['delta_z']],
-        [0.0,0.0,0.0],
+        [$earth_center_x,$earth_center_y,$earth_center_z],
         $gravitational_constant*$earth_mass
     );
     if (isset($orbit['periapsis_radius']) && $orbit['periapsis_radius']!==null) {
