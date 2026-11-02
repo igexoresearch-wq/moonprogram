@@ -131,4 +131,9 @@ include 'physics/variables.php';
 include 'physics/constants.php';
 include 'physics/coordinate.php';
 include 'physics/CM_AGC.php';
+
+// Observe the resulting spacecraft/engine states after guidance, without
+// changing the physical mission or introducing artificial malfunctions.
+require_once __DIR__ . '/flight_event_log.php';
+moonSimRecordFlightTransitions($conn);
 ?>
