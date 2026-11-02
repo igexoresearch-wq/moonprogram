@@ -550,3 +550,11 @@ then add the simple mission selector while simulation is reset/off.
 - Existing ignition/staging sequences, physics, and cockpit display files were not changed. Apollo 11 timed launch events remain advisory, not active physical commands.
 - Verified by source inspection; **not** validated by a live flight or successful CI test.
 - Status: not flight-ready. Remaining critical work includes database-resident launch sequencing verification, stage engine timing, reentry, LM landing/ascent guidance, manual/PDF, AI communications, authentication of mission selection, and end-to-end tests.
+
+
+## Security and regression tests — 2026-11-01
+
+- Added fail-closed HTTP Basic operator authentication to `mission_select.php`, requiring `MOON_OPERATOR_PASSWORD` from the server environment. Do not put the password in GitHub or expose the route over HTTP; set up HTTPS and server access restrictions. Commit `2e37e39840bbf92cdca6102cdd8d948920f61cdc`.
+- Added `tests/mission_geometry_smoke.php` covering segment-sphere intersection, noncollision, moving-body collision and one-second mission-event timing. Commit `6cf7920e50fb4c29a31905e7deb4fe093ae01f8c`.
+- Note: these are repository changes; full regression execution, live deployment verification, SQL-resident guidance program audit and Earth-Moon-Earth acceptance testing remain outstanding. Do not represent the simulator as finished or flight-tested.
+- Focus on preserving current cockpit and physical architecture; avoid forcing Apollo stage event times before validating their interaction with database-resident program logic.
