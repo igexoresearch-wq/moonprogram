@@ -26,6 +26,7 @@
 ## 2. Earth orbit, TLI and lunar transfer
 - [x] Velocity-Verlet Earth–Moon gravity and orbital-element helpers.
 - [x] S-IVB first-burn cutoff preserving fuel and existing TLI restart support.
+- [x] Display approximate fuel-limited maneuver budget using live spacecraft state.
 - [ ] Calculate state-specific TLI direction, delta-v and burn time with live masses.
 - [ ] Connect TLI guidance to existing AGC/DSKY and manual control.
 - [ ] Add midcourse-correction calculator and command procedure.
@@ -136,3 +137,5 @@
 - `shared/orbit_maneuver_planner.php` implements a local circularization direction/delta-v estimate and ideal rocket-equation burn duration; `orbit_maneuver.php` exposes live Earth/Moon and CM/LM advisory telemetry. Commits `82478eb`, `9a7eb62`. It does not calculate LOI capture, rendezvous, TLI, or execute finite burns; those remain unchecked.
 
 **Checklist progress: 30/78 = 38.5% implemented (source committed, not flight verified).**
+
+Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
