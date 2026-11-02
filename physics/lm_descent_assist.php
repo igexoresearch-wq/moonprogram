@@ -44,7 +44,8 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     $dx=$lm['x']-$moon['x']; $dy=$lm['y']-$moon['y']; $dz=$lm['z']-$moon['z'];
     $r=sqrt($dx*$dx+$dy*$dy+$dz*$dz);
     if ($r<1.0) return;
-    require_once __DIR__.'/../shared/physical_constants.php';
+    // Load constants in this function scope; include_once would not rebind globals.
+    include __DIR__.'/../shared/physical_constants.php';
     $alt=$r-$moon_radius;
     $normal=[$dx/$r,$dy/$r,$dz/$r];
     $relative=[$lm['delta_x']-$moon['delta_x'],$lm['delta_y']-$moon['delta_y'],$lm['delta_z']-$moon['delta_z']];
