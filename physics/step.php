@@ -73,6 +73,15 @@ if (
 // velocity before the central integrator receives it.
 include 'physics/air.php';
 
+// Optional LM descent assist runs before the usual thrust calculation.
+require_once __DIR__ . '/lm_descent_assist.php';
+moonSimLmDescentAssistStep($conn);
+// Refresh LM throttle after assist; manual mode remains unchanged.
+$lmThrustRow = $conn->query("SELECT value FROM telemetry WHERE attribute='thrust' LIMIT 1");
+if ($lmThrustRow && ($lmThrustData = $lmThrustRow->fetch_assoc())) {
+    $thrustLM = (float)$lmThrustData['value'];
+}
+
 // Propulsion computes main-engine acceleration and one-second propellant flow.
 include 'physics/thrust.php';
 include 'physics/fuel.php';
