@@ -558,3 +558,11 @@ then add the simple mission selector while simulation is reset/off.
 - Added `tests/mission_geometry_smoke.php` covering segment-sphere intersection, noncollision, moving-body collision and one-second mission-event timing. Commit `6cf7920e50fb4c29a31905e7deb4fe093ae01f8c`.
 - Note: these are repository changes; full regression execution, live deployment verification, SQL-resident guidance program audit and Earth-Moon-Earth acceptance testing remain outstanding. Do not represent the simulator as finished or flight-tested.
 - Focus on preserving current cockpit and physical architecture; avoid forcing Apollo stage event times before validating their interaction with database-resident program logic.
+
+
+## LM descent assist implemented — 2026-11-01
+
+- Added optional `physics/lm_descent_assist.php`, invoked from `physics/step.php` before propulsion, to command LM descent throttle based on Moon-relative altitude and vertical speed, with lateral-speed and thrust-axis checks. Existing thrust model, manual attitude and lunar surface collision rules remain in charge. Commits `8d05d2b`, `9aa91fd`, `7d8daca`.
+- Added authenticated operator UI at `lm_descent_assist.php`, using server `MOON_OPERATOR_PASSWORD` to arm/disarm assistance, default OFF. Commit `9e2093c`.
+- Descent assist is intentionally not a fully autonomous landing program: it does not steer or cancel orbital velocity, and works only when the pilot first makes a suitable lunar approach and aligns the engine. Initial controller is untested in live flight; expect tuning and possible corrections during flight trials.
+- Future steps: fully integrate LM ascent/orbit/rendezvous guidance and Ground Control voice, finish Saturn launch event validation, consolidate the four operator stations, produce a flight manual. Live deployment and real flight remain unverified.
