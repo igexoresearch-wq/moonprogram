@@ -83,13 +83,24 @@ try{
         $budget=moonSimBurnBudget($mass,$fuel,$ascent?$lander_ascent_thrust:$lander_descent_thrust,
             $ascent?310.0:304.0,abs($solution['signed_delta_v_m_s']));
     }
+    if ($search!==null && $budget!==null) {
+        $search['candidate_fuel_budget']=moonSimBurnBudget(
+            $mass,$fuel,
+            $vehicle==='CM'?$service_module_thrust:($ascent?$lander_ascent_thrust:$lander_descent_thrust),
+            $vehicle==='CM'?314.0:($ascent?310.0:304.0),
+            (float)$search['candidate_delta_v_m_s']
+        );
+        $search['candidate_fuel_warning']=($search['candidate_fuel_budget']['fuel_sufficient']??false)
+            ? 'Ideal propellant estimate appears sufficient, subject to stage configuration and flight validation.'
+            : 'WARNING: candidate exceeds estimated usable propellant.';
+    }
 } catch(Throwable $e){$error='Required telemetry unavailable: '.$e->getMessage();}
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit Maneuver Advisor</title>
 <style>body{font:16px system-ui;background:#15202c;color:#edf3fc;padding:22px}main{max-width:900px;margin:auto}dt{color:#9fd4ec}dd{margin:0 0 12px}form{padding:18px;border:1px solid #526679}input,select,button{font:inherit;padding:8px;background:#293c4f;color:white}</style></head><body><main><h1>ORBIT MANEUVER ADVISOR</h1>
 <form method="get"><label>Craft <select name="vehicle"><option <?=$vehicle==='CM'?'selected':''?>>CM</option><option <?=$vehicle==='LM'?'selected':''?>>LM</option></select></label>
 <label>Central body <select name="body"><option <?=$body==='EARTH'?'selected':''?>>EARTH</option><option <?=$body==='MOON'?'selected':''?>>MOON</option></select></label>
 <label>Target altitude (m) <input name="altitude" type="number" min="0" max="5000000" value="<?=(int)$altitude?>"></label>
-<button>Calculate</button><button name="search" value="1">Search 75 departure timing and burn candidates</button></form>
+<button>Calculate</button><button name="search" value="1">Search 150 departure timing and burn candidates</button></form>
 <?php if($error):?><p><?=htmlspecialchars($error,ENT_QUOTES,'UTF-8')?></p><?php elseif($solution):?>
 <h2><?=renderV($solution['applicable_now'])==='YES'?'Circularization estimate':'CAUTION — not at target orbit'?></h2>
 <dl><?php foreach($solution as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
@@ -100,7 +111,7 @@ try{
 <?php foreach($phase as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($encounter):?><h2>Predicted closest lunar approach — ideal impulsive reference</h2><dl>
 <?php foreach($encounter as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
-<?php if($search):?><h2>Best of 75 departure candidates (now, +1h, +2h) — advisory only</h2><dl>
+<?php if($search):?><h2>Best of 150 candidates (now through +5h) — advisory only</h2><dl>
 <?php foreach($search as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($budget):?><h2>Available propulsion budget (ideal approximation)</h2><dl>
 <?php foreach($budget as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
