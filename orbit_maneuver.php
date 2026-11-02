@@ -30,7 +30,7 @@ $body=(string)($_GET['body']??'EARTH');if(!in_array($body,['EARTH','MOON'],true)
 $altitude=filter_input(INPUT_GET,'altitude',FILTER_VALIDATE_FLOAT);
 if($altitude===false || $altitude===null)$altitude=$body==='MOON'?100000.0:180000.0;
 $altitude=max(0.0,min(5000000.0,$altitude));
-$solution=null;$budget=null;$tli=null;$error='';
+$solution=null;$budget=null;$tli=null;$phase=null;$error='';
 try{
     $craft=rowsManeuver($conn,$vehicle==='CM'?'command_module':'telemetry');
     $moon=rowsManeuver($conn,'moon');
@@ -43,6 +43,9 @@ try{
         $tli=moonSimTranslunarReference(v3($craft),v3($craft,'delta_'),
             [$earth_center_x,$earth_center_y,$earth_center_z],[0.0,0.0,0.0],
             v3($moon),$gravitational_constant*$earth_mass);
+        $phase=moonSimMoonPhaseReference(v3($craft),
+            [$earth_center_x,$earth_center_y,$earth_center_z],
+            v3($moon),v3($moon,'delta_'),(float)$tli['reference_coast_seconds']);
     }
     // Only quote an engine budget when the stage configuration is known.
     $cm= $vehicle==='CM' ? $craft : rowsManeuver($conn,'command_module');
@@ -75,6 +78,8 @@ try{
 <?php if($tli):?><h2>Translunar minimum-energy reference — NOT targeting guidance</h2><dl>
 <?php foreach($tli as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
 <p>Departure phase and lunar arrival are not calculated. A burn based solely on this reference may miss the Moon.</p><?php endif;?>
+<?php if($phase):?><h2>Approximate lunar arrival geometry — not an intercept</h2><dl>
+<?php foreach($phase as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($budget):?><h2>Available propulsion budget (ideal approximation)</h2><dl>
 <?php foreach($budget as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
 <p>Budget assumes nominal thrust and engine performance. It does not verify ignition, engine damage, throttling, attitude, other attached loads, or safe burn geometry.</p><?php endif;?>
