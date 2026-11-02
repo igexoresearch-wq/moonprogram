@@ -150,14 +150,17 @@ function moonSimEncounterPreview(
     array $craft, array $craftVelocity, array $earth, array $moon,
     array $moonVelocity, array $burnDirection, float $deltaV,
     float $earthMu, float $moonMu, float $moonRadius,
-    float $duration, float $step=120.0
+    float $duration, float $step=120.0, float $departureDelay=0.0
 ): array {
     if ($duration<=0 || $step<=0 || $earthMu<=0 || $moonMu<=0) {
         throw new InvalidArgumentException('Invalid propagation parameters');
     }
     $norm=moonSimVectorMagnitude($burnDirection);
     if ($norm<1e-9) throw new InvalidArgumentException('Burn direction unknown');
-    for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
+    if ($departureDelay<0 || $departureDelay>=$duration) {
+        throw new InvalidArgumentException('Departure delay must be inside preview duration');
+    }
+    $burnApplied=false;
     $accel=static function(array $p,array $origin,float $mu):array {
         $r=moonSimRelativeVector($p,$origin);
         $len=max(1.0,moonSimVectorMagnitude($r));
@@ -168,6 +171,11 @@ function moonSimEncounterPreview(
     $steps=(int)ceil($duration/$step);
     if($steps>10000)throw new InvalidArgumentException('Preview exceeds time step limit');
     for($k=0;$k<=$steps;$k++){
+        $now=min($duration,$k*$step);
+        if (!$burnApplied && $now >= $departureDelay) {
+            for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
+            $burnApplied=true;
+        }
         $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
         if($range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
@@ -220,6 +228,8 @@ function moonSimEncounterLocalSearch(
     if($fmag<1e-9)throw new InvalidArgumentException('Missing reference burn vector');
     $forward=array_map(static fn($x)=>$x/$fmag,$forward);
     $best=null;
+    $delays=[0.0,3600.0,7200.0];
+    foreach($delays as $delaySeconds) {
     foreach([-8,-4,0,4,8] as $angleDegrees) {
         $a=deg2rad((float)$angleDegrees);
         $direction=[];
@@ -227,16 +237,18 @@ function moonSimEncounterLocalSearch(
         foreach([0.94,0.97,1.0,1.03,1.06] as $factor) {
             $dv=max(0.0,$referenceDv*$factor);
             $preview=moonSimEncounterPreview($craft,$velocity,$earth,$moon,$moonVelocity,
-                $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0);
+                $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0,$delaySeconds);
             if($best===null || $preview['closest_approach_km']<$best['closest_approach_km']) {
                 $best=$preview;
                 $best['candidate_delta_v_m_s']=$dv;
                 $best['candidate_pitch_offset_deg']=$angleDegrees;
                 $best['candidate_direction']=$direction;
+                $best['candidate_departure_delay_seconds']=$delaySeconds;
             }
         }
     }
-    $best['sampled_candidates']=25;
-    $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or departure-time optimization. Compare independently before any manual burn.';
+    }
+    $best['sampled_candidates']=75;
+    $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or finite-burn optimization; departure delay is sampled at 0, 1 and 2 hours only. Compare independently before any manual burn.';
     return $best;
 }
