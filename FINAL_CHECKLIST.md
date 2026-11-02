@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program
 
-**Authoritative completion list.** Updated 2026-11-01. Earlier WORK_PLAN.md and PROJECT_STATE.md remain historical reference; update this checklist after every implementation pass.
+**Authoritative completion list.** Updated 2026-11-02. Earlier WORK_PLAN.md and PROJECT_STATE.md remain historical reference; update this checklist after every implementation pass.
 
 **Completion rule:** [x] means functionality has been committed to the repository, **not** that it passed a real-flight trial. Where only basic functionality exists, check off that basic capability separately and leave full integration unchecked. Never check off uncommitted work. Maintain existing Apollo cockpit, DSKY, physics, manual fallbacks, and state.
 
@@ -20,6 +20,7 @@
 - [ ] Complete S-IC/S-II/S-IVB outboard cutoff, separation and ignition sequencing and reference-event handling; avoid forcing physically impossible stage changes.
 - [ ] Complete sourced ascent pitch/roll guidance without bypassing physical attitude.
 - [ ] Finish reliable guidance-controlled parking-orbit insertion and end-of-launch-program transition.
+- [x] Provide read-only operator diagnostics for database launch-program presence, AGC registers and engine-label compatibility.
 - [ ] Confirm database-stored AGC launch programs 16–24 are compatible with file-based controller.
 
 ## 2. Earth orbit, TLI and lunar transfer
@@ -125,3 +126,7 @@
 
 ## 2026-11-02 progress
 - Added real state-transition logger `physics/flight_event_log.php`, connected after AGC in `physics/step.php`. Commits `b8ba033`, `e5b7a5a`. This records actual transitions without causing faults. Stage-separation AGC definitions remain to be audited; full launch sequence remains unchecked.
+
+- Added protected, read-only `launch_diagnostics.php` for live AGC program records 16–24, current execute flags/registers, actual engine names/status and center-engine labelling. Commits `300069e`, `ecad45f`. The diagnostics inspect presence only; database program compatibility and flight behavior remain unchecked.
+
+**Checklist progress after this iteration: 29/77 = 37.7% implemented (repository code, not live flight verified).**
