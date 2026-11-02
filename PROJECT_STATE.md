@@ -542,3 +542,11 @@ then add the simple mission selector while simulation is reset/off.
 - Commit: `ce9fe8ea97402382e5b36c910fc78d6f57a69fa8`.
 - Deployment warning: the selector currently has no application-specific user authentication; configure server access control before exposing it on a public internet host. The CSRF token is not authentication.
 - No live server test yet. Next: audit the SQL-resident launch-program source and wire profile targets safely; avoid treating reference event times as forced engine events until validated.
+
+
+## Orbit target integration — 2026-11-01
+
+- Updated `physics/lseq.php` to load the selected mission profile and use its `parking_periapsis_m`, `parking_apoapsis_m`, and `parking_max_radial_speed_m_s` fields for the existing first S-IVB parking-orbit cutoff. Commit `baf6250f274b6300f4588d6fb3b3a12e9664d7f7`.
+- Existing ignition/staging sequences, physics, and cockpit display files were not changed. Apollo 11 timed launch events remain advisory, not active physical commands.
+- Verified by source inspection; **not** validated by a live flight or successful CI test.
+- Status: not flight-ready. Remaining critical work includes database-resident launch sequencing verification, stage engine timing, reentry, LM landing/ascent guidance, manual/PDF, AI communications, authentication of mission selection, and end-to-end tests.
