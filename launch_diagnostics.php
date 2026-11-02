@@ -38,7 +38,7 @@ $ready=true;foreach($required as $id=>$description)if(!($programs[$id]['present'
 $center=[];
 foreach(['First Stage','Second Stage'] as $stage){
     $names=array_keys($groups[$stage]??[]);
-    $centers=array_filter($names,static fn($name)=>(bool)preg_match('/\\b(center|centre|central)\\b/i',$name));
+    $centers=array_filter($names,static fn($name)=>(bool)preg_match('/\b(center|centre|central)\b/i',$name));
     $center[$stage]=count($names)===5 && count($centers)===1;
 }
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15"><title>Saturn Launch Readiness</title>
