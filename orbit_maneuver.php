@@ -1,0 +1,52 @@
+<?php
+declare(strict_types=1);
+$secret=getenv('MOON_OPERATOR_PASSWORD');
+if (!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PHP_AUTH_PW']??''))) {
+    header('WWW-Authenticate: Basic realm="Moon Simulator"');
+    http_response_code(401);exit('Operator authentication required');
+}
+require __DIR__.'/physics/db.php';
+require_once __DIR__.'/shared/physical_constants.php';
+require_once __DIR__.'/shared/orbit_maneuver_planner.php';
+header('Content-Type: text/html; charset=utf-8');
+function rowsManeuver(mysqli $conn,string $table):array {
+    $result=$conn->query("SELECT attribute,value FROM $table");
+    $a=[];
+    if($result)while($r=$result->fetch_assoc())$a[$r['attribute']]=(float)$r['value'];
+    return $a;
+}
+function v3(array $a,string $prefix=''):array {
+    foreach(['x','y','z'] as $axis)if(!isset($a[$prefix.$axis]))throw new RuntimeException('Missing vector telemetry');
+    return [$a[$prefix.'x'],$a[$prefix.'y'],$a[$prefix.'z']];
+}
+function renderV($x):string {
+    if(is_bool($x))return $x?'YES':'NO';
+    if(is_array($x))return htmlspecialchars(implode(', ',array_map(static fn($n)=>number_format($n,3,'.',''),$x)),ENT_QUOTES,'UTF-8');
+    if(is_numeric($x))return number_format((float)$x,3,'.','');
+    return htmlspecialchars((string)$x,ENT_QUOTES,'UTF-8');
+}
+$vehicle=(string)($_GET['vehicle']??'CM');if(!in_array($vehicle,['CM','LM'],true))$vehicle='CM';
+$body=(string)($_GET['body']??'EARTH');if(!in_array($body,['EARTH','MOON'],true))$body='EARTH';
+$altitude=filter_input(INPUT_GET,'altitude',FILTER_VALIDATE_FLOAT);
+if($altitude===false || $altitude===null)$altitude=$body==='MOON'?100000.0:180000.0;
+$altitude=max(0.0,min(5000000.0,$altitude));
+$solution=null;$error='';
+try{
+    $craft=rowsManeuver($conn,$vehicle==='CM'?'command_module':'telemetry');
+    $moon=rowsManeuver($conn,'moon');
+    $center=$body==='EARTH'?[$earth_center_x,$earth_center_y,$earth_center_z]:v3($moon);
+    $velocity=$body==='EARTH'?[0,0,0]:v3($moon,'delta_');
+    $mu=$gravitational_constant*($body==='EARTH'?$earth_mass:$moon_mass);
+    $radius=$body==='EARTH'?$earth_radius:$moon_radius;
+    $solution=moonSimCircularizationEstimate(v3($craft),v3($craft,'delta_'),$center,$velocity,$mu,$radius,(float)$altitude);
+} catch(Throwable $e){$error='Required telemetry unavailable: '.$e->getMessage();}
+?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit Maneuver Advisor</title>
+<style>body{font:16px system-ui;background:#15202c;color:#edf3fc;padding:22px}main{max-width:900px;margin:auto}dt{color:#9fd4ec}dd{margin:0 0 12px}form{padding:18px;border:1px solid #526679}input,select,button{font:inherit;padding:8px;background:#293c4f;color:white}</style></head><body><main><h1>ORBIT MANEUVER ADVISOR</h1>
+<form method="get"><label>Craft <select name="vehicle"><option <?=$vehicle==='CM'?'selected':''?>>CM</option><option <?=$vehicle==='LM'?'selected':''?>>LM</option></select></label>
+<label>Central body <select name="body"><option <?=$body==='EARTH'?'selected':''?>>EARTH</option><option <?=$body==='MOON'?'selected':''?>>MOON</option></select></label>
+<label>Target altitude (m) <input name="altitude" type="number" min="0" max="5000000" value="<?=(int)$altitude?>"></label>
+<button>Calculate</button></form>
+<?php if($error):?><p><?=htmlspecialchars($error,ENT_QUOTES,'UTF-8')?></p><?php elseif($solution):?>
+<h2><?=renderV($solution['applicable_now'])==='YES'?'Circularization estimate':'CAUTION — not at target orbit'?></h2>
+<dl><?php foreach($solution as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
+<?php endif;?><p>This is a two-body, instantaneous-impulse advisory calculator only. It does not command burns, predict lunar intercept, or account for a finite engine burn. Use cockpit controls and real propellant limits.</p></main></body></html>
