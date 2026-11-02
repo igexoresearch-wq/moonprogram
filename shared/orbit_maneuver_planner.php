@@ -68,3 +68,43 @@ function moonSimBurnBudget(float $mass, float $fuel, float $thrust, float $isp, 
         'ideal_burn_seconds' => min($required, $fuel) * $exhaust / $thrust,
     ];
 }
+
+/**
+ * Earth-centered Hohmann-style translunar transfer starting at the current
+ * radius. This is a *minimum-energy reference*, NOT a Moon intercept solution:
+ * departure phase, lunar inclination, lunar gravity and finite burn effects
+ * must be solved separately before commanding an engine.
+ */
+function moonSimTranslunarReference(
+    array $craftPosition, array $craftVelocity, array $earthPosition,
+    array $earthVelocity, array $moonPosition, float $earthMu
+): array {
+    $r=moonSimRelativeVector($craftPosition,$earthPosition);
+    $v=moonSimRelativeVector($craftVelocity,$earthVelocity);
+    $moonR=moonSimVectorMagnitude(moonSimRelativeVector($moonPosition,$earthPosition));
+    $radius=moonSimVectorMagnitude($r);
+    if ($earthMu<=0 || $radius<=0 || $moonR <= $radius) {
+        throw new InvalidArgumentException('Transfer requires an Earth-centered orbit inside the Moon radius.');
+    }
+    $up=array_map(static fn($x)=>$x/$radius,$r);
+    $radial=moonSimVectorDot($v,$up);
+    $tangent=array_map(static fn($x,$u)=>$x-$radial*$u,$v,$up);
+    $speed=moonSimVectorMagnitude($tangent);
+    if ($speed<1e-6) throw new RuntimeException('Tangential reference direction unavailable.');
+    $a=($radius+$moonR)/2.0;
+    $transferSpeed=sqrt($earthMu*(2.0/$radius-1.0/$a));
+    $delta=$transferSpeed-$speed;
+    $unit=array_map(static fn($x)=>$x/$speed,$tangent);
+    return [
+        'earth_radius_m'=>$radius,
+        'moon_orbital_radius_m'=>$moonR,
+        'departure_radial_speed_m_s'=>$radial,
+        'departure_tangential_speed_m_s'=>$speed,
+        'reference_departure_speed_m_s'=>$transferSpeed,
+        'reference_signed_delta_v_m_s'=>$delta,
+        'reference_burn_direction'=>$delta>=0 ? $unit : array_map(static fn($x)=>-$x,$unit),
+        'reference_coast_seconds'=>M_PI*sqrt($a*$a*$a/$earthMu),
+        'valid_near_circular_departure'=>abs($radial)<50.0,
+        'warning'=>'REFERENCE ONLY: does not solve lunar encounter geometry, departure phase or finite burn. Do not treat as an executable TLI command.',
+    ];
+}
