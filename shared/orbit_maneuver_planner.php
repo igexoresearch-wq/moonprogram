@@ -200,3 +200,43 @@ function moonSimEncounterPreview(
         'warning'=>'Impulsive transfer preview only; fixed Earth, simplified Moon dynamics, finite step and no fuel/attitude effects. Not flight guidance.'
     ];
 }
+
+/**
+ * Bounded local search around the current impulsive transfer reference.
+ * Search only adjusts prograde speed and the direction within the current
+ * Earth-centered orbital plane. It cannot solve inclination or departure time.
+ */
+function moonSimEncounterLocalSearch(
+    array $craft, array $velocity, array $earth, array $moon, array $moonVelocity,
+    array $referenceDirection, float $referenceDv, float $earthMu, float $moonMu,
+    float $moonRadius, float $duration
+): array {
+    $radial=moonSimRelativeVector($craft,$earth);
+    $rmag=moonSimVectorMagnitude($radial);
+    if($rmag<1.0) throw new InvalidArgumentException('Missing Earth-relative position');
+    $up=array_map(static fn($x)=>$x/$rmag,$radial);
+    $forward=$referenceDirection;
+    $fmag=moonSimVectorMagnitude($forward);
+    if($fmag<1e-9)throw new InvalidArgumentException('Missing reference burn vector');
+    $forward=array_map(static fn($x)=>$x/$fmag,$forward);
+    $best=null;
+    foreach([-8,-4,0,4,8] as $angleDegrees) {
+        $a=deg2rad((float)$angleDegrees);
+        $direction=[];
+        for($i=0;$i<3;$i++)$direction[$i]=$forward[$i]*cos($a)+$up[$i]*sin($a);
+        foreach([0.94,0.97,1.0,1.03,1.06] as $factor) {
+            $dv=max(0.0,$referenceDv*$factor);
+            $preview=moonSimEncounterPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+                $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0);
+            if($best===null || $preview['closest_approach_km']<$best['closest_approach_km']) {
+                $best=$preview;
+                $best['candidate_delta_v_m_s']=$dv;
+                $best['candidate_pitch_offset_deg']=$angleDegrees;
+                $best['candidate_direction']=$direction;
+            }
+        }
+    }
+    $best['sampled_candidates']=25;
+    $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or departure-time optimization. Compare independently before any manual burn.';
+    return $best;
+}
