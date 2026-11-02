@@ -585,3 +585,12 @@ then add the simple mission selector while simulation is reset/off.
 - Do not automatically repair software, insert a guaranteed recovery, fake a breakdown, or reset the mission to conceal a defect.
 - After the flight, diagnose what failed in implementation and correct it for subsequent missions. Incremental development can prioritize flying over exhaustive preflight perfection.
 - Keep existing manual control paths and diagnostic telemetry accessible; these are genuine fallback capabilities, not a scripted malfunction game.
+
+
+## Mission outcome principle — 2026-11-01
+
+- Primary simulator win condition is a **safe return and landing on Earth**. The Moon flight, landing and other objectives are secondary objectives, not prerequisites for victory.
+- Completing a lunar landing without returning is NOT a win. Aborting before the Moon, free-return or manual recovery with a safe Earth landing IS a win (crew recovered).
+- Distinguish full mission success, crew recovered, mission ongoing, and mission lost. Use actual state/contact and safe-landing conditions rather than scripted milestones or artificially introduced malfunctions.
+- Do not conflate touching Earth's surface with a survivable landing; use actual Earth contact, capsule configuration and impact speed, improving the reentry/splashdown evaluator in a later implementation pass.
+- Never secretly repair state, replenish propellant, or guarantee success.
