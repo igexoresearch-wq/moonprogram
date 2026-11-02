@@ -93,7 +93,7 @@
 
 ## 11. Flight history and outcomes
 - [x] Primary outcome rule: safe Earth CM landing only; no automatic simulated faults.
-- [ ] Persist genuine mission-event/command/state history for postflight diagnosis.
+- [x] Record actual spacecraft stage, component and engine-state transitions for postflight diagnosis (initial event recorder).\n- [ ] Extend history to guidance commands, thrust maneuvers, orbital markers and complete mission replay.
 - [ ] Distinguish full objectives + recovery from abort/recovery and mission loss.
 - [ ] Display accessible in-flight event timeline and after-action flight report.
 - [ ] Preserve manual controls and existing state during discovered software defects.
@@ -122,3 +122,6 @@
 - Apollo profile LES jettison implemented in existing launch controller with abort/stage guards: commit `4bd6204`. Actual deployed flight still unverified.
 
 - Added altitude/fuel/abort-gated Apollo stage outboard cutoff requests, retaining DB AGC separation programs 19/20 and existing depleted-fuel fallback. Commit `9e072b4`. This is not equivalent to completed staging integration or a live flight test.
+
+## 2026-11-02 progress
+- Added real state-transition logger `physics/flight_event_log.php`, connected after AGC in `physics/step.php`. Commits `b8ba033`, `e5b7a5a`. This records actual transitions without causing faults. Stage-separation AGC definitions remain to be audited; full launch sequence remains unchecked.
