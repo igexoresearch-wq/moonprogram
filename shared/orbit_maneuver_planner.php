@@ -51,3 +51,20 @@ function moonSimIdealBurnTime(float $massKg,float $thrustN,float $ispSeconds,flo
     $fuel=$massKg*(1-exp(-$deltaVMs/$ve));
     return $fuel*$ve/$thrustN;
 }
+
+/** Finite-propellant idealized maneuver budget. Advisory only. */
+function moonSimBurnBudget(float $mass, float $fuel, float $thrust, float $isp, float $dv): array {
+    if ($mass <= 1.0 || $fuel < 0 || $thrust <= 0 || $isp <= 0 || $dv < 0) {
+        throw new InvalidArgumentException('Invalid propulsion inputs');
+    }
+    $fuel = min($fuel, $mass - 1.0);
+    $exhaust = $isp * 9.80665;
+    $required = $mass * (1.0 - exp(-$dv / $exhaust));
+    return [
+        'available_delta_v_m_s' => $exhaust * log($mass / ($mass - $fuel)),
+        'fuel_required_kg' => $required,
+        'fuel_available_kg' => $fuel,
+        'fuel_sufficient' => $required <= $fuel,
+        'ideal_burn_seconds' => min($required, $fuel) * $exhaust / $thrust,
+    ];
+}
