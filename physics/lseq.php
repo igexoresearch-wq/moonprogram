@@ -112,6 +112,37 @@ if ((int)$stagingCM === 1) {
     $stagingCM = 0;
 }
 
+/*
+ * Apollo reference outboard cutoff: accept the time only when propellant is
+ * almost depleted and the stack has clearly left the pad. The original AGC
+ * stage-separation program (19/20) still owns separation. This avoids a
+ * historical timer dropping a low/slow vehicle or staging before a bad
+ * guidance trajectory can be recovered manually.
+ */
+if (($launchMissionProfile['launch_guidance_mode'] ?? '') === 'TIMED_VALIDATION'
+    && $launchEvents < 2 && $secondsx > 0
+    && (int)($ABORTCM ?? 0) === 0) {
+    $refEvents = $events ?? moonSimMissionLaunchEvents($conn, (int)$launchMissionProfile['id']);
+    $sicReference = (float)($refEvents['sic_outboard_cutoff']['seconds'] ?? INF);
+    $siiReference = (float)($refEvents['sii_outboard_cutoff']['seconds'] ?? INF);
+    if ((int)$stage1CM === 1
+        && $secondsx >= $sicReference
+        && $altitude > 10000.0
+        && (float)$s1fuelCM <= 0.01*(float)$stage1_initial_fuel) {
+        $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='First Stage'");
+        $conn->query("UPDATE CMguidance SET execute=1 WHERE id=19");
+        $conn->query("UPDATE command_module SET value=1 WHERE attribute='staging'");
+    }
+    if ((int)$stage1CM === 0 && (int)$stage2CM === 1
+        && $secondsx >= $siiReference
+        && $altitude > 80000.0
+        && (float)$s2fuelCM <= 0.01*(float)$stage2_initial_fuel) {
+        $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Second Stage'");
+        $conn->query("UPDATE CMguidance SET execute=1 WHERE id=20");
+        $conn->query("UPDATE command_module SET value=1 WHERE attribute='staging'");
+    }
+}
+
 // S-IC separation after propellant depletion in the current stage model.
 if ((float)$s1fuelCM <= 0.0 && (int)$stage1CM === 1) {
     $conn->query("UPDATE CMguidance SET execute=1 WHERE id=19");
