@@ -594,3 +594,11 @@ then add the simple mission selector while simulation is reset/off.
 - Distinguish full mission success, crew recovered, mission ongoing, and mission lost. Use actual state/contact and safe-landing conditions rather than scripted milestones or artificially introduced malfunctions.
 - Do not conflate touching Earth's surface with a survivable landing; use actual Earth contact, capsule configuration and impact speed, improving the reentry/splashdown evaluator in a later implementation pass.
 - Never secretly repair state, replenish propellant, or guarantee success.
+
+
+## Earth recovery outcome and live navigation — 2026-11-01
+
+- Added `shared/mission_outcome.php`: derives the only win state from CM Earth contact, safe contact classification, impact speed, detached Service Module and escape tower, and verified MAIN parachute deployment. Unverified contact has separate status; no arbitrary objective-based victory. Commit `07cf7db5`.
+- Added read-only `mission_outcome.php` flight station showing current outcome, Earth altitude/speed, and Earth-centered instantaneous orbital periapsis. Its orbit estimate is advisory and neglects atmosphere and future lunar perturbations. Commits `ad721bc3`, `53182368` (Earth-origin correction).
+- These additions do not alter live physics, crew status, fuel, automatic failures, flight controls, or reset behavior. No claim of deployment testing or full mission readiness.
+- Remaining substantial requirements: complete autonomous/manual-capable Saturn V profile/event handling, landing/ascent/rendezvous and Earth-return guidance integration, Ground Control voice AI with server-secret configuration, station navigation, flight manual, live mission validation. Continue implementing these without inserting scripted malfunctions.
