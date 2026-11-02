@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../shared/orbital_mechanics.php';
 require_once __DIR__ . '/../shared/mission_profiles.php';
+require_once __DIR__ . '/../shared/saturn_engine_groups.php';
 // Profile targets adjust cutoff criteria only, not engine/stage sequencing.
 $launchMissionProfile = moonSimActiveMissionProfile($conn);
 $parkingMinPeriapsis = max(100000.0, (float)($launchMissionProfile['parking_periapsis_m'] ?? 160000.0));
@@ -23,6 +24,23 @@ $clockResult = $conn->query(
 $clockRow = $clockResult ? $clockResult->fetch_assoc() : null;
 $secondsx = (int)($clockRow['seconds'] ?? -900);
 $launchEvents = (int)($clockRow['launch_events'] ?? 0);
+
+// Historical reference mode may cut off an identifiable center engine.
+// No action is taken if the existing engine database does not model five
+// distinct engines with one explicitly named 'center'. Generic missions
+// retain their previous engine sequence.
+if (($launchMissionProfile['launch_guidance_mode'] ?? '') === 'TIMED_VALIDATION'
+    && $secondsx >= 0 && $launchEvents < 2) {
+    $events = moonSimMissionLaunchEvents($conn, (int)$launchMissionProfile['id']);
+    if ((int)$stage1CM === 1
+        && moonSimMissionEventDue($events, 'sic_center_cutoff', (float)$secondsx)) {
+        moonSimCenterEngineCutoff($conn, 'First Stage');
+    }
+    if ((int)$stage1CM === 0 && (int)$stage2CM === 1
+        && moonSimMissionEventDue($events, 'sii_center_cutoff', (float)$secondsx)) {
+        moonSimCenterEngineCutoff($conn, 'Second Stage');
+    }
+}
 
 // Earth-relative speed and true radial climb rate.
 $rx = (float)$xCM - (float)$earth_center_x;
