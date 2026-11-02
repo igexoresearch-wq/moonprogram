@@ -32,6 +32,7 @@
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
+- [x] Add read-only Earth/Moon two-body circularization vector and delta-v advisor, with near-target warning and ideal burn-time helper.
 - [ ] Live LOI vector/delta-v/burn-time calculator.
 - [ ] Guidance ignition, attitude and cutoff around the Moon.
 - [ ] Lunar periapsis/apoapsis and circularization cockpit displays.
@@ -130,3 +131,8 @@
 - Added protected, read-only `launch_diagnostics.php` for live AGC program records 16–24, current execute flags/registers, actual engine names/status and center-engine labelling. Commits `300069e`, `ecad45f`. The diagnostics inspect presence only; database program compatibility and flight behavior remain unchecked.
 
 **Checklist progress after this iteration: 29/77 = 37.7% implemented (repository code, not live flight verified).**
+
+## 2026-11-02 maneuver advisor progress
+- `shared/orbit_maneuver_planner.php` implements a local circularization direction/delta-v estimate and ideal rocket-equation burn duration; `orbit_maneuver.php` exposes live Earth/Moon and CM/LM advisory telemetry. Commits `82478eb`, `9a7eb62`. It does not calculate LOI capture, rendezvous, TLI, or execute finite burns; those remain unchecked.
+
+**Checklist progress: 30/78 = 38.5% implemented (source committed, not flight verified).**
