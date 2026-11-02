@@ -35,6 +35,10 @@
 - [x] Add read-only Earth–Moon gravitational propagation of a reference departure burn and display closest approach.
 - [x] Add opt-in local TLI candidate search over prograde impulse magnitude and in-plane direction, displaying estimated closest lunar approach.
 - [x] Compare timed TLI candidate departures at 0, 1 and 2 hours using propagated preburn coasting (75 impulse candidates total).
+- [x] Extend coarse departure-delay candidates from 0–2h to 0–5h (150 samples).
+- [x] Reject local departure candidates that hit Earth in the advisory propagation.
+- [x] Report lunar near-pass and surface-clearance classification of preview trajectories.
+- [x] Compare the selected departure candidate against estimated usable engine propellant (warning only).
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -169,3 +173,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Encounter preview now applies a delayed impulsive burn after coasting to the requested departure time. Local search compares 75 candidates across immediate, +1 h, and +2 h departure windows. UI updated. Commits `9ad2b86`, `47c6848`. Advisory only: no automated ignition, full targeting, or validated live flight.
 
 **Latest checklist completion: 36/84 = 42.9%.**
+
+## 2026-11-02 four-part TLI planner pass
+- Extended coarse departure timing, added Earth-impact screening, lunar approach classification, and candidate propellant-warning display. Commits `f11d7fb`, `69ee14d`, `a7e48ca`, `1d52445`. These are advisory heuristics, not a validated TLI solver. 
+
+**Current implementation checklist: 40/88 = 45.5%.**
