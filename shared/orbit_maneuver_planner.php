@@ -140,3 +140,63 @@ function moonSimMoonPhaseReference(
         'warning'=>'Circular-orbit approximation only. Not an encounter solver; Moon gravity, orbital inclination and required lead geometry are unresolved.'
     ];
 }
+
+/**
+ * Preview an impulsive departure under Earth/Moon gravity using leapfrog.
+ * Fixed Earth model; Moon is dynamically propagated around Earth.
+ * Advisory approximation, independent of the authoritative flight worker.
+ */
+function moonSimEncounterPreview(
+    array $craft, array $craftVelocity, array $earth, array $moon,
+    array $moonVelocity, array $burnDirection, float $deltaV,
+    float $earthMu, float $moonMu, float $moonRadius,
+    float $duration, float $step=120.0
+): array {
+    if ($duration<=0 || $step<=0 || $earthMu<=0 || $moonMu<=0) {
+        throw new InvalidArgumentException('Invalid propagation parameters');
+    }
+    $norm=moonSimVectorMagnitude($burnDirection);
+    if ($norm<1e-9) throw new InvalidArgumentException('Burn direction unknown');
+    for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
+    $accel=static function(array $p,array $origin,float $mu):array {
+        $r=moonSimRelativeVector($p,$origin);
+        $len=max(1.0,moonSimVectorMagnitude($r));
+        $factor=-$mu/($len*$len*$len);
+        return [$r[0]*$factor,$r[1]*$factor,$r[2]*$factor];
+    };
+    $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;
+    $steps=(int)ceil($duration/$step);
+    if($steps>10000)throw new InvalidArgumentException('Preview exceeds time step limit');
+    for($k=0;$k<=$steps;$k++){
+        $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
+        if($range<$closest){
+            $closest=$range;$closestAt=min($duration,$k*$step);
+            $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($craftVelocity,$moonVelocity));
+        }
+        if($k===$steps)break;
+        $h=min($step,$duration-$k*$step);
+        $earthCraft=$accel($craft,$earth,$earthMu);
+        $moonCraft=$accel($craft,$moon,$moonMu);
+        $moonAcc=$accel($moon,$earth,$earthMu);
+        for($i=0;$i<3;$i++){
+            $craftVelocity[$i]+=0.5*$h*($earthCraft[$i]+$moonCraft[$i]);
+            $moonVelocity[$i]+=0.5*$h*$moonAcc[$i];
+            $craft[$i]+=$h*$craftVelocity[$i];
+            $moon[$i]+=$h*$moonVelocity[$i];
+        }
+        $earthCraft=$accel($craft,$earth,$earthMu);
+        $moonCraft=$accel($craft,$moon,$moonMu);
+        $moonAcc=$accel($moon,$earth,$earthMu);
+        for($i=0;$i<3;$i++){
+            $craftVelocity[$i]+=0.5*$h*($earthCraft[$i]+$moonCraft[$i]);
+            $moonVelocity[$i]+=0.5*$h*$moonAcc[$i];
+        }
+    }
+    return [
+        'closest_approach_km'=>$closest/1000.0,
+        'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
+        'time_of_closest_approach_h'=>$closestAt/3600.0,
+        'relative_speed_at_approach_m_s'=>$relativeSpeed,
+        'warning'=>'Impulsive transfer preview only; fixed Earth, simplified Moon dynamics, finite step and no fuel/attitude effects. Not flight guidance.'
+    ];
+}
