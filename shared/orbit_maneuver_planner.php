@@ -167,7 +167,8 @@ function moonSimEncounterPreview(
         $factor=-$mu/($len*$len*$len);
         return [$r[0]*$factor,$r[1]*$factor,$r[2]*$factor];
     };
-    $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;
+    $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;$initialRadius=moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth));
+    $earthImpact=false;
     $steps=(int)ceil($duration/$step);
     if($steps>10000)throw new InvalidArgumentException('Preview exceeds time step limit');
     for($k=0;$k<=$steps;$k++){
@@ -176,6 +177,7 @@ function moonSimEncounterPreview(
             for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
             $burnApplied=true;
         }
+        if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < 6371000.0) $earthImpact=true;
         $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
         if($range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
@@ -201,6 +203,7 @@ function moonSimEncounterPreview(
         }
     }
     return [
+        'earth_impact_detected'=>$earthImpact,
         'closest_approach_km'=>$closest/1000.0,
         'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
         'time_of_closest_approach_h'=>$closestAt/3600.0,
@@ -228,7 +231,7 @@ function moonSimEncounterLocalSearch(
     if($fmag<1e-9)throw new InvalidArgumentException('Missing reference burn vector');
     $forward=array_map(static fn($x)=>$x/$fmag,$forward);
     $best=null;
-    $delays=[0.0,3600.0,7200.0];
+    $delays=[0.0,3600.0,7200.0,10800.0,14400.0,18000.0];
     foreach($delays as $delaySeconds) {
     foreach([-8,-4,0,4,8] as $angleDegrees) {
         $a=deg2rad((float)$angleDegrees);
@@ -238,6 +241,7 @@ function moonSimEncounterLocalSearch(
             $dv=max(0.0,$referenceDv*$factor);
             $preview=moonSimEncounterPreview($craft,$velocity,$earth,$moon,$moonVelocity,
                 $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0,$delaySeconds);
+            if ($preview['earth_impact_detected']) continue;
             if($best===null || $preview['closest_approach_km']<$best['closest_approach_km']) {
                 $best=$preview;
                 $best['candidate_delta_v_m_s']=$dv;
@@ -248,7 +252,9 @@ function moonSimEncounterLocalSearch(
         }
     }
     }
-    $best['sampled_candidates']=75;
-    $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or finite-burn optimization; departure delay is sampled at 0, 1 and 2 hours only. Compare independently before any manual burn.';
+    if ($best===null) throw new RuntimeException('Every candidate intersects Earth in the preview.');
+    $best['sampled_candidates']=150;
+    $best['lunar_surface_clearance_status']=$best['closest_surface_altitude_km']<0?'PREDICTED LUNAR IMPACT':($best['closest_surface_altitude_km']<100?'LOW PASS':'DISTANT PASS');
+    $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or finite-burn optimization; departure delay is sampled hourly from 0 through 5 hours. Compare independently before any manual burn.';
     return $best;
 }
