@@ -39,6 +39,11 @@
 - [x] Reject local departure candidates that hit Earth in the advisory propagation.
 - [x] Report lunar near-pass and surface-clearance classification of preview trajectories.
 - [x] Compare the selected departure candidate against estimated usable engine propellant (warning only).
+- [x] Score predicted lunar closest approach only after the departure burn, excluding misleading preburn proximity.
+- [x] Accept an explicit Earth radius in encounter collision detection rather than an unchangeable hard-coded radius.
+- [x] Identify predicted Moon-surface intersections during candidate propagation.
+- [x] Exclude predicted lunar impact trajectories from the closest-approach candidate search.
+- [x] Show an explicit unverified-propulsion warning when a selected transfer has no known engine budget.
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -178,3 +183,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Extended coarse departure timing, added Earth-impact screening, lunar approach classification, and candidate propellant-warning display. Commits `f11d7fb`, `69ee14d`, `a7e48ca`, `1d52445`. These are advisory heuristics, not a validated TLI solver. 
 
 **Current implementation checklist: 40/88 = 45.5%.**
+
+## 2026-11-02 five safety and scoring improvements
+- Committed postburn-only scoring (`ed0464e`), configurable Earth collision radius (`5bc0f81`), lunar-impact detection (`5584214`), lunar-impact candidate rejection (`5def225`), and propulsion-configuration warning (`31271f4`). These do not complete validated TLI guidance or a live flight.
+
+**Overall checklist implemented: 45/93 = 48.4%.**
