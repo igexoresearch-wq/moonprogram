@@ -40,6 +40,14 @@ if (($launchMissionProfile['launch_guidance_mode'] ?? '') === 'TIMED_VALIDATION'
         && moonSimMissionEventDue($events, 'sii_center_cutoff', (float)$secondsx)) {
         moonSimCenterEngineCutoff($conn, 'Second Stage');
     }
+    // LES tower jettison is a release, not an abort. Do not jettison
+    // while the abort system has been commanded or during S-IC flight.
+    if ((int)$stage1CM === 0 && (int)$stage2CM === 1
+        && (int)($escapeCM ?? 0) === 1
+        && (int)($ABORTCM ?? 0) === 0
+        && moonSimMissionEventDue($events, 'les_jettison', (float)$secondsx)) {
+        $conn->query("UPDATE command_module SET value=0 WHERE attribute='escape'");
+    }
 }
 
 // Earth-relative speed and true radial climb rate.
