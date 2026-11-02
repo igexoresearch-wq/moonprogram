@@ -14,7 +14,9 @@
 - [x] Profile-specific Earth parking-orbit cutoff targets in physics/lseq.php.
 - [x] Implement guarded S-IC center-engine cutoff at profile reference time (only when five distinct engines and a uniquely labeled center engine exist).
 - [x] Implement guarded S-II center-engine cutoff at profile reference time (same explicit center-engine requirement).
-- [ ] Verify actual deployed EngineStatus center labels and five-engine groups; otherwise guarded cutoffs intentionally do nothing.\n- [ ] Complete S-IC/S-II/S-IVB cutoff, separation, ignition and LES jettison sequencing and reference-event handling; avoid forcing physically impossible stage changes.
+- [ ] Verify actual deployed EngineStatus center labels and five-engine groups; otherwise guarded cutoffs intentionally do nothing.
+- [x] Add guarded Apollo 11 LES jettison at reference time in S-II flight, inhibited during abort.
+- [ ] Complete S-IC/S-II/S-IVB outboard cutoff, separation and ignition sequencing and reference-event handling; avoid forcing physically impossible stage changes.
 - [ ] Complete sourced ascent pitch/roll guidance without bypassing physical attitude.
 - [ ] Finish reliable guidance-controlled parking-orbit insertion and end-of-launch-program transition.
 - [ ] Confirm database-stored AGC launch programs 16–24 are compatible with file-based controller.
@@ -115,3 +117,5 @@
 ## 2026-11-01 implementation log
 - Checklist created: commit `97fb3c7`.
 - Added guarded engine cutoff helper `shared/saturn_engine_groups.php` and connected selected Apollo reference times in `physics/lseq.php`: commits `d9e0553`, `b42c6f1`. Only TIMED_VALIDATION profile; never randomly shuts an ambiguous engine. DB engine names and physical flight remain unverified.
+
+- Apollo profile LES jettison implemented in existing launch controller with abort/stage guards: commit `4bd6204`. Actual deployed flight still unverified.
