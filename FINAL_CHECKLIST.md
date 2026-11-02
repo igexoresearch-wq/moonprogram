@@ -27,6 +27,7 @@
 - [x] Velocity-Verlet Earth–Moon gravity and orbital-element helpers.
 - [x] S-IVB first-burn cutoff preserving fuel and existing TLI restart support.
 - [x] Display approximate fuel-limited maneuver budget using live spacecraft state.
+- [x] Add read-only Earth-centered translunar minimum-energy reference speed, direction and transfer duration (not lunar encounter targeting).
 - [ ] Calculate state-specific TLI direction, delta-v and burn time with live masses.
 - [ ] Connect TLI guidance to existing AGC/DSKY and manual control.
 - [ ] Add midcourse-correction calculator and command procedure.
@@ -139,3 +140,8 @@
 **Checklist progress: 30/78 = 38.5% implemented (source committed, not flight verified).**
 
 Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
+
+## 2026-11-02 translunar reference
+- `shared/orbit_maneuver_planner.php` and `orbit_maneuver.php` expose a state-driven Earth-centered Hohmann reference with a clear warning about unsolved lunar phase, interception and finite burn. Commits `5fefa00`, `b187b67`. Full TLI targeting and guidance remain unchecked.
+
+**Checklist implementation completion: 32/80 = 40.0%.**
