@@ -83,6 +83,9 @@ try{
         $budget=moonSimBurnBudget($mass,$fuel,$ascent?$lander_ascent_thrust:$lander_descent_thrust,
             $ascent?310.0:304.0,abs($solution['signed_delta_v_m_s']));
     }
+    if ($search!==null && $budget===null) {
+        $search['propulsion_feasibility']='UNVERIFIED: no compatible engine/fuel configuration could be established; do not command this burn.';
+    }
     if ($search!==null && $budget!==null) {
         $search['candidate_fuel_budget']=moonSimBurnBudget(
             $mass,$fuel,
