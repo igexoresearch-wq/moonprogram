@@ -1,6 +1,12 @@
 <?php
 
 require_once __DIR__ . '/../shared/orbital_mechanics.php';
+require_once __DIR__ . '/../shared/mission_profiles.php';
+// Profile targets adjust cutoff criteria only, not engine/stage sequencing.
+$launchMissionProfile = moonSimActiveMissionProfile($conn);
+$parkingMinPeriapsis = max(100000.0, (float)($launchMissionProfile['parking_periapsis_m'] ?? 160000.0));
+$parkingMinApoapsis = max($parkingMinPeriapsis, (float)($launchMissionProfile['parking_apoapsis_m'] ?? 170000.0));
+$parkingMaxRadialSpeed = max(1.0, (float)($launchMissionProfile['parking_max_radial_speed_m_s'] ?? 200.0));
 
 /*
  * Original launch-sequence controller, repaired in place.
@@ -155,9 +161,9 @@ if (
         : -INF;
 
     if (
-        $periapsisAltitude >= 160000.0
-        && $apoapsisAltitude >= 170000.0
-        && abs($altitude_rate) <= 200.0
+        $periapsisAltitude >= $parkingMinPeriapsis
+        && $apoapsisAltitude >= $parkingMinApoapsis
+        && abs($altitude_rate) <= $parkingMaxRadialSpeed
     ) {
         $conn->query(
             "UPDATE command_module
