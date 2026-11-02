@@ -150,9 +150,9 @@ function moonSimEncounterPreview(
     array $craft, array $craftVelocity, array $earth, array $moon,
     array $moonVelocity, array $burnDirection, float $deltaV,
     float $earthMu, float $moonMu, float $moonRadius,
-    float $duration, float $step=120.0, float $departureDelay=0.0
+    float $duration, float $step=120.0, float $departureDelay=0.0, float $earthRadius=6371000.0
 ): array {
-    if ($duration<=0 || $step<=0 || $earthMu<=0 || $moonMu<=0) {
+    if ($duration<=0 || $step<=0 || $earthMu<=0 || $moonMu<=0 || $earthRadius<=0) {
         throw new InvalidArgumentException('Invalid propagation parameters');
     }
     $norm=moonSimVectorMagnitude($burnDirection);
@@ -177,7 +177,7 @@ function moonSimEncounterPreview(
             for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
             $burnApplied=true;
         }
-        if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < 6371000.0) $earthImpact=true;
+        if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < $earthRadius) $earthImpact=true;
         $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
         if($burnApplied && $range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
