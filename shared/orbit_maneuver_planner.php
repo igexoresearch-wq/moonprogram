@@ -252,7 +252,7 @@ function moonSimEncounterLocalSearch(
             if($maxDeltaV!==null && $dv>$maxDeltaV) continue;
             $preview=moonSimEncounterPreview($craft,$velocity,$earth,$moon,$moonVelocity,
                 $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0,$delaySeconds);
-            if ($preview['earth_impact_detected'] || $preview['moon_impact_detected']) continue;
+            if ($preview['earth_impact_detected'] || $preview['moon_impact_detected'] || $preview['closest_approach_at_preview_end']) continue;
             if($best===null || $preview['closest_approach_km']<$best['closest_approach_km']) {
                 $best=$preview;
                 $best['candidate_delta_v_m_s']=$dv;
@@ -263,7 +263,7 @@ function moonSimEncounterLocalSearch(
         }
     }
     }
-    if ($best===null) throw new RuntimeException('No candidate avoids both Earth and Moon impact.');
+    if ($best===null) throw new RuntimeException('No safe candidate with a resolved closest approach inside the preview horizon.');
     $best['sampled_candidates']=150;
     $best['fuel_limit_enabled']=$maxDeltaV!==null;
     $best['postburn_only_comparison']=true;
