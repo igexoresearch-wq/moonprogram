@@ -84,4 +84,13 @@ check($phase['moon_rotation_deg']>0,'Moon progresses in orbit during coast');
 check(count($phase['moon_predicted_xyz_m'])===3,'Moon future position has three coordinates');
 $radialState=moonSimCircularizationEstimate($p,[$orbital,0,0],$o,$ov,$mu,6371000,400000);
 check(!$radialState['applicable_now'],'radial motion blocks circularization recommendation');
+
+$moonMu=4.9048695e12;$moonRadius=1737400.0;$testRadius=$moonRadius+100000.0;
+$lunarCircle=sqrt($moonMu/$testRadius);
+$captureZero=moonSimLunarCaptureEstimate([$testRadius,0,0],[0,$lunarCircle,0],$moonMu,$moonRadius);
+check($captureZero['capture_delta_v_m_s']<0.001,'lunar circular speed needs no capture impulse');
+$captureFast=moonSimLunarCaptureEstimate([$testRadius,0,0],[0,$lunarCircle+200,0],$moonMu,$moonRadius);
+check(abs($captureFast['capture_delta_v_m_s']-200)<0.001,'lunar overspeed needs matching retrograde correction');
+$captureRadial=moonSimLunarCaptureEstimate([$testRadius,0,0],[50,$lunarCircle,0],$moonMu,$moonRadius);
+check(abs($captureRadial['capture_delta_v_m_s']-50)<0.001,'lunar radial velocity included in capture vector');
 echo "All baseline analytical checks passed. Real-flight accuracy NOT proven.".PHP_EOL;
