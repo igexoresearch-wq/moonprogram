@@ -98,3 +98,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Added a read-only Program 23 launch-hook audit and AGC program inventory warnings to `launch_diagnostics.php` (commit `4decdc4`).
 - Added a stage engine-group and P16–P20 ignition/separation program presence matrix (commit `3f942c4`).
 - **Neither objective is complete.** Database AGC program bodies and actual deployed EngineStatus rows have not been examined or flight-tested. These static checks do not establish valid stage sequencing, attitude guidance, or parking-orbit insertion. No new objectives were added; the denominator stays fixed at 52.
+
+## 2026-11-03 — direct staging fixes; objectives 1.3 and 1.4 remain open
+- `physics/lseq.php`: on propellant depletion, automatic S-IC/S-II separation requests are inhibited during abort, and the departing stage engine group is commanded OFF first (commit `ef2bcb4`).
+- S-II and S-IVB ignition requests now require positive remaining fuel, no abort and launch mode; S-II ignition additionally requires unfinished launch state (commit `6fc779d`).
+- **Outstanding for 1.3:** Verify deployed EngineStatus rows and inspect actual P16–P20 stored program bodies; run a complete staged launch against physical engine state. **Outstanding for 1.4:** Verify P23 guidance source, implement/validate ascent attitude targeting and reliable orbital insertion. Source changes have not been tested on the deployed simulator. No objectives marked complete and the frozen total stays 52.
