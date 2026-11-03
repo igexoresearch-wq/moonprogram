@@ -204,6 +204,7 @@ if (
     && (int)$stage3CM === 1
     && (float)$thrustCM > 0.0
     && $launchEvents < 2
+    && (int)($ABORTCM ?? 0)===0
     && $secondsx > 600
 ) {
     $elements = moonSimOrbitalElements(
@@ -259,7 +260,7 @@ if (
 // launch guidance phase replaces it with sourced trajectory targets.
 $prate = 0.0;
 
-if ($launchEvents < 2 && $altitude > 1000.0 && $altitude <= 20000.0) {
+if ($launchEvents < 2 && (int)($ABORTCM ?? 0)===0 && $altitude > 1000.0 && $altitude <= 20000.0) {
     $minAltitude = 1000.0;
     $maxAltitude = 20000.0;
     $minPrate = 300.0;
@@ -283,7 +284,7 @@ $conn->query(
     "UPDATE CMguidance SET velocity=$altitude_rate WHERE id=2"
 );
 
-if ($launchEvents < 2 && $altitude > 20000.0) {
+if ($launchEvents < 2 && (int)($ABORTCM ?? 0)===0 && $altitude > 20000.0) {
     $yawratex = 0.0;
 
     if ($altitude < 90000.0 && $v_total < 4000.0) {
