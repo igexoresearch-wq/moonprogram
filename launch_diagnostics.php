@@ -67,6 +67,22 @@ foreach(['First Stage','Second Stage'] as $stage){
 <p>These are read-only static checks. Programs 16–20 must still be reviewed against their actual engine/stage effects and exercised on a reset flight.</p></section>
 <section><h2>Five-engine stage inventory</h2><table><tr><th>Stage</th><th>Modelled engines</th><th>Unique center</th><th>Engine names / current states</th></tr>
 <?php foreach(['First Stage','Second Stage','Third Stage'] as $stage):?><tr><td><?=safeLaunch($stage)?></td><td><?=count($groups[$stage]??[])?></td><td><?=isset($center[$stage])?($center[$stage]?'Yes':'No; cutoff withheld'):'N/A'?></td><td><?php foreach($groups[$stage]??[] as $name=>$status) echo safeLaunch($name.' '.$status).' / ';?></td></tr><?php endforeach;?></table></section>
+<section><h2>Stage sequencing prerequisites (static inspection)</h2>
+<?php
+$stageChecks=[
+    'S-IC engine records'=>count($groups['First Stage']??[])>0,
+    'S-II engine records'=>count($groups['Second Stage']??[])>0,
+    'S-IVB engine records'=>count($groups['Third Stage']??[])>0,
+    'S-IC ignition program P16'=>!empty($programs[16]['present']),
+    'S-II ignition program P17'=>!empty($programs[17]['present']),
+    'S-IVB ignition program P18'=>!empty($programs[18]['present']),
+    'S-IC separation program P19'=>!empty($programs[19]['present']),
+    'S-II separation program P20'=>!empty($programs[20]['present']),
+];
+foreach($stageChecks as $label=>$ok):?>
+<p class="<?= $ok?'ok':'bad' ?>"><?=safeLaunch($label)?>: <?= $ok?'present':'MISSING' ?></p>
+<?php endforeach;?>
+<p>Presence alone cannot certify thrust, shutdown, separation timing or successful engine ignition. Actual database engine labels and all stage actions require a complete observed flight.</p></section>
 <section><h2>AGC registers</h2><table><tr><th>Register</th><th>Program</th><th>Remaining seconds</th></tr>
 <?php foreach($registers as $row):?><tr><td><?= (int)$row['id']?></td><td><?= (int)$row['program_number']?></td><td><?=safeLaunch((string)$row['seconds'])?></td></tr><?php endforeach;?></table></section>
 </main></body></html>
