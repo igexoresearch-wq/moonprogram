@@ -245,6 +245,7 @@ function moonSimEncounterLocalSearch(
     $forward=array_map(static fn($x)=>$x/$fmag,$forward);
     if ($maxDeltaV!==null && (!is_finite($maxDeltaV) || $maxDeltaV<0.0)) throw new InvalidArgumentException('Invalid fuel ceiling');
     if (!is_finite($duration) || $duration<=18000.0) throw new InvalidArgumentException('Preview horizon too short for departure grid');
+    if (!is_finite($referenceDv) || $referenceDv<0.0) throw new InvalidArgumentException('Invalid transfer delta-v reference');
     $best=null;
     $delays=[0.0,3600.0,7200.0,10800.0,14400.0,18000.0];
     foreach($delays as $delaySeconds) {
