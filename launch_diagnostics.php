@@ -35,6 +35,18 @@ foreach($engines as $row) {
 }
 $required=[16=>'S-IC ignition',17=>'S-II ignition',18=>'S-IVB ignition',19=>'S-IC separation',20=>'S-II separation',23=>'Launch sequence',24=>'Countdown'];
 $ready=true;foreach($required as $id=>$description)if(!($programs[$id]['present']??false))$ready=false;
+// Inspect program text without executing it. Flag basic incompatibilities,
+ // but only a real flight can verify the resulting physical stage behavior.
+$programAudit=[];
+foreach($required as $id=>$label) {
+    $entry=$programs[$id]??null;
+    $programAudit[$id]=[
+        'present'=>(bool)($entry['present']??false),
+        'launch_hook'=>$id===23?(bool)($entry['includes_lseq']??false):null,
+        'static_status'=>!($entry['present']??false)?'MISSING':
+            ($id===23 && !($entry['includes_lseq']??false)?'NO LAUNCH HOOK':'PRESENT — NOT EXECUTION VERIFIED'),
+    ];
+}
 $center=[];
 foreach(['First Stage','Second Stage'] as $stage){
     $names=array_keys($groups[$stage]??[]);
@@ -47,7 +59,12 @@ foreach(['First Stage','Second Stage'] as $stage){
 <section><h2>Database program inventory</h2><p class="<?= $ready?'ok':'bad'?>"><?= $ready?'Required launch program records found. Behavior NOT verified.':'One or more required program records are missing.'?></p>
 <table><tr><th>Program</th><th>Function</th><th>Source</th><th>Pending execute</th><th>lseq.php reference</th></tr>
 <?php foreach($required as $id=>$label):$p=$programs[$id]??null;?><tr><td><?= $id?></td><td><?=safeLaunch($label)?></td><td><?=!empty($p['present'])?'Present ('.(int)$p['source_bytes'].' bytes)':'MISSING'?></td><td><?= (int)($p['execute']??0)?></td><td><?=!empty($p['includes_lseq'])?'Yes':'No'?></td></tr><?php endforeach;?></table>
-<p>Source presence does not prove that an AGC program correctly acknowledges its command, stages, or stops issuing thrust. No code contents are exposed by this page.</p></section>
+<p>Program 23 must reference lseq.php for this launch controller to run. Source presence does not prove that an AGC program correctly acknowledges its command, stages, or stops issuing thrust. No code contents are exposed by this page.</p></section>
+<section><h2>Launch-program compatibility warnings</h2>
+<?php foreach($required as $id=>$label):$a=$programAudit[$id];?>
+<p class="<?=($a['present']&&($a['launch_hook']!==false))?'ok':'bad'?>">P<?= $id ?>: <?=safeLaunch($a['static_status'])?></p>
+<?php endforeach;?>
+<p>These are read-only static checks. Programs 16–20 must still be reviewed against their actual engine/stage effects and exercised on a reset flight.</p></section>
 <section><h2>Five-engine stage inventory</h2><table><tr><th>Stage</th><th>Modelled engines</th><th>Unique center</th><th>Engine names / current states</th></tr>
 <?php foreach(['First Stage','Second Stage','Third Stage'] as $stage):?><tr><td><?=safeLaunch($stage)?></td><td><?=count($groups[$stage]??[])?></td><td><?=isset($center[$stage])?($center[$stage]?'Yes':'No; cutoff withheld'):'N/A'?></td><td><?php foreach($groups[$stage]??[] as $name=>$status) echo safeLaunch($name.' '.$status).' / ';?></td></tr><?php endforeach;?></table></section>
 <section><h2>AGC registers</h2><table><tr><th>Register</th><th>Program</th><th>Remaining seconds</th></tr>
