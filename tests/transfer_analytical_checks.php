@@ -61,4 +61,26 @@ try {
     moonSimMoonPhaseReference($o,$o,$moon,$mv,3600);
     throw new RuntimeException('Earth-centered departure accepted');
 } catch (InvalidArgumentException $ex) {echo "PASS undefined departure phase rejected".PHP_EOL;}
+
+// Analytic invariances and boundary checks (no database needed).
+$opposite=moonSimCircularizationEstimate($p,[0,$orbital*1.1,0],$o,$ov,$mu,6371000,400000);
+check($opposite['signed_delta_v_m_s']<0,'overspeed produces retrograde circularization');
+check($opposite['burn_direction'][1]<0,'retrograde burn direction sign');
+$slow=moonSimCircularizationEstimate($p,[0,$orbital*0.9,0],$o,$ov,$mu,6371000,400000);
+check($slow['signed_delta_v_m_s']>0,'underspeed produces prograde circularization');
+check($slow['burn_direction'][1]>0,'prograde burn direction sign');
+$half=moonSimBurnBudget(10000,500,90000,300,100);
+$full=moonSimBurnBudget(10000,1000,90000,300,100);
+check($full['available_delta_v_m_s']>$half['available_delta_v_m_s'],'additional fuel increases delta-v capacity');
+check($full['fuel_required_kg']===$half['fuel_required_kg'],'requested fuel is independent of onboard reserve');
+check($full['ideal_burn_seconds']>0,'positive impulse implies positive burn duration');
+try {moonSimBurnBudget(10000,-1,90000,300,100);throw new RuntimeException('Negative fuel accepted');}
+catch(InvalidArgumentException $e){echo "PASS negative fuel rejected".PHP_EOL;}
+try {moonSimEncounterPreview($p,$v,$o,$moon,$mv,[0,1,0],-1,$mu,4.9048695e12,1737400,20000,240);}
+catch(InvalidArgumentException $e){echo "PASS negative impulse rejected".PHP_EOL;}
+$phase=moonSimMoonPhaseReference($p,$o,$moon,$mv,86400);
+check($phase['moon_rotation_deg']>0,'Moon progresses in orbit during coast');
+check(count($phase['moon_predicted_xyz_m'])===3,'Moon future position has three coordinates');
+$radialState=moonSimCircularizationEstimate($p,[$orbital,0,0],$o,$ov,$mu,6371000,400000);
+check(!$radialState['applicable_now'],'radial motion blocks circularization recommendation');
 echo "All baseline analytical checks passed. Real-flight accuracy NOT proven.".PHP_EOL;
