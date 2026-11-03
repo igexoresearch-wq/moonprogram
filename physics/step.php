@@ -135,7 +135,7 @@ include 'physics/CM_AGC.php';
 // Central stage transitions are independent of database-stored AGC snippets.
 // Re-read the post-guidance state before applying a physical separation.
 require_once __DIR__ . '/saturn_stage_transitions.php';
-moonSimSaturnStageTransitions($conn);
+moonSimSaturnStageTransitions($conn, (int)($Guidance_Computer_SWITCH ?? 0)===1);
 
 // Observe the resulting spacecraft/engine states after guidance, without
 // changing the physical mission or introducing artificial malfunctions.
