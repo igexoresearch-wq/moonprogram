@@ -157,8 +157,8 @@ function moonSimEncounterPreview(
     }
     $norm=moonSimVectorMagnitude($burnDirection);
     if ($norm<1e-9) throw new InvalidArgumentException('Burn direction unknown');
-    if ($departureDelay<0 || $departureDelay>=$duration) {
-        throw new InvalidArgumentException('Departure delay must be inside preview duration');
+    if ($departureDelay<0 || $departureDelay>=$duration || abs($departureDelay/$step-round($departureDelay/$step))>1e-8) {
+        throw new InvalidArgumentException('Departure delay must be within duration and aligned to propagation step');
     }
     $burnApplied=false;
     $accel=static function(array $p,array $origin,float $mu):array {
