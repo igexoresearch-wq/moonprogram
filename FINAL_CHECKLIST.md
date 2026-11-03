@@ -62,8 +62,10 @@
 
 ## 3. Lunar orbit insertion
 - [x] Add read-only Earth/Moon two-body circularization vector and delta-v advisor, with near-target warning and ideal burn-time helper.
+- [x] Add provisional impulsive Moon-relative circularization estimate from predicted encounter vector (not full LOI).
 - [ ] Live LOI vector/delta-v/burn-time calculator.
 - [ ] Guidance ignition, attitude and cutoff around the Moon.
+- [x] Display osculating Earth/Moon-relative periapsis, apoapsis, eccentricity and energy on the read-only maneuver station (not cockpit integration).
 - [ ] Lunar periapsis/apoapsis and circularization cockpit displays.
 - [ ] Manual LOI procedure and recovery fallback.
 
@@ -229,3 +231,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Attempt to add GitHub Actions CI was blocked; **not committed**. No deployed or local PHP test execution is claimed. This pass improves existing checklist capabilities; it does not complete another of the 48 remaining major items.
 
 **Checklist implementation: 59/107 = 55.1%.**
+
+## 2026-11-03 orbital elements and provisional LOI
+- Added live Moon/Earth-relative osculating elements to maneuver advisor (`787135e`), return closest-approach relative state vectors (`b3d7386`), candidate arrival orbit energy/periapsis (`cf34183`), Moon-relative instantaneous capture vector (`bf4e7cc`), integrated provisional LOI into candidate results (`601a74c`), tests for capture impulse (`5a29762`), and operator guidance notes (`922cf84`). No verified finite burn, lunar orbit insertion, DSKY control or live flight trial. The ten- and twenty-change requests are targets, not grounds for marking incomplete capabilities finished.
+
+**Current implementation checklist: 61/109 = 56.0%.**
