@@ -217,3 +217,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Added `tests/transfer_analytical_checks.php` in `b504732` and expanded in `41a3811`. Includes baseline orbital circularization, fuel, transfer timing, preview and departure-grid cases. Tests have been committed but have not been run against the actual deployed application. Future TLI guidance remains unchecked.
 
 **Progress: 59/107 (55.1%) implemented in repo.**
+
+## 2026-11-03 navigation integrity iteration
+- Ten implementation commits: `2db8ab1` candidate accounting, `0009487` test cases, `5421fd8` rotating delayed-burn direction, `663d6d0` postburn timing, `888ae96` postburn horizon guard, `8613109` further boundary test coverage, `5e962b8` operator warning, `5218b88` valid-candidate count, `5319d21` encounter-speed finiteness, `3bc04b5` accepted-candidate assertion. These improve one existing advisory subsystem; do not add ten nominally complete mission features. Regression suite is committed but not executed in deployed PHP; transfer targeting and AGC guidance remain unchecked.
+
+**Current checklist: 59/107 (55.1%) code implemented; flight validation outstanding.**
