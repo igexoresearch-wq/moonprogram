@@ -93,4 +93,18 @@ $captureFast=moonSimLunarCaptureEstimate([$testRadius,0,0],[0,$lunarCircle+200,0
 check(abs($captureFast['capture_delta_v_m_s']-200)<0.001,'lunar overspeed needs matching retrograde correction');
 $captureRadial=moonSimLunarCaptureEstimate([$testRadius,0,0],[50,$lunarCircle,0],$moonMu,$moonRadius);
 check(abs($captureRadial['capture_delta_v_m_s']-50)<0.001,'lunar radial velocity included in capture vector');
+
+$returnRef=moonSimEarthReturnReference(
+    [$testRadius,0,0],[0,$lunarCircle,0],[0,0,0],[0,0,0],
+    [384400000,0,0],$moonMu,$moonRadius,$mu);
+$expectedEscape=(sqrt(2.0)-1.0)*$lunarCircle;
+check(abs($returnRef['minimum_ideal_escape_delta_v_m_s']-$expectedEscape)<0.001,
+    'lunar circular orbit escape speed increment');
+check($returnRef['valid_near_circular_departure'],
+    'circular lunar departure baseline identified');
+$returnFast=moonSimEarthReturnReference(
+    [$testRadius,0,0],[0,sqrt(2.0)*$lunarCircle,0],
+    [0,0,0],[0,0,0],[384400000,0,0],$moonMu,$moonRadius,$mu);
+check($returnFast['minimum_ideal_escape_delta_v_m_s']<0.001,
+    'at lunar escape speed additional local escape delta-v zero');
 echo "All baseline analytical checks passed. Real-flight accuracy NOT proven.".PHP_EOL;
