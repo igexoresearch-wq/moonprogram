@@ -72,7 +72,7 @@ function moonSimAdvanceTranslation(
         $cmSurfaceLocked = false;
         $lmSurfaceLocked = false;
 
-        $aMoon0 = moonSimMoonAcceleration($moonPos, $earth, $earthMu);
+        $aMoon0 = moonSimMoonAcceleration($moonPos, $earth, $earthMu, $moonMu);
 
         $aCmGravity0 = moonSimGravityAcceleration(
             $cmPos,
@@ -397,7 +397,7 @@ function moonSimAdvanceTranslation(
         }
 
         // Re-evaluate gravity from the new coherent position snapshot.
-        $aMoon1 = moonSimMoonAcceleration($moonPosNew, $earth, $earthMu);
+        $aMoon1 = moonSimMoonAcceleration($moonPosNew, $earth, $earthMu, $moonMu);
         $aCmGravity1 = moonSimGravityAcceleration(
             $cmPosNew,
             $earth,
