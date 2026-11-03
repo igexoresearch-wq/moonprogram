@@ -23,6 +23,16 @@ if($result) while($row=$result->fetch_assoc()){
         'source_bytes'=>strlen($source),
     ];
 }
+$stageRuntime=null;
+$tableResult=$conn->query("SHOW TABLES LIKE 'saturn_stage_runtime'");
+if ($tableResult && $tableResult->num_rows>0) {
+    $runtimeResult=$conn->query("SELECT * FROM saturn_stage_runtime WHERE id=1");
+    $stageRuntime=$runtimeResult?$runtimeResult->fetch_assoc():null;
+}
+$stageFlags=[];
+$flagRows=$conn->query("SELECT attribute,value FROM command_module
+    WHERE attribute IN ('stage1','stage2','stage3','s1fuel','s2fuel','s3fuel','staging','thrust','ABORT')");
+if($flagRows)while($r=$flagRows->fetch_assoc())$stageFlags[(string)$r['attribute']]=$r['value'];
 $registers=[];$result=$conn->query("SELECT id,program_number,seconds FROM CMprogram_register ORDER BY id LIMIT 5");
 if($result) while($row=$result->fetch_assoc())$registers[]=$row;
 $engines=[];$result=$conn->query("SELECT engine_stage,engine_name,component,status,operational_status FROM EngineStatus WHERE engine_stage IN ('First Stage','Second Stage','Third Stage') AND component='Combustion Chamber' ORDER BY engine_stage,engine_name");
@@ -64,7 +74,7 @@ foreach(['First Stage','Second Stage'] as $stage){
 <?php foreach($required as $id=>$label):$a=$programAudit[$id];?>
 <p class="<?=($a['present']&&($a['launch_hook']!==false))?'ok':'bad'?>">P<?= $id ?>: <?=safeLaunch($a['static_status'])?></p>
 <?php endforeach;?>
-<p>These are read-only static checks. Programs 16–20 must still be reviewed against their actual engine/stage effects and exercised on a reset flight.</p></section>
+<p>These are read-only static checks. P16–P20 are legacy physical commands now bypassed in favor of the stage worker; P23 launch guidance is still required. Test the physical sequence on a reset flight.</p></section>
 <section><h2>Five-engine stage inventory</h2><table><tr><th>Stage</th><th>Modelled engines</th><th>Unique center</th><th>Engine names / current states</th></tr>
 <?php foreach(['First Stage','Second Stage','Third Stage'] as $stage):?><tr><td><?=safeLaunch($stage)?></td><td><?=count($groups[$stage]??[])?></td><td><?=isset($center[$stage])?($center[$stage]?'Yes':'No; cutoff withheld'):'N/A'?></td><td><?php foreach($groups[$stage]??[] as $name=>$status) echo safeLaunch($name.' '.$status).' / ';?></td></tr><?php endforeach;?></table></section>
 <section><h2>Stage sequencing prerequisites (static inspection)</h2>
@@ -73,16 +83,23 @@ $stageChecks=[
     'S-IC engine records'=>count($groups['First Stage']??[])>0,
     'S-II engine records'=>count($groups['Second Stage']??[])>0,
     'S-IVB engine records'=>count($groups['Third Stage']??[])>0,
-    'S-IC ignition program P16'=>!empty($programs[16]['present']),
-    'S-II ignition program P17'=>!empty($programs[17]['present']),
-    'S-IVB ignition program P18'=>!empty($programs[18]['present']),
-    'S-IC separation program P19'=>!empty($programs[19]['present']),
-    'S-II separation program P20'=>!empty($programs[20]['present']),
+    'P23 launch guidance hook'=>!empty($programs[23]['includes_lseq']),
 ];
 foreach($stageChecks as $label=>$ok):?>
 <p class="<?= $ok?'ok':'bad' ?>"><?=safeLaunch($label)?>: <?= $ok?'present':'MISSING' ?></p>
 <?php endforeach;?>
 <p>Presence alone cannot certify thrust, shutdown, separation timing or successful engine ignition. Actual database engine labels and all stage actions require a complete observed flight.</p></section>
+<section><h2>Physical Saturn stage controller — live database state</h2>
+<p>P16–P20 physical ignition/separation is owned by <code>physics/saturn_stage_transitions.php</code>. Legacy scripts are bypassed. P23 launch guidance remains required.</p>
+<?php if($stageRuntime===null):?><p class="bad">Stage ignition latch row is missing. The physics worker must initialize saturn_stage_runtime before automatic ignition is available.</p>
+<?php else:?>
+<table><tr><th>Runtime field</th><th>Value</th></tr>
+<?php foreach($stageRuntime as $key=>$value):?><tr><td><?=safeLaunch((string)$key)?></td><td><?=safeLaunch((string)$value)?></td></tr><?php endforeach;?></table>
+<?php endif;?>
+<h3>Current stage and fuel telemetry</h3>
+<table><tr><th>Attribute</th><th>Value</th></tr>
+<?php foreach($stageFlags as $key=>$value):?><tr><td><?=safeLaunch((string)$key)?></td><td><?=safeLaunch((string)$value)?></td></tr><?php endforeach;?></table>
+<p>Confirm engine status matches the active stage, the ignition latch stays set after shutdown, and each separation leaves exactly one fewer Saturn stage attached.</p></section>
 <section><h2>AGC registers</h2><table><tr><th>Register</th><th>Program</th><th>Remaining seconds</th></tr>
 <?php foreach($registers as $row):?><tr><td><?= (int)$row['id']?></td><td><?= (int)$row['program_number']?></td><td><?=safeLaunch((string)$row['seconds'])?></td></tr><?php endforeach;?></table></section>
 </main></body></html>
