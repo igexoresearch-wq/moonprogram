@@ -171,6 +171,7 @@ function moonSimEncounterPreview(
     $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;
     $earthImpact=false;
     $moonImpact=false;
+    $closestAtEndpoint=false;
     $steps=(int)ceil($duration/$step);
     if($steps>10000)throw new InvalidArgumentException('Preview exceeds time step limit');
     for($k=0;$k<=$steps;$k++){
@@ -186,6 +187,7 @@ function moonSimEncounterPreview(
         if($burnApplied && $range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
             $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($craftVelocity,$moonVelocity));
+            $closestAtEndpoint=($k===$steps);
         }
         if($k===$steps)break;
         $h=min($step,$duration-$k*$step);
@@ -209,6 +211,7 @@ function moonSimEncounterPreview(
     return [
         'earth_impact_detected'=>$earthImpact,
         'moon_impact_detected'=>$moonImpact,
+        'closest_approach_at_preview_end'=>$closestAtEndpoint,
         'departure_delay_seconds'=>$departureDelay,
         'closest_approach_km'=>$closest/1000.0,
         'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
