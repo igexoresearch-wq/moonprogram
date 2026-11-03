@@ -50,6 +50,13 @@
 - [x] Apply a known propulsion delta-v limit before selecting the best departure candidate.
 - [x] Flag closest lunar approach results occurring at the end of the preview horizon.
 - [x] Exclude unresolved end-of-horizon closest approach results from candidate selection.
+- [x] Reject non-finite mass, thrust, fuel, impulse and Isp inputs in maneuver fuel budget.
+- [x] Protect lunar departure-angle calculation from an Earth-center position.
+- [x] Reject non-finite lunar coast duration in phase reference.
+- [x] Validate search fuel-ceiling magnitude before filtering candidates.
+- [x] Reject non-finite reference burn direction magnitude.
+- [x] Require preview duration to extend beyond the latest sampled departure.
+- [x] Reject non-finite or negative reference TLI impulse before search.
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -199,3 +206,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Guards for departure timestep alignment (`1a670dd`), optional fuel cap (`17ece98`), nonfinite state rejection (`eeb5487`), engine-budget gated candidate selection (`9932853`), horizon truncation detection (`d151e45`) and rejection (`b355d98`). These checks do not establish validated lunar guidance.
 
 **Checklist implementation: 51/99 = 51.5%.**
+
+## 2026-11-02 numerical input guards
+- Seven input/geometry boundary protections committed in `shared/orbit_maneuver_planner.php`: `ff250bd`, `47aaee9`, `0e1daa7`, `577e46b`, `055bf4b`, `91c33cd`, `c7b60ab`. All are input-validation protections, not seven independent navigation capabilities; no production trajectory validation has been performed.
+
+**Checklist total: 58/106 = 54.7% implemented in repository.**
