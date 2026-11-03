@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program
 
-**Authoritative completion list.** Updated 2026-11-02. Earlier WORK_PLAN.md and PROJECT_STATE.md remain historical reference; update this checklist after every implementation pass.
+**Authoritative completion list.** Updated 2026-11-03. Earlier WORK_PLAN.md and PROJECT_STATE.md remain historical reference; update this checklist after every implementation pass.
 
 **Completion rule:** [x] means functionality has been committed to the repository, **not** that it passed a real-flight trial. Where only basic functionality exists, check off that basic capability separately and leave full integration unchecked. Never check off uncommitted work. Maintain existing Apollo cockpit, DSKY, physics, manual fallbacks, and state.
 
@@ -222,3 +222,10 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Ten implementation commits: `2db8ab1` candidate accounting, `0009487` test cases, `5421fd8` rotating delayed-burn direction, `663d6d0` postburn timing, `888ae96` postburn horizon guard, `8613109` further boundary test coverage, `5e962b8` operator warning, `5218b88` valid-candidate count, `5319d21` encounter-speed finiteness, `3bc04b5` accepted-candidate assertion. These improve one existing advisory subsystem; do not add ten nominally complete mission features. Regression suite is committed but not executed in deployed PHP; transfer targeting and AGC guidance remain unchecked.
 
 **Current checklist: 59/107 (55.1%) code implemented; flight validation outstanding.**
+
+## 2026-11-03 navigation reliability pass
+- Corrected candidate accounting and removed an unreachable lunar-impact label (`2cd13f5`).
+- Extended analytical tests to cover retrograde/prograde direction, fuel monotonicity, zero-fuel and non-finite cases, Moon progression, and radial trajectory warnings (`3fcd049`); corrected the negative-impulse rejection test to fail rather than silently succeed (`6e44ba9`).
+- Attempt to add GitHub Actions CI was blocked; **not committed**. No deployed or local PHP test execution is claimed. This pass improves existing checklist capabilities; it does not complete another of the 48 remaining major items.
+
+**Checklist implementation: 59/107 = 55.1%.**
