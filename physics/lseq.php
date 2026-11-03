@@ -130,7 +130,8 @@ if (($launchMissionProfile['launch_guidance_mode'] ?? '') === 'TIMED_VALIDATION'
         && $altitude > 10000.0
         && (float)$s1fuelCM <= 0.01*(float)$stage1_initial_fuel) {
         $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='First Stage'");
-        $conn->query("UPDATE CMguidance SET execute=1 WHERE id=19");
+        $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='First Stage'");
+    $conn->query("UPDATE CMguidance SET execute=1 WHERE id=19");
         $conn->query("UPDATE command_module SET value=1 WHERE attribute='staging'");
     }
     if ((int)$stage1CM === 0 && (int)$stage2CM === 1
@@ -138,13 +139,14 @@ if (($launchMissionProfile['launch_guidance_mode'] ?? '') === 'TIMED_VALIDATION'
         && $altitude > 80000.0
         && (float)$s2fuelCM <= 0.01*(float)$stage2_initial_fuel) {
         $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Second Stage'");
-        $conn->query("UPDATE CMguidance SET execute=1 WHERE id=20");
+        $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Second Stage'");
+    $conn->query("UPDATE CMguidance SET execute=1 WHERE id=20");
         $conn->query("UPDATE command_module SET value=1 WHERE attribute='staging'");
     }
 }
 
 // S-IC separation after propellant depletion in the current stage model.
-if ((float)$s1fuelCM <= 0.0 && (int)$stage1CM === 1) {
+if ((float)$s1fuelCM <= 0.0 && (int)$stage1CM === 1 && (int)($ABORTCM ?? 0)===0 && $launchEvents<2) {
     $conn->query("UPDATE CMguidance SET execute=1 WHERE id=19");
     $conn->query(
         "UPDATE command_module SET value=1 WHERE attribute='staging'"
@@ -163,7 +165,7 @@ if (
 }
 
 // S-II separation.
-if ((float)$s2fuelCM <= 0.0 && (int)$stage2CM === 1) {
+if ((float)$s2fuelCM <= 0.0 && (int)$stage1CM===0 && (int)$stage2CM === 1 && (int)($ABORTCM ?? 0)===0 && $launchEvents<2) {
     $conn->query("UPDATE CMguidance SET execute=1 WHERE id=20");
     $conn->query(
         "UPDATE command_module SET value=1 WHERE attribute='staging'"
