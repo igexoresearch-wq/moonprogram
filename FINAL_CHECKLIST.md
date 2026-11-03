@@ -108,3 +108,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Fixed repeated timed engine-shutdown queries, and ensured fuel-empty fallback cuts off departing S-IC/S-II engines before scheduling their AGC separation programs (commit `7509e28`).
 - Disabled automated ascent yaw updates and parking-orbit cutoff during abort so recovery commands are not overridden by launch guidance (commit `8185bd4`).
 - **Neither objective fully completed:** actual P16–P24 program contents, engine inventory and successful staged orbit flight cannot be verified from repository-only inspection. No new checkbox added. Denominator fixed at 52.
+
+## 2026-11-03 — Objective 1.3 physical staging implementation
+- `physics/step.php` now invokes `physics/saturn_stage_transitions.php` after AGC every physics tick (commit `648277f`).
+- The new controller directly handles fuel-empty S-IC/S-II separation with atomically updated stage flag, engine shutdown, throttle reset, staging indicator and cancellation of redundant queued AGC separation commands (commit `4c36d63`). Abort and launch-event interlocks are enforced. No artificial stage impulses or ignition are introduced.
+- **Objective 1.3 remains open** until DB program/engine inventory and ignition sequence are aligned and an end-to-end launch is tested. This code was not exercised against the live database; transaction behavior depends on transactional table storage and existing schema. **Fixed total: 52; completed: 14.**
