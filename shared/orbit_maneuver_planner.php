@@ -247,6 +247,8 @@ function moonSimEncounterLocalSearch(
     if (!is_finite($duration) || $duration<=18000.0) throw new InvalidArgumentException('Preview horizon too short for departure grid');
     if (!is_finite($referenceDv) || $referenceDv<0.0) throw new InvalidArgumentException('Invalid transfer delta-v reference');
     $best=null;
+    $evaluated=0;
+    $rejected=0;
     $delays=[0.0,3600.0,7200.0,10800.0,14400.0,18000.0];
     foreach($delays as $delaySeconds) {
     foreach([-8,-4,0,4,8] as $angleDegrees) {
@@ -255,10 +257,11 @@ function moonSimEncounterLocalSearch(
         for($i=0;$i<3;$i++)$direction[$i]=$forward[$i]*cos($a)+$up[$i]*sin($a);
         foreach([0.94,0.97,1.0,1.03,1.06] as $factor) {
             $dv=max(0.0,$referenceDv*$factor);
-            if($maxDeltaV!==null && $dv>$maxDeltaV) continue;
+            if($maxDeltaV!==null && $dv>$maxDeltaV) { $rejected++; continue; }
+            $evaluated++;
             $preview=moonSimEncounterPreview($craft,$velocity,$earth,$moon,$moonVelocity,
                 $direction,$dv,$earthMu,$moonMu,$moonRadius,$duration,240.0,$delaySeconds);
-            if ($preview['earth_impact_detected'] || $preview['moon_impact_detected'] || $preview['closest_approach_at_preview_end']) continue;
+            if ($preview['earth_impact_detected'] || $preview['moon_impact_detected'] || $preview['closest_approach_at_preview_end']) { $rejected++; continue; }
             if($best===null || $preview['closest_approach_km']<$best['closest_approach_km']) {
                 $best=$preview;
                 $best['candidate_delta_v_m_s']=$dv;
@@ -271,6 +274,8 @@ function moonSimEncounterLocalSearch(
     }
     if ($best===null) throw new RuntimeException('No safe candidate with a resolved closest approach inside the preview horizon.');
     $best['sampled_candidates']=150;
+    $best['candidate_count_evaluated']=$evaluated;
+    $best['candidate_count_rejected']=$rejected;
     $best['fuel_limit_enabled']=$maxDeltaV!==null;
     $best['postburn_only_comparison']=true;
     $best['lunar_surface_clearance_status']=$best['closest_surface_altitude_km']<0?'PREDICTED LUNAR IMPACT':($best['closest_surface_altitude_km']<100?'LOW PASS':'DISTANT PASS');
