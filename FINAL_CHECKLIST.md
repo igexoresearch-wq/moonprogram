@@ -57,6 +57,7 @@
 - [x] Reject non-finite reference burn direction magnitude.
 - [x] Require preview duration to extend beyond the latest sampled departure.
 - [x] Reject non-finite or negative reference TLI impulse before search.
+- [x] Add standalone analytical regression script for transfer, orbit and propellant boundary cases (not yet executed in deployment).
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -211,3 +212,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Seven input/geometry boundary protections committed in `shared/orbit_maneuver_planner.php`: `ff250bd`, `47aaee9`, `0e1daa7`, `577e46b`, `055bf4b`, `91c33cd`, `c7b60ab`. All are input-validation protections, not seven independent navigation capabilities; no production trajectory validation has been performed.
 
 **Checklist total: 58/106 = 54.7% implemented in repository.**
+
+## 2026-11-02 navigation regression coverage
+- Added `tests/transfer_analytical_checks.php` in `b504732` and expanded in `41a3811`. Includes baseline orbital circularization, fuel, transfer timing, preview and departure-grid cases. Tests have been committed but have not been run against the actual deployed application. Future TLI guidance remains unchecked.
+
+**Progress: 59/107 (55.1%) implemented in repo.**
