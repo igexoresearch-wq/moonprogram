@@ -243,6 +243,7 @@ function moonSimEncounterLocalSearch(
     $fmag=moonSimVectorMagnitude($forward);
     if($fmag<1e-9)throw new InvalidArgumentException('Missing reference burn vector');
     $forward=array_map(static fn($x)=>$x/$fmag,$forward);
+    if ($maxDeltaV!==null && (!is_finite($maxDeltaV) || $maxDeltaV<0.0)) throw new InvalidArgumentException('Invalid fuel ceiling');
     $best=null;
     $delays=[0.0,3600.0,7200.0,10800.0,14400.0,18000.0];
     foreach($delays as $delaySeconds) {
