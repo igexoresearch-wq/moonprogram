@@ -221,6 +221,7 @@ function moonSimEncounterPreview(
         if($burnApplied && $range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
             $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($craftVelocity,$moonVelocity));
+            if (!is_finite($relativeSpeed)) throw new RuntimeException('Nonfinite relative encounter velocity');
             $closestAtEndpoint=($k===$steps);
         }
         if($k===$steps)break;
