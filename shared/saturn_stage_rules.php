@@ -39,9 +39,21 @@ function moonSimSaturnNextAction(
     if ($launchEvents===1 && $stage['name']!=='Third Stage' && $fuel<=0.0) {
         return ['type'=>'separate']+$stage;
     }
-    if ($automaticEnabled && $launchEvents===1 && !$requested && $fuel>0.0
-        && (int)($runtime[$stage['latch']] ?? 0)===0) {
-        return ['type'=>'ignite']+$stage;
+    $throttle=(float)($state['thrust'] ?? 0.0);
+    if ($stage['name']==='Third Stage' && $launchEvents>=2
+        && (int)($runtime['sivb_ignited']??0)===1) {
+        if ($throttle<=0.0 && (int)($runtime['sivb_restart_armed']??1)===0) {
+            return ['type'=>'arm_restart']+$stage;
+        }
+        if ($throttle>0.0 && $fuel>0.0
+            && (int)($runtime['sivb_restart_armed']??1)===1) {
+            return ['type'=>'restart']+$stage;
+        }
+    }
+    if ($launchEvents===1 && !$requested && $fuel>0.0
+        && (int)($runtime[$stage['latch']] ?? 0)===0
+        && ($automaticEnabled || $throttle>0.0)) {
+        return ['type'=>'ignite','automatic'=>$automaticEnabled]+$stage;
     }
     return null;
 }
