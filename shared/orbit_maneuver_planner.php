@@ -329,6 +329,10 @@ function moonSimEncounterLocalSearch(
         $best['arrival_specific_energy_j_kg']=$arrival['specific_energy'];
         $best['arrival_eccentricity']=$arrival['eccentricity'];
         $best['arrival_is_lunar_bound']=$arrival['specific_energy']<0.0;
+        $best['approx_lunar_capture']=moonSimLunarCaptureEstimate(
+            $best['relative_position_at_approach_m'],
+            $best['relative_velocity_at_approach_m_s'],$moonMu,$moonRadius
+        );
         $best['arrival_periapsis_altitude_km']=$arrival['periapsis_radius']!==null
             ?($arrival['periapsis_radius']-$moonRadius)/1000.0:null;
     }
