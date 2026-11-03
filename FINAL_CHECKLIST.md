@@ -103,3 +103,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - `physics/lseq.php`: on propellant depletion, automatic S-IC/S-II separation requests are inhibited during abort, and the departing stage engine group is commanded OFF first (commit `ef2bcb4`).
 - S-II and S-IVB ignition requests now require positive remaining fuel, no abort and launch mode; S-II ignition additionally requires unfinished launch state (commit `6fc779d`).
 - **Outstanding for 1.3:** Verify deployed EngineStatus rows and inspect actual P16–P20 stored program bodies; run a complete staged launch against physical engine state. **Outstanding for 1.4:** Verify P23 guidance source, implement/validate ascent attitude targeting and reliable orbital insertion. Source changes have not been tested on the deployed simulator. No objectives marked complete and the frozen total stays 52.
+
+## 2026-11-03 — continued objectives 1.3 / 1.4
+- Fixed repeated timed engine-shutdown queries, and ensured fuel-empty fallback cuts off departing S-IC/S-II engines before scheduling their AGC separation programs (commit `7509e28`).
+- Disabled automated ascent yaw updates and parking-orbit cutoff during abort so recovery commands are not overridden by launch guidance (commit `8185bd4`).
+- **Neither objective fully completed:** actual P16–P24 program contents, engine inventory and successful staged orbit flight cannot be verified from repository-only inspection. No new checkbox added. Denominator fixed at 52.
