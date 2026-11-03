@@ -93,3 +93,8 @@
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
+
+## 2026-11-03 — launch objectives 1.3 and 1.4 in progress
+- Added a read-only Program 23 launch-hook audit and AGC program inventory warnings to `launch_diagnostics.php` (commit `4decdc4`).
+- Added a stage engine-group and P16–P20 ignition/separation program presence matrix (commit `3f942c4`).
+- **Neither objective is complete.** Database AGC program bodies and actual deployed EngineStatus rows have not been examined or flight-tested. These static checks do not establish valid stage sequencing, attitude guidance, or parking-orbit insertion. No new objectives were added; the denominator stays fixed at 52.
