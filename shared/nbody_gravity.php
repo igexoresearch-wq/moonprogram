@@ -37,13 +37,29 @@ function moonSimGravityAcceleration(
         $az += $dz * $factor;
     }
 
+    // Our simulation uses Earth-fixed coordinates. The Moon also accelerates
+    // Earth's origin, so only its DIFFERENTIAL (tidal) acceleration may act
+    // on an Earth-relative spacecraft. Without this indirect term a stable
+    // LEO accumulates an artificial uniform Moon-induced displacement.
+    $ex = $moon[0] - $earth[0];
+    $ey = $moon[1] - $earth[1];
+    $ez = $moon[2] - $earth[2];
+    $em2 = $ex*$ex + $ey*$ey + $ez*$ez;
+    if ($em2 > 1.0 && $moonMu != 0.0) {
+        $ef = $moonMu / ($em2 * sqrt($em2));
+        $ax -= $ex * $ef;
+        $ay -= $ey * $ef;
+        $az -= $ez * $ef;
+    }
+
     return [$ax, $ay, $az];
 }
 
 function moonSimMoonAcceleration(
     array $moon,
     array $earth,
-    float $earthMu
+    float $earthMu,
+    float $moonMu = 0.0
 ): array {
     $dx = $earth[0] - $moon[0];
     $dy = $earth[1] - $moon[1];
@@ -55,7 +71,8 @@ function moonSimMoonAcceleration(
     }
 
     $r = sqrt($r2);
-    $factor = $earthMu / ($r2 * $r);
+    // Earth-Moon relative acceleration uses the sum of both GM values.
+    $factor = ($earthMu + $moonMu) / ($r2 * $r);
 
     return [$dx*$factor, $dy*$factor, $dz*$factor];
 }
