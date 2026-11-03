@@ -164,6 +164,12 @@ function moonSimEncounterPreview(
     if ($departureDelay<0 || $departureDelay>=$duration || abs($departureDelay/$step-round($departureDelay/$step))>1e-8) {
         throw new InvalidArgumentException('Departure delay must be within duration and aligned to propagation step');
     }
+    $initialCraft=$craft;
+    $initialRadial=moonSimRelativeVector($craft,$earth);
+    $initialNormal=moonSimVectorCross($initialRadial,$craftVelocity);
+    $normalMag=moonSimVectorMagnitude($initialNormal);
+    if ($normalMag<1e-6) throw new InvalidArgumentException('Undefined orbital plane');
+    $initialNormal=array_map(static fn($v)=>$v/$normalMag,$initialNormal);
     $burnApplied=false;
     $accel=static function(array $p,array $origin,float $mu):array {
         $r=moonSimRelativeVector($p,$origin);
@@ -180,7 +186,29 @@ function moonSimEncounterPreview(
     for($k=0;$k<=$steps;$k++){
         $now=min($duration,$k*$step);
         if (!$burnApplied && $now >= $departureDelay) {
-            for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$burnDirection[$i]/$norm;
+            // Rotate a local reference direction with the coasted orbital frame.
+            // For immediate burns the caller's direction remains unchanged.
+            $directionAtBurn=$burnDirection;
+            if ($departureDelay>0.0) {
+                $initialUp=moonSimRelativeVector($initialCraft,$earth);
+                $newUp=moonSimRelativeVector($craft,$earth);
+                $iLen=moonSimVectorMagnitude($initialUp);
+                $nLen=moonSimVectorMagnitude($newUp);
+                if ($iLen>1.0 && $nLen>1.0) {
+                    $initialUp=array_map(static fn($v)=>$v/$iLen,$initialUp);
+                    $newUp=array_map(static fn($v)=>$v/$nLen,$newUp);
+                    $initialTang=moonSimVectorCross($initialNormal,$initialUp);
+                    $newTang=moonSimVectorCross($initialNormal,$newUp);
+                    $radialPart=moonSimVectorDot($burnDirection,$initialUp);
+                    $tangPart=moonSimVectorDot($burnDirection,$initialTang);
+                    $normalPart=moonSimVectorDot($burnDirection,$initialNormal);
+                    for($i=0;$i<3;$i++) {
+                        $directionAtBurn[$i]=$radialPart*$newUp[$i]+$tangPart*$newTang[$i]+$normalPart*$initialNormal[$i];
+                    }
+                }
+            }
+            $dirLength=moonSimVectorMagnitude($directionAtBurn);
+            for($i=0;$i<3;$i++)$craftVelocity[$i]+=$deltaV*$directionAtBurn[$i]/$dirLength;
             $burnApplied=true;
         }
         if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < $earthRadius) $earthImpact=true;
