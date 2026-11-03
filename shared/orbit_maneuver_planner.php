@@ -165,6 +165,9 @@ function moonSimEncounterPreview(
         throw new InvalidArgumentException('Departure delay must be within duration and aligned to propagation step');
     }
     $initialCraft=$craft;
+    if ($departureDelay>0.0 && $deltaV>0.0 && $departureDelay>=$duration-2*$step) {
+        throw new InvalidArgumentException('Insufficient postburn preview time');
+    }
     $initialRadial=moonSimRelativeVector($craft,$earth);
     $initialNormal=moonSimVectorCross($initialRadial,$craftVelocity);
     $normalMag=moonSimVectorMagnitude($initialNormal);
