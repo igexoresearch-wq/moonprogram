@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__.'/../shared/verlet_kernel.php';
 
 /**
  * Translational velocity-Verlet integrator.
@@ -224,11 +225,7 @@ function moonSimAdvanceTranslation(
         }
 
         // Drift positions using v*dt + 1/2*a*dt^2.
-        $moonPosNew = [
-            $moonPos[0] + $moonVel[0]*$h + 0.5*$aMoon0[0]*$h*$h,
-            $moonPos[1] + $moonVel[1]*$h + 0.5*$aMoon0[1]*$h*$h,
-            $moonPos[2] + $moonVel[2]*$h + 0.5*$aMoon0[2]*$h*$h,
-        ];
+        $moonPosNew = moonSimVerletDrift($moonPos, $moonVel, $aMoon0, $h);
 
         if ($cmSurfaceLocked) {
             $contact = $surfaceContacts['CM'];
@@ -244,11 +241,7 @@ function moonSimAdvanceTranslation(
         } elseif ($cmPadHeld) {
             $cmPosNew = $cmPos;
         } else {
-            $cmPosNew = [
-                $cmPos[0] + $cmVel[0]*$h + 0.5*$aCm0[0]*$h*$h,
-                $cmPos[1] + $cmVel[1]*$h + 0.5*$aCm0[1]*$h*$h,
-                $cmPos[2] + $cmVel[2]*$h + 0.5*$aCm0[2]*$h*$h,
-            ];
+            $cmPosNew = moonSimVerletDrift($cmPos, $cmVel, $aCm0, $h);
         }
 
         if ($attached) {
@@ -265,11 +258,7 @@ function moonSimAdvanceTranslation(
                 $bodyPosNew[2] + $contact['normal'][2]*$bodyRadius,
             ];
         } else {
-            $lmPosNew = [
-                $lmPos[0] + $lmVel[0]*$h + 0.5*$aLm0[0]*$h*$h,
-                $lmPos[1] + $lmVel[1]*$h + 0.5*$aLm0[1]*$h*$h,
-                $lmPos[2] + $lmVel[2]*$h + 0.5*$aLm0[2]*$h*$h,
-            ];
+            $lmPosNew = moonSimVerletDrift($lmPos, $lmVel, $aLm0, $h);
         }
 
         // Continuous collision detection against fixed Earth and moving Moon.
@@ -491,11 +480,7 @@ function moonSimAdvanceTranslation(
         $aCm1 = moonSimVecAdd($aCmGravity1, $cmNonGravityAcceleration);
         $aLm1 = moonSimVecAdd($aLmGravity1, $lmNonGravityAcceleration);
 
-        $moonVelNew = [
-            $moonVel[0] + 0.5*($aMoon0[0]+$aMoon1[0])*$h,
-            $moonVel[1] + 0.5*($aMoon0[1]+$aMoon1[1])*$h,
-            $moonVel[2] + 0.5*($aMoon0[2]+$aMoon1[2])*$h,
-        ];
+        $moonVelNew = moonSimVerletKick($moonVel, $aMoon0, $aMoon1, $h);
 
         if ($cmSurfaceLocked) {
             $contact = $surfaceContacts['CM'];
@@ -505,11 +490,7 @@ function moonSimAdvanceTranslation(
         } elseif ($cmPadHeld) {
             $cmVelNew = [0.0, 0.0, 0.0];
         } else {
-            $cmVelNew = [
-                $cmVel[0] + 0.5*($aCm0[0]+$aCm1[0])*$h,
-                $cmVel[1] + 0.5*($aCm0[1]+$aCm1[1])*$h,
-                $cmVel[2] + 0.5*($aCm0[2]+$aCm1[2])*$h,
-            ];
+            $cmVelNew = moonSimVerletKick($cmVel, $aCm0, $aCm1, $h);
         }
 
         if ($attached) {
@@ -520,11 +501,7 @@ function moonSimAdvanceTranslation(
                 ? $moonVelNew
                 : [0.0,0.0,0.0];
         } else {
-            $lmVelNew = [
-                $lmVel[0] + 0.5*($aLm0[0]+$aLm1[0])*$h,
-                $lmVel[1] + 0.5*($aLm0[1]+$aLm1[1])*$h,
-                $lmVel[2] + 0.5*($aLm0[2]+$aLm1[2])*$h,
-            ];
+            $lmVelNew = moonSimVerletKick($lmVel, $aLm0, $aLm1, $h);
         }
 
         $moonPos = $moonPosNew;
