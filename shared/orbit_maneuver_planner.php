@@ -115,6 +115,7 @@ function moonSimMoonPhaseReference(
     array $craftPosition, array $earthPosition, array $moonPosition,
     array $moonVelocity, float $coastSeconds
 ): array {
+    if (!is_finite($coastSeconds)) throw new InvalidArgumentException('Invalid coast time');
     $r=moonSimRelativeVector($moonPosition,$earthPosition);
     $radius=moonSimVectorMagnitude($r);
     if ($radius<1.0 || $coastSeconds<=0) throw new InvalidArgumentException('Invalid lunar ephemeris');
