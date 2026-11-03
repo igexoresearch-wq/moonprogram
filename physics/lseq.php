@@ -159,6 +159,9 @@ if (
     && (int)$stage2CM === 1
     && (int)$stage3CM === 1
     && (float)$thrustCM <= 0.0
+    && (float)$s2fuelCM > 0.0
+    && (int)($ABORTCM ?? 0)===0
+    && $launchEvents<2
     && (int)$stagingCM === 0
 ) {
     $conn->query("UPDATE CMguidance SET execute=1 WHERE id=17");
@@ -179,6 +182,8 @@ if (
     && (int)$stage2CM === 0
     && (int)$stage3CM === 1
     && (float)$thrustCM <= 0.0
+    && (float)$s3fuelCM > 0.0
+    && (int)($ABORTCM ?? 0)===0
     && (int)$stagingCM === 0
     && $launchEvents < 2
 ) {
