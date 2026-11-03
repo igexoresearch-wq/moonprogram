@@ -95,17 +95,18 @@ echo 'MEASURE ellipse_max_altitude_m='.$maxAltitude.PHP_EOL;
 
 // Moon: moving natural body under Earth gravity. Verify its independent
 // Earth-relative energy and orbital radius across a full day.
-$moonP=$moon;$moonV=[0.0,sqrt($mu/384400000.0),0.0];
-$initialMoon=moonSimOrbitalElements($moonP,$moonV,$earth,$mu);
+$moonRelativeMu=$mu+$moonMu;
+$moonP=$moon;$moonV=[0.0,sqrt($moonRelativeMu/384400000.0),0.0];
+$initialMoon=moonSimOrbitalElements($moonP,$moonV,$earth,$moonRelativeMu);
 $moonEnergyDrift=0.0;$moonRadiusDrift=0.0;
 for($i=0;$i<86400;$i++) {
-    $a0=moonSimMoonAcceleration($moonP,$earth,$mu);
+    $a0=moonSimMoonAcceleration($moonP,$earth,$mu,$moonMu);
     $moonNext=moonSimVerletDrift($moonP,$moonV,$a0,1.0);
-    $a1=moonSimMoonAcceleration($moonNext,$earth,$mu);
+    $a1=moonSimMoonAcceleration($moonNext,$earth,$mu,$moonMu);
     $moonV=moonSimVerletKick($moonV,$a0,$a1,1.0);
     $moonP=$moonNext;
     if($i%1000===0 || $i===86399) {
-        $m=moonSimOrbitalElements($moonP,$moonV,$earth,$mu);
+        $m=moonSimOrbitalElements($moonP,$moonV,$earth,$moonRelativeMu);
         $moonEnergyDrift=max($moonEnergyDrift,relativeError($m['specific_energy'],$initialMoon['specific_energy']));
         $moonRadiusDrift=max($moonRadiusDrift,abs($m['radius']-384400000.0));
     }
@@ -118,22 +119,25 @@ echo 'MEASURE moon_max_radius_drift_m='.$moonRadiusDrift.PHP_EOL;
 // Zero-thrust Earth+Moon craft propagation: compare Earth-only and lunar-
 // perturbed orbits over one orbit. In a moving field, Earth-only spacecraft
 // energy need not be constant, so only finite-state and boundedness are tested.
+$tidalAtEarth=moonSimGravityAcceleration($earth,$earth,$moon,$mu,$moonMu);
+verifyOrbit(moonSimVectorMagnitude($tidalAtEarth)<1e-12,
+    'Earth-fixed origin has zero artificial lunar acceleration');
 $pEarth=$p0;$vEarth=$v0;$pBoth=$p0;$vBoth=$v0;
-$moonP=$moon;$moonV=[0.0,sqrt($mu/384400000.0),0.0];
+$moonP=$moon;$moonV=[0.0,sqrt($moonRelativeMu/384400000.0),0.0];
 $steps=(int)round($period);
 for($i=0;$i<$steps;$i++) {
     [$pEarth,$vEarth]=integrateCraft($pEarth,$vEarth,$earth,$moon,$mu,0.0,1.0);
     [$pBoth,$vBoth]=integrateCraft($pBoth,$vBoth,$earth,$moonP,$mu,$moonMu,1.0);
-    $moonA0=moonSimMoonAcceleration($moonP,$earth,$mu);
+    $moonA0=moonSimMoonAcceleration($moonP,$earth,$mu,$moonMu);
     $moonNext=moonSimVerletDrift($moonP,$moonV,$moonA0,1.0);
-    $moonA1=moonSimMoonAcceleration($moonNext,$earth,$mu);
+    $moonA1=moonSimMoonAcceleration($moonNext,$earth,$mu,$moonMu);
     $moonV=moonSimVerletKick($moonV,$moonA0,$moonA1,1.0);
     $moonP=$moonNext;
 }
 $sep=moonSimVectorMagnitude(moonSimRelativeVector($pBoth,$pEarth));
 $end=moonSimOrbitalElements($pBoth,$vBoth,$earth,$mu);
 verifyOrbit(is_finite($sep)&&$sep>0.0,'Moving Moon perturbs a real Earth orbit');
-verifyOrbit($sep<100000.0,'Moon perturbation remains bounded during a single LEO orbit');
+verifyOrbit($sep<100.0,'Moon tidal perturbation remains small during a single LEO orbit');
 verifyOrbit($end['specific_energy']<0.0,'Earth-Moon-propagated LEO spacecraft remains Earth-bound');
 echo 'MEASURE lunar_perturbation_separation_m='.$sep.PHP_EOL;
 echo 'PASS orbital propagation, energy and parking-orbit analytical checks'.PHP_EOL;
