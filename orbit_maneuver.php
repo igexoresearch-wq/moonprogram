@@ -50,16 +50,7 @@ try{
                 abs($tli['reference_signed_delta_v_m_s']),
                 $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
                 $moon_radius,(float)$tli['reference_coast_seconds']*1.35);
-            if (($_GET['search']??'')==='1') {
-                $search=moonSimEncounterLocalSearch(v3($craft),v3($craft,'delta_'),
-                    [$earth_center_x,$earth_center_y,$earth_center_z],
-                    v3($moon),v3($moon,'delta_'),
-                    $tli['reference_burn_direction'],
-                    abs($tli['reference_signed_delta_v_m_s']),
-                    $gravitational_constant*$earth_mass,
-                    $gravitational_constant*$moon_mass,$moon_radius,
-                    (float)$tli['reference_coast_seconds']*1.35);
-            }
+
         }
         $phase=moonSimMoonPhaseReference(v3($craft),
             [$earth_center_x,$earth_center_y,$earth_center_z],
@@ -82,6 +73,16 @@ try{
             +($ascent?0.0:$lander_descent_empty_mass)+$lm_rcs_initial_propellant;
         $budget=moonSimBurnBudget($mass,$fuel,$ascent?$lander_ascent_thrust:$lander_descent_thrust,
             $ascent?310.0:304.0,abs($solution['signed_delta_v_m_s']));
+    }
+    if (($_GET['search']??'')==='1' && $vehicle==='CM' && $body==='EARTH'
+        && $tli!==null && $tli['valid_near_circular_departure']) {
+        $search=moonSimEncounterLocalSearch(v3($craft),v3($craft,'delta_'),
+            [$earth_center_x,$earth_center_y,$earth_center_z],
+            v3($moon),v3($moon,'delta_'),$tli['reference_burn_direction'],
+            abs($tli['reference_signed_delta_v_m_s']),
+            $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
+            $moon_radius,(float)$tli['reference_coast_seconds']*1.35,
+            $budget!==null?(float)$budget['available_delta_v_m_s']:null);
     }
     if ($search!==null && $budget===null) {
         $search['propulsion_feasibility']='UNVERIFIED: no compatible engine/fuel configuration could be established; do not command this burn.';
