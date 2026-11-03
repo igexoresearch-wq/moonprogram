@@ -33,7 +33,7 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register1 && $row1 = $register1->fetch_assoc()) {
         $program_number = intval($row1['program_number']);
         $seconds = intval($row1['seconds']);
-        if ($program_number != 0) {
+        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
@@ -54,7 +54,7 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register2 && $row2 = $register2->fetch_assoc()) {
         $program_number = intval($row2['program_number']);
         $seconds = intval($row2['seconds']);
-        if ($program_number != 0) {
+        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
@@ -75,7 +75,7 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register3 && $row3 = $register3->fetch_assoc()) {
         $program_number = intval($row3['program_number']);
         $seconds = intval($row3['seconds']);
-        if ($program_number != 0) {
+        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
@@ -96,7 +96,7 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register4 && $row4 = $register4->fetch_assoc()) {
         $program_number = intval($row4['program_number']);
         $seconds = intval($row4['seconds']);
-        if ($program_number != 0) {
+        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
@@ -117,7 +117,7 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register5 && $row5 = $register5->fetch_assoc()) {
         $program_number = intval($row5['program_number']);
         $seconds = intval($row5['seconds']);
-        if ($program_number != 0) {
+        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
@@ -132,6 +132,11 @@ if ($Guidance_Computer_SWITCH == 1) {
             }
         }
     }
+     // Saturn physical programs P16-P20 are now executed by the serialized
+     // stage controller, never by dynamic database code. Leave P23 launch
+     // guidance and other AGC programs unchanged.
+     $conn->query("UPDATE CMguidance SET execute=0
+         WHERE id BETWEEN 16 AND 20 AND execute=1");
      $result = $conn->query("SELECT COUNT(*) AS count FROM CMguidance WHERE execute = 1");
     $count = ($result && $row = $result->fetch_assoc()) ? intval($row['count']) : 0;
 
