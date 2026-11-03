@@ -130,7 +130,8 @@ try{
 <?php if($encounter):?><h2>Predicted closest lunar approach — ideal impulsive reference</h2><dl>
 <?php foreach($encounter as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($search):?><h2>Closest non-impact candidate — not a flight-ready TLI command</h2>
-<p>The search is approximate and may not find any actual Moon intercept. Only evaluated, non-impact candidates with a resolved closest approach can be ranked; engine ignition and burn guidance are not connected.</p><dl>
+<p>The search is approximate and may not find any actual Moon intercept. Only evaluated, non-impact candidates with a resolved closest approach can be ranked; engine ignition and burn guidance are not connected.</p>
+<p><strong>Arrival energy:</strong> The candidate includes an osculating Moon-relative orbit and an approximate instantaneous lunar-capture impulse. A closest-approach state is not automatically a suitable LOI ignition point. Confirm timing, orientation, fuel, and periapsis before attempting any manual maneuver.</p><dl>
 <?php foreach($search as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($budget):?><h2>Available propulsion budget (ideal approximation)</h2><dl>
 <?php foreach($budget as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
