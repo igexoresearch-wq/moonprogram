@@ -302,6 +302,9 @@ function moonSimEncounterLocalSearch(
     }
     if ($best===null) throw new RuntimeException('No safe candidate with a resolved closest approach inside the preview horizon.');
     $best['sampled_candidates']=150;
+    $best['candidate_departure_t_plus_h']=$best['candidate_departure_delay_seconds']/3600.0;
+    $best['candidate_closest_approach_after_burn_h']=max(0.0,
+        $best['time_of_closest_approach_h']-$best['candidate_departure_t_plus_h']);
     $best['candidate_count_evaluated']=$evaluated;
     $best['candidate_count_rejected']=$rejected;
     $best['fuel_limit_enabled']=$maxDeltaV!==null;
