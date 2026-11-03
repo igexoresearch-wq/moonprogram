@@ -57,6 +57,7 @@ function moonSimBurnBudget(float $mass, float $fuel, float $thrust, float $isp, 
     if ($mass <= 1.0 || $fuel < 0 || $thrust <= 0 || $isp <= 0 || $dv < 0) {
         throw new InvalidArgumentException('Invalid propulsion inputs');
     }
+    foreach ([$mass,$fuel,$thrust,$isp,$dv] as $value) { if (!is_finite($value)) throw new InvalidArgumentException('Non-finite burn input'); }
     $fuel = min($fuel, $mass - 1.0);
     $exhaust = $isp * 9.80665;
     $required = $mass * (1.0 - exp(-$dv / $exhaust));
