@@ -52,4 +52,13 @@ try {
 } catch (InvalidArgumentException $ex) {
     echo "PASS invalid burn vector rejected".PHP_EOL;
 }
+try {
+    moonSimEncounterPreview($p,$v,$o,$moon,$mv,[0,1,0],100.0,
+        $mu,4.9048695e12,1737400.0,3600,240,3360);
+    throw new RuntimeException('Insufficient coast accepted');
+} catch (InvalidArgumentException $ex) {echo "PASS postburn coast required".PHP_EOL;}
+try {
+    moonSimMoonPhaseReference($o,$o,$moon,$mv,3600);
+    throw new RuntimeException('Earth-centered departure accepted');
+} catch (InvalidArgumentException $ex) {echo "PASS undefined departure phase rejected".PHP_EOL;}
 echo "All baseline analytical checks passed. Real-flight accuracy NOT proven.".PHP_EOL;
