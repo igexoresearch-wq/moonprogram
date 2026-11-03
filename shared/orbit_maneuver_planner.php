@@ -310,6 +310,8 @@ function moonSimEncounterLocalSearch(
         $best['time_of_closest_approach_h']-$best['candidate_departure_t_plus_h']);
     $best['candidate_count_evaluated']=$evaluated;
     $best['candidate_count_rejected']=$rejected;
+    $best['candidate_count_total']=count($delays)*5*5;
+    $best['candidate_count_valid']=$evaluated-($rejected-($best['candidate_count_total']-$evaluated));
     $best['fuel_limit_enabled']=$maxDeltaV!==null;
     $best['postburn_only_comparison']=true;
     $best['lunar_surface_clearance_status']=$best['closest_surface_altitude_km']<0?'PREDICTED LUNAR IMPACT':($best['closest_surface_altitude_km']<100?'LOW PASS':'DISTANT PASS');
