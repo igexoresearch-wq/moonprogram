@@ -155,8 +155,9 @@ function moonSimEncounterPreview(
     if ($duration<=0 || $step<=0 || $earthMu<=0 || $moonMu<=0 || $earthRadius<=0) {
         throw new InvalidArgumentException('Invalid propagation parameters');
     }
+    if (!is_finite($deltaV) || $deltaV<0 || !is_finite($duration) || !is_finite($step)) throw new InvalidArgumentException('Nonfinite transfer parameters');
     $norm=moonSimVectorMagnitude($burnDirection);
-    if ($norm<1e-9) throw new InvalidArgumentException('Burn direction unknown');
+    if (!is_finite($norm) || $norm<1e-9) throw new InvalidArgumentException('Burn direction unknown');
     if ($departureDelay<0 || $departureDelay>=$duration || abs($departureDelay/$step-round($departureDelay/$step))>1e-8) {
         throw new InvalidArgumentException('Departure delay must be within duration and aligned to propagation step');
     }
@@ -180,6 +181,7 @@ function moonSimEncounterPreview(
         }
         if (moonSimVectorMagnitude(moonSimRelativeVector($craft,$earth)) < $earthRadius) $earthImpact=true;
         $range=moonSimVectorMagnitude(moonSimRelativeVector($craft,$moon));
+        if (!is_finite($range)) throw new RuntimeException('Nonfinite trajectory state');
         if ($burnApplied && $range <= $moonRadius) $moonImpact=true;
         if($burnApplied && $range<$closest){
             $closest=$range;$closestAt=min($duration,$k*$step);
