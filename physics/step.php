@@ -132,6 +132,12 @@ include 'physics/constants.php';
 include 'physics/coordinate.php';
 include 'physics/CM_AGC.php';
 
+// Ascent control is sourced from repository PHP, not unseen database P23 code.
+// Changes to pitch/yaw rates take effect through physical quaternion integration
+// on the next simulated second. ABORT/AGC-off leave pilot steering alone.
+require_once __DIR__ . '/ascent_guidance.php';
+moonSimAscentGuidanceStep($conn,(int)($Guidance_Computer_SWITCH ?? 0)===1);
+
 // Central stage transitions are independent of database-stored AGC snippets.
 // Re-read the post-guidance state before applying a physical separation.
 require_once __DIR__ . '/saturn_stage_transitions.php';
