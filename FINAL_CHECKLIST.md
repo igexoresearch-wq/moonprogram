@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 15 implemented in source, 37 remaining (28.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 16 implemented in source, 36 remaining (30.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -13,7 +13,7 @@
 - [x] Persistent physics worker, elapsed-time coordination, pad support and physically modeled Saturn V thrust/fuel/staging controls.
 - [x] Launch profiles, guarded preliminary engine cutoff events, LES jettison and read-only launch diagnostics.
 - [x] Complete and validate automatic stage engine cutoffs, ignition, jettison and physical S-IC/S-II/S-IVB separation against actual engine database labels. **Source implementation complete; live engine inventory and flight validation deferred to Section 13.**
-- [ ] Complete AGC launch-program compatibility, ascent attitude guidance, parking-orbit insertion and cutoff transition.
+- [x] Complete AGC launch-program compatibility, ascent attitude guidance, parking-orbit insertion and cutoff transition. **Repository-controlled rate guidance and orbital cutoff; integrated-flight verification deferred to Section 13.**
 
 ## 2. Orbital physics and Earth parking orbit
 - [x] Earth–Moon gravitational propagation and orbital-element calculations are implemented.
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**1.4** Complete launch AGC compatibility, ascent attitude guidance and reliable parking-orbit insertion.
+**2.3** Validate orbital propagation, energy behavior and parking-orbit accuracy with executed reproducible tests.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -125,3 +125,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - The simulator has **not been deployed**. A complete live flight is a final integrated system test, not a per-objective completion requirement. Unexpected behavior during flight may require crew abort/recovery; real software defects discovered then will be fixed as necessary rather than blocking implementation indefinitely.
 - Stage ignition, staging, abort interlocks, stage engine-state changes, runtime latches, S-IVB restart, AGC physical-command handoff, SQL migration and operator diagnostics have been implemented in repository code. Latest fix `7436cfa` restores P16–P20 AGC register countdown while continuing to suppress duplicate physical command evaluation.
 - Marked **1.3 implemented** under the corrected repository completion standard. The actual deployment database engine labels, migration application, flight behavior and physical performance are **unverified**; these remain explicitly part of deployment/flight-testing in Section 13. This check is not a claim that a flight has passed. Frozen total remains **52**.
+
+## 2026-11-03 — Objective 1.4: ascent guidance implemented
+- Inertial, Earth-relative launch targeting and limited body pitch/yaw rate commands added in `shared/ascent_guidance_math.php` (`74c5ed6`). Guidance uses measured radial/tangential speed and altitude, not direct Euler attitude teleportation.
+- Central `physics/ascent_guidance.php` added (`59c50af`): profile-dependent steering, reference center-engine shutdown and LES jettison, state-based first S-IVB cutoff and AGC launch program transition on confirmed bound low-Earth orbit. It leaves the physical stack/staging to the central stage controller.
+- The one-second physics worker calls the guidance controller (`4d98ca0`). The AGC keeps existing register/DSKY timers but no longer evaluates stale database P23 guidance (`e028ce1`). Manual control is preserved with AGC off; abort inhibits ascent steering.
+- Committed the analytical ascent direction/rate/orbital-cutoff test script `tests/ascent_guidance_math_test.php` (`eafbb5e`). Updated launch diagnostics to acknowledge repository-driven P23 (`e972049`). The regression script has not been run in production, and no integrated flight or deployed orbit validation has yet occurred.
+- **1.4 marked implemented in the source, not flight-validated.** Future deployment and flight tests remain under existing Section 13. Denominator stays frozen at **52**.
