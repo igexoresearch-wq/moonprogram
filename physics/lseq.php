@@ -102,15 +102,10 @@ if ($secondsx === 0) {
 }
 
 /*
- * A separation event remains at staging=1 for one physics pass so displays
- * and audio can observe it. Physics, not the cockpit page, clears it.
+ * The authoritative Saturn stage controller consumes staging=1 and holds
+ * the event for one physical tick. Do not clear manual/AGC staging requests
+ * here before the physical worker can act on them.
  */
-if ((int)$stagingCM === 1) {
-    $conn->query(
-        "UPDATE command_module SET value=0 WHERE attribute='staging'"
-    );
-    $stagingCM = 0;
-}
 
 /*
  * Apollo reference outboard cutoff: accept the time only when propellant is
