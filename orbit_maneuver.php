@@ -94,6 +94,13 @@ try{
         $budget=moonSimBurnBudget($mass,$fuel,$ascent?$lander_ascent_thrust:$lander_descent_thrust,
             $ascent?310.0:304.0,abs($solution['signed_delta_v_m_s']));
     }
+    if ($returnReference!==null && $budget!==null) {
+        $returnReference['ideal_escape_propulsion_budget']=moonSimBurnBudget(
+            $mass,$fuel,$service_module_thrust,314.0,
+            (float)$returnReference['minimum_ideal_escape_delta_v_m_s']
+        );
+        $returnReference['fuel_sufficiency_is_not_earth_intercept']=true;
+    }
     if (($_GET['search']??'')==='1' && $vehicle==='CM' && $body==='EARTH'
         && $tli!==null && $tli['valid_near_circular_departure']) {
         $search=moonSimEncounterLocalSearch(v3($craft),v3($craft,'delta_'),
