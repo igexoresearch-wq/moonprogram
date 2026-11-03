@@ -338,3 +338,27 @@ function moonSimEncounterLocalSearch(
     $best['warning']='LOCAL SEARCH ONLY: impulsive burns, fixed Earth, simplified Moon dynamics, no inclination or finite-burn optimization; departure delay is sampled hourly from 0 through 5 hours. Compare independently before any manual burn.';
     return $best;
 }
+
+/** Impulsive Moon-relative capture estimate at a proposed encounter point. */
+function moonSimLunarCaptureEstimate(array $r,array $v,float $mu,float $moonRadius):array {
+    $distance=moonSimVectorMagnitude($r);
+    if($distance<=$moonRadius || $mu<=0)throw new InvalidArgumentException('Capture point invalid');
+    $up=array_map(static fn($x)=>$x/$distance,$r);
+    $radial=moonSimVectorDot($up,$v);
+    $tangential=[];
+    for($i=0;$i<3;$i++)$tangential[$i]=$v[$i]-$radial*$up[$i];
+    $speed=moonSimVectorMagnitude($tangential);
+    if($speed<1e-6)throw new RuntimeException('No angular momentum to define capture plane');
+    $target=sqrt($mu/$distance);
+    $desired=array_map(static fn($x)=>$x*$target/$speed,$tangential);
+    $correction=[];
+    for($i=0;$i<3;$i++)$correction[$i]=$desired[$i]-$v[$i];
+    return [
+        'capture_delta_v_m_s'=>moonSimVectorMagnitude($correction),
+        'capture_vector_delta_v_m_s'=>$correction,
+        'capture_altitude_km'=>($distance-$moonRadius)/1000.0,
+        'capture_radial_velocity_m_s'=>$radial,
+        'capture_target_circular_speed_m_s'=>$target,
+        'warning'=>'Instantaneous Moon-only circularization estimate, not executable LOI targeting. Closest approach may not coincide with an appropriate ignition point.'
+    ];
+}
