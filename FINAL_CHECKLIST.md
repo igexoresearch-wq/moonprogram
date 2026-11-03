@@ -97,6 +97,7 @@
 - [x] Read-only Earth recovery station with instantaneous Earth periapsis.
 - [ ] Live TEI direction/delta-v/burn-time calculator and AGC integration.
 - [ ] Midcourse return corrections and arrival-time/entry-angle predictions.
+- [x] Display read-only Moon-local escape Δv reference and available CSM propulsion comparison (not a solved Earth return).
 - [ ] Manual abort/return burn planning with current fuel/mass limits.
 
 ## 8. Reentry and recovery
@@ -236,3 +237,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Added live Moon/Earth-relative osculating elements to maneuver advisor (`787135e`), return closest-approach relative state vectors (`b3d7386`), candidate arrival orbit energy/periapsis (`cf34183`), Moon-relative instantaneous capture vector (`bf4e7cc`), integrated provisional LOI into candidate results (`601a74c`), tests for capture impulse (`5a29762`), and operator guidance notes (`922cf84`). No verified finite burn, lunar orbit insertion, DSKY control or live flight trial. The ten- and twenty-change requests are targets, not grounds for marking incomplete capabilities finished.
 
 **Current implementation checklist: 61/109 = 56.0%.**
+
+## 2026-11-03 lunar-departure reference
+- Commits `bba9b49` (Moon-local escape calculation), `f3af0eb` (read-only operator display), `826d6b9` (analytical regression cases), and `dffdc6b` (fuel budget comparison). These estimate lunar escape only, not TEI targeting, Earth capture, reentry corridor, finite burns or AGC integration. Tests committed but not executed in a deployed mission. Requested batch: 30 changes; fewer were completed, so do not claim otherwise.
+
+**Checklist: 62/110 = 56.4%.**
