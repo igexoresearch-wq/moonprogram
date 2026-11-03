@@ -17,6 +17,7 @@ function moonSimSaturnStageTransitions(mysqli $conn, bool $automaticEnabled=true
             sic_ignited TINYINT(1) NOT NULL DEFAULT 0,
             sii_ignited TINYINT(1) NOT NULL DEFAULT 0,
             sivb_ignited TINYINT(1) NOT NULL DEFAULT 0,
+            sivb_restart_armed TINYINT(1) NOT NULL DEFAULT 1,
             staging_hold TINYINT(1) NOT NULL DEFAULT 0,
             last_seconds INT NULL
         ) ENGINE=InnoDB")) {
@@ -51,7 +52,7 @@ function moonSimSaturnStageTransitions(mysqli $conn, bool $automaticEnabled=true
             && $seconds<(int)$runtime['last_seconds']) || ($events===0 && $seconds<=0)) {
             $conn->query("UPDATE saturn_stage_runtime
                 SET sic_ignited=0,sii_ignited=0,sivb_ignited=0,
-                    staging_hold=0,last_seconds=$seconds WHERE id=1");
+                    sivb_restart_armed=1,staging_hold=0,last_seconds=$seconds WHERE id=1");
             $conn->commit();
             return null;
         }
@@ -75,7 +76,9 @@ function moonSimSaturnStageTransitions(mysqli $conn, bool $automaticEnabled=true
                 $program=(int)$action['program'];
                 $conn->query("UPDATE CMguidance SET execute=0 WHERE id=$program");
             }
-        } elseif ($action!==null && $action['type']==='ignite') {
+        } elseif ($action!==null && $action['type']==='arm_restart') {
+            $conn->query("UPDATE saturn_stage_runtime SET sivb_restart_armed=1 WHERE id=1");
+        } elseif ($action!==null && in_array($action['type'],['ignite','restart'],true)) {
             $name=$conn->real_escape_string($action['name']);
             $ready=$conn->query("SELECT COUNT(*) AS n FROM EngineStatus
                 WHERE engine_stage='$name' AND component='Combustion Chamber'
@@ -85,10 +88,15 @@ function moonSimSaturnStageTransitions(mysqli $conn, bool $automaticEnabled=true
                 $conn->query("UPDATE EngineStatus SET status='ON'
                     WHERE engine_stage='$name' AND component='Combustion Chamber'
                       AND operational_status='OK'");
-                $conn->query("UPDATE command_module SET value=100 WHERE attribute='thrust'");
+                if ($action['type']==='ignite' && !empty($action['automatic'])) {
+                    $conn->query("UPDATE command_module SET value=100 WHERE attribute='thrust'");
+                }
                 $latch=$action['latch'];
                 $conn->query("UPDATE saturn_stage_runtime SET $latch=1 WHERE id=1");
-                $program=$action['program'];
+                if ($action['type']==='restart') {
+                    $conn->query("UPDATE saturn_stage_runtime
+                        SET sivb_restart_armed=0 WHERE id=1");
+                }
                 // Physical ignition is owned here; no duplicate legacy script.
                 $ignitionProgram=$name==='First Stage'?16:($name==='Second Stage'?17:18);
                 $conn->query("UPDATE CMguidance SET execute=0 WHERE id=$ignitionProgram");
