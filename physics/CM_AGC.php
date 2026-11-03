@@ -33,11 +33,15 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register1 && $row1 = $register1->fetch_assoc()) {
         $program_number = intval($row1['program_number']);
         $seconds = intval($row1['seconds']);
-        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
+        if ($program_number != 0) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
-                eval("?> $programCode <?php ");
+                // Physical Saturn commands are owned by the central physics worker,
+                // but AGC register timers must still advance normally.
+                if ($program_number < 16 || $program_number > 20) {
+                    eval("?> $programCode <?php ");
+                }
             }
             if ($seconds != -1) {
                 if ($seconds == 1) {
@@ -54,11 +58,15 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register2 && $row2 = $register2->fetch_assoc()) {
         $program_number = intval($row2['program_number']);
         $seconds = intval($row2['seconds']);
-        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
+        if ($program_number != 0) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
-                eval("?> $programCode <?php ");
+                // Physical Saturn commands are owned by the central physics worker,
+                // but AGC register timers must still advance normally.
+                if ($program_number < 16 || $program_number > 20) {
+                    eval("?> $programCode <?php ");
+                }
             }
             if ($seconds != -1) {
                 if ($seconds == 1) {
@@ -75,11 +83,15 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register3 && $row3 = $register3->fetch_assoc()) {
         $program_number = intval($row3['program_number']);
         $seconds = intval($row3['seconds']);
-        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
+        if ($program_number != 0) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
-                eval("?> $programCode <?php ");
+                // Physical Saturn commands are owned by the central physics worker,
+                // but AGC register timers must still advance normally.
+                if ($program_number < 16 || $program_number > 20) {
+                    eval("?> $programCode <?php ");
+                }
             }
             if ($seconds != -1) {
                 if ($seconds == 1) {
@@ -96,11 +108,15 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register4 && $row4 = $register4->fetch_assoc()) {
         $program_number = intval($row4['program_number']);
         $seconds = intval($row4['seconds']);
-        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
+        if ($program_number != 0) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
-                eval("?> $programCode <?php ");
+                // Physical Saturn commands are owned by the central physics worker,
+                // but AGC register timers must still advance normally.
+                if ($program_number < 16 || $program_number > 20) {
+                    eval("?> $programCode <?php ");
+                }
             }
             if ($seconds != -1) {
                 if ($seconds == 1) {
@@ -117,11 +133,15 @@ if ($Guidance_Computer_SWITCH == 1) {
     if ($register5 && $row5 = $register5->fetch_assoc()) {
         $program_number = intval($row5['program_number']);
         $seconds = intval($row5['seconds']);
-        if ($program_number != 0 && ($program_number < 16 || $program_number > 20)) {
+        if ($program_number != 0) {
             $programQuery = $conn->query("SELECT program FROM CMguidance WHERE id = $program_number");
             if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
                 $programCode = $programRow['program'];
-                eval("?> $programCode <?php ");
+                // Physical Saturn commands are owned by the central physics worker,
+                // but AGC register timers must still advance normally.
+                if ($program_number < 16 || $program_number > 20) {
+                    eval("?> $programCode <?php ");
+                }
             }
             if ($seconds != -1) {
                 if ($seconds == 1) {
