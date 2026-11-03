@@ -40,4 +40,21 @@ expectAction(moonSimSaturnNextAction($third,$thirdLatch,701,1,true),null,null,'N
 $third['staging']=1;
 expectAction(moonSimSaturnNextAction($third,$thirdLatch,730,2,true),'separate','Third Stage','Explicit S-IVB jettison after parking orbit');
 expectAction(moonSimSaturnNextAction($third,$thirdLatch,730,1,true),null,null,'No early S-IVB separation');
+$manualFirst=$base;$manualFirst['thrust']=65;
+expectAction(moonSimSaturnNextAction($manualFirst,$latch,0,1,false),
+    'ignite','First Stage','Manual throttle can ignite stage with AGC off');
+$restart=$third;$restart['staging']=0;$restart['s3fuel']=80;$restart['thrust']=40;
+$restartLatch=$thirdLatch;$restartLatch['sivb_restart_armed']=1;
+expectAction(moonSimSaturnNextAction($restart,$restartLatch,800,2,false),
+    'restart','Third Stage','Explicit throttle re-ignites S-IVB for TLI');
+$restartLatch['sivb_restart_armed']=0;
+expectAction(moonSimSaturnNextAction($restart,$restartLatch,801,2,false),
+    null,null,'S-IVB does not repeatedly reignite each tick');
+$restart['thrust']=0;
+expectAction(moonSimSaturnNextAction($restart,$restartLatch,802,2,false),
+    'arm_restart','Third Stage','S-IVB cutoff arms a later explicit restart');
+$restart['s3fuel']=0;$restart['thrust']=60;
+$restartLatch['sivb_restart_armed']=1;
+expectAction(moonSimSaturnNextAction($restart,$restartLatch,804,2,false),
+    null,null,'Empty S-IVB cannot restart');
 echo 'Saturn stage decision rules passed (database/physics integration still requires live trial).'.PHP_EOL;
