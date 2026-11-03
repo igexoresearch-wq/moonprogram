@@ -30,7 +30,7 @@ $body=(string)($_GET['body']??'EARTH');if(!in_array($body,['EARTH','MOON'],true)
 $altitude=filter_input(INPUT_GET,'altitude',FILTER_VALIDATE_FLOAT);
 if($altitude===false || $altitude===null)$altitude=$body==='MOON'?100000.0:180000.0;
 $altitude=max(0.0,min(5000000.0,$altitude));
-$solution=null;$budget=null;$tli=null;$phase=null;$encounter=null;$search=null;$error='';
+$solution=null;$budget=null;$tli=null;$phase=null;$encounter=null;$search=null;$orbitalDetails=null;$error='';
 try{
     $craft=rowsManeuver($conn,$vehicle==='CM'?'command_module':'telemetry');
     $moon=rowsManeuver($conn,'moon');
@@ -39,6 +39,18 @@ try{
     $mu=$gravitational_constant*($body==='EARTH'?$earth_mass:$moon_mass);
     $radius=$body==='EARTH'?$earth_radius:$moon_radius;
     $solution=moonSimCircularizationEstimate(v3($craft),v3($craft,'delta_'),$center,$velocity,$mu,$radius,(float)$altitude);
+    $relativeVelocity=moonSimRelativeVector(v3($craft,'delta_'),$velocity);
+    $orbitalDetails=moonSimOrbitalElements(v3($craft),$relativeVelocity,$center,$mu);
+    $orbitalDetails=[
+        'central_body'=>$body,
+        'eccentricity'=>$orbitalDetails['eccentricity'],
+        'periapsis_altitude_m'=>$orbitalDetails['periapsis_radius']!==null
+            ?$orbitalDetails['periapsis_radius']-$radius:null,
+        'apoapsis_altitude_m'=>$orbitalDetails['apoapsis_radius']!==null
+            ?$orbitalDetails['apoapsis_radius']-$radius:null,
+        'specific_orbital_energy_j_kg'=>$orbitalDetails['specific_energy'],
+        'orbit_type'=>$orbitalDetails['specific_energy']<0?'BOUND':'OPEN',
+    ];
     if ($vehicle==='CM' && $body==='EARTH') {
         $tli=moonSimTranslunarReference(v3($craft),v3($craft,'delta_'),
             [$earth_center_x,$earth_center_y,$earth_center_z],[0.0,0.0,0.0],
@@ -108,6 +120,8 @@ try{
 <?php if($error):?><p><?=htmlspecialchars($error,ENT_QUOTES,'UTF-8')?></p><?php elseif($solution):?>
 <h2><?=renderV($solution['applicable_now'])==='YES'?'Circularization estimate':'CAUTION — not at target orbit'?></h2>
 <dl><?php foreach($solution as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
+<?php if($orbitalDetails):?><h2>Current <?=htmlspecialchars($body,ENT_QUOTES,'UTF-8')?>-relative orbital elements</h2><dl>
+<?php foreach($orbitalDetails as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=($value===null?'N/A':renderV($value))?></dd><?php endforeach;?></dl><?php endif;?>
 <?php if($tli):?><h2>Translunar minimum-energy reference — NOT targeting guidance</h2><dl>
 <?php foreach($tli as $key=>$value):?><dt><?=htmlspecialchars(str_replace('_',' ',strtoupper($key)),ENT_QUOTES,'UTF-8')?></dt><dd><?=renderV($value)?></dd><?php endforeach;?></dl>
 <p>Departure phase and lunar arrival are not calculated. A burn based solely on this reference may miss the Moon.</p><?php endif;?>
