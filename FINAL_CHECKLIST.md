@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 16 implemented in source, 36 remaining (30.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 17 implemented in source, 35 remaining (32.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -18,7 +18,7 @@
 ## 2. Orbital physics and Earth parking orbit
 - [x] Earth–Moon gravitational propagation and orbital-element calculations are implemented.
 - [x] Live read-only orbit elements, circularization references and estimated propulsion budget are available.
-- [ ] Validate orbital propagation, energy behavior and parking-orbit accuracy with executed reproducible tests.
+- [x] Validate orbital propagation, energy behavior and parking-orbit accuracy with executed reproducible tests. **Production numerical kernels now have committed regression coverage; equivalent local PHP checks passed; deployed flight validation remains in Section 13.**
 - [ ] Provide cockpit operational orbital navigation, maneuver targets and manual override.
 
 ## 3. Translunar injection and coast
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**2.3** Validate orbital propagation, energy behavior and parking-orbit accuracy with executed reproducible tests.
+**2.4** Provide cockpit operational orbital navigation, maneuver targets and manual override.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -132,3 +132,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - The one-second physics worker calls the guidance controller (`4d98ca0`). The AGC keeps existing register/DSKY timers but no longer evaluates stale database P23 guidance (`e028ce1`). Manual control is preserved with AGC off; abort inhibits ascent steering.
 - Committed the analytical ascent direction/rate/orbital-cutoff test script `tests/ascent_guidance_math_test.php` (`eafbb5e`). Updated launch diagnostics to acknowledge repository-driven P23 (`e972049`). The regression script has not been run in production, and no integrated flight or deployed orbit validation has yet occurred.
 - **1.4 marked implemented in the source, not flight-validated.** Future deployment and flight tests remain under existing Section 13. Denominator stays frozen at **52**.
+
+## 2026-11-03 — Objective 2.3: orbit propagation validated at source level
+- Extracted the velocity-Verlet drift/kick arithmetic into `shared/verlet_kernel.php` (`3ea09e8`) and reconnected the real CSM, LM and Moon production integrator to the identical kernels (`88f6cc2`). Moved the existing gravity functions into `shared/nbody_gravity.php` (`8fd606c`, `441b16b`).
+- Fixed an identified coordinate-frame error: with Earth fixed, the direct lunar gravitational acceleration on a craft must be reduced by the Moon's acceleration of Earth's origin (the indirect tidal term). The Moon's Earth-relative dynamics now use the sum of Earth and Moon GM (`a48e005`, `f475cb2`).
+- Committed `tests/orbital_propagation_checks.php` (`eb76b4b`, `c757f78`) for two-orbit circular energy/angular momentum drift, elliptical turning radii, 24-hour Moon motion, lunar tidal perturbations, and actual parking-orbit criteria. A local PHP 8.4 harness reproducing the production numerical formulas passed the corresponding checks. See `docs/ORBITAL_VALIDATION_2026-11-03.md` (`1ef4cc7`) for values and reproducibility instructions. **The exact committed script has not been run on a deployed server.**
+- **2.3 checked under the agreed source-implementation standard**, not as proof of a successful end-to-end flight. Section 13 continues to own deployment and actual mission verification. Frozen checklist total remains **52**.
