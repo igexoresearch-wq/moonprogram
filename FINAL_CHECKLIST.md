@@ -44,6 +44,12 @@
 - [x] Identify predicted Moon-surface intersections during candidate propagation.
 - [x] Exclude predicted lunar impact trajectories from the closest-approach candidate search.
 - [x] Show an explicit unverified-propulsion warning when a selected transfer has no known engine budget.
+- [x] Reject departure delays not aligned with the encounter propagation step.
+- [x] Permit a hard fuel-based delta-v ceiling in local transfer candidate generation.
+- [x] Reject non-finite transfer parameters and divergent encounter states.
+- [x] Apply a known propulsion delta-v limit before selecting the best departure candidate.
+- [x] Flag closest lunar approach results occurring at the end of the preview horizon.
+- [x] Exclude unresolved end-of-horizon closest approach results from candidate selection.
 - [ ] Calculate/display lunar intercept, arrival conditions and free-return alternatives.
 
 ## 3. Lunar orbit insertion
@@ -188,3 +194,8 @@ Fuel budget committed in 9863365 and fc7e948; TLI targeting remains incomplete.
 - Committed postburn-only scoring (`ed0464e`), configurable Earth collision radius (`5bc0f81`), lunar-impact detection (`5584214`), lunar-impact candidate rejection (`5def225`), and propulsion-configuration warning (`31271f4`). These do not complete validated TLI guidance or a live flight.
 
 **Overall checklist implemented: 45/93 = 48.4%.**
+
+## 2026-11-02 six transfer search fixes
+- Guards for departure timestep alignment (`1a670dd`), optional fuel cap (`17ece98`), nonfinite state rejection (`eeb5487`), engine-budget gated candidate selection (`9932853`), horizon truncation detection (`d151e45`) and rejection (`b355d98`). These checks do not establish validated lunar guidance.
+
+**Checklist implementation: 51/99 = 51.5%.**
