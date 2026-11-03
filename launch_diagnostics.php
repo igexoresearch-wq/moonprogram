@@ -44,7 +44,7 @@ foreach($engines as $row) {
     $groups[$stage][(string)$row['engine_name']] = (string)$row['status'];
 }
 $required=[16=>'S-IC ignition',17=>'S-II ignition',18=>'S-IVB ignition',19=>'S-IC separation',20=>'S-II separation',23=>'Launch sequence',24=>'Countdown'];
-$ready=true;foreach($required as $id=>$description)if(!($programs[$id]['present']??false))$ready=false;
+$ready=true; // Launch and staging are executed by versioned physics code, not DB P16-P24.
 // Inspect program text without executing it. Flag basic incompatibilities,
  // but only a real flight can verify the resulting physical stage behavior.
 $programAudit=[];
@@ -66,15 +66,15 @@ foreach(['First Stage','Second Stage'] as $stage){
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15"><title>Saturn Launch Readiness</title>
 <style>body{font:16px system-ui;background:#101923;color:#eef4fa;padding:25px}main{max-width:1100px;margin:auto}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #51606d;text-align:left}section{padding:16px;border:1px solid #64707c;margin:16px 0}.bad{color:#ffb0a7}.ok{color:#a9edb0}</style></head><body><main><h1>SATURN V — LAUNCH AGC DIAGNOSTICS</h1>
 <p>This page is read-only; it never evaluates the guidance code or commands engines. Refreshes every 15 seconds.</p>
-<section><h2>Database program inventory</h2><p class="<?= $ready?'ok':'bad'?>"><?= $ready?'Required launch program records found. Behavior NOT verified.':'One or more required program records are missing.'?></p>
+<section><h2>Database program inventory</h2><p class="<?= $ready?'ok':'bad'?>"><?= $ready?'Launch uses checked-in physics programs; historic DB source is diagnostic only.':'One or more optional database records are missing.'?></p>
 <table><tr><th>Program</th><th>Function</th><th>Source</th><th>Pending execute</th><th>lseq.php reference</th></tr>
 <?php foreach($required as $id=>$label):$p=$programs[$id]??null;?><tr><td><?= $id?></td><td><?=safeLaunch($label)?></td><td><?=!empty($p['present'])?'Present ('.(int)$p['source_bytes'].' bytes)':'MISSING'?></td><td><?= (int)($p['execute']??0)?></td><td><?=!empty($p['includes_lseq'])?'Yes':'No'?></td></tr><?php endforeach;?></table>
-<p>Program 23 must reference lseq.php for this launch controller to run. Source presence does not prove that an AGC program correctly acknowledges its command, stages, or stops issuing thrust. No code contents are exposed by this page.</p></section>
+<p>Physical P16–P20 and launch P23 execute in checked-in PHP physics controllers, not in these legacy program bodies. Missing database code is no longer an ignition/staging blocker. Existing AGC registers continue to count down for cockpit compatibility.</p></section>
 <section><h2>Launch-program compatibility warnings</h2>
 <?php foreach($required as $id=>$label):$a=$programAudit[$id];?>
 <p class="<?=($a['present']&&($a['launch_hook']!==false))?'ok':'bad'?>">P<?= $id ?>: <?=safeLaunch($a['static_status'])?></p>
 <?php endforeach;?>
-<p>These are read-only static checks. P16–P20 are legacy physical commands now bypassed in favor of the stage worker; P23 launch guidance is still required. Test the physical sequence on a reset flight.</p></section>
+<p>These are read-only static checks. P16–P20 are legacy physical commands now bypassed in favor of the stage worker; P23 is supplied by the repository module. Test physical sequence when the simulator is deployed.</p></section>
 <section><h2>Five-engine stage inventory</h2><table><tr><th>Stage</th><th>Modelled engines</th><th>Unique center</th><th>Engine names / current states</th></tr>
 <?php foreach(['First Stage','Second Stage','Third Stage'] as $stage):?><tr><td><?=safeLaunch($stage)?></td><td><?=count($groups[$stage]??[])?></td><td><?=isset($center[$stage])?($center[$stage]?'Yes':'No; cutoff withheld'):'N/A'?></td><td><?php foreach($groups[$stage]??[] as $name=>$status) echo safeLaunch($name.' '.$status).' / ';?></td></tr><?php endforeach;?></table></section>
 <section><h2>Stage sequencing prerequisites (static inspection)</h2>
@@ -83,14 +83,14 @@ $stageChecks=[
     'S-IC engine records'=>count($groups['First Stage']??[])>0,
     'S-II engine records'=>count($groups['Second Stage']??[])>0,
     'S-IVB engine records'=>count($groups['Third Stage']??[])>0,
-    'P23 launch guidance hook'=>!empty($programs[23]['includes_lseq']),
+    'Repository launch guidance module'=>is_file(__DIR__.'/physics/ascent_guidance.php'),
 ];
 foreach($stageChecks as $label=>$ok):?>
 <p class="<?= $ok?'ok':'bad' ?>"><?=safeLaunch($label)?>: <?= $ok?'present':'MISSING' ?></p>
 <?php endforeach;?>
 <p>Presence alone cannot certify thrust, shutdown, separation timing or successful engine ignition. Actual database engine labels and all stage actions require a complete observed flight.</p></section>
 <section><h2>Physical Saturn stage controller — live database state</h2>
-<p>P16–P20 physical ignition/separation is owned by <code>physics/saturn_stage_transitions.php</code>. Legacy scripts are bypassed. P23 launch guidance remains required.</p>
+<p>P16–P20 physical ignition/separation is owned by <code>physics/saturn_stage_transitions.php</code>. Legacy scripts are bypassed. P23 launch guidance is handled by the repository module.</p>
 <?php if($stageRuntime===null):?><p class="bad">Stage ignition latch row is missing. The physics worker must initialize saturn_stage_runtime before automatic ignition is available.</p>
 <?php else:?>
 <table><tr><th>Runtime field</th><th>Value</th></tr>
