@@ -131,6 +131,7 @@ function moonSimMoonPhaseReference(
     );
     $departure=moonSimRelativeVector($craftPosition,$earthPosition);
     $departRadius=moonSimVectorMagnitude($departure);
+    if ($departRadius<=0.0) throw new InvalidArgumentException('Departure position at Earth center');
     $departUnit=array_map(static fn($x)=>$x/$departRadius,$departure);
     $departurePhase=acos(max(-1.0,min(1.0,moonSimVectorDot($departUnit,$normal))));
     return [
