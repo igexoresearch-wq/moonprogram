@@ -366,3 +366,43 @@ function moonSimLunarCaptureEstimate(array $r,array $v,float $mu,float $moonRadi
         'warning'=>'Instantaneous Moon-only circularization estimate, not executable LOI targeting. Closest approach may not coincide with an appropriate ignition point.'
     ];
 }
+
+/**
+ * Read-only two-body lunar departure reference for Earth return.
+ * Tangential impulse at the current Moon-relative radius to raise apoapsis
+ * to the Earth-Moon separation. Not a real TEI solution: encounter geometry,
+ * lunar phase, Earth gravity, finite thrust and entry corridor are excluded.
+ */
+function moonSimEarthReturnReference(
+    array $craftPosition, array $craftVelocity, array $moonPosition,
+    array $moonVelocity, array $earthPosition, float $moonMu,
+    float $moonRadius, float $earthMu
+): array {
+    $r=moonSimRelativeVector($craftPosition,$moonPosition);
+    $v=moonSimRelativeVector($craftVelocity,$moonVelocity);
+    $radius=moonSimVectorMagnitude($r);
+    $distance=moonSimVectorMagnitude(moonSimRelativeVector($moonPosition,$earthPosition));
+    if($moonMu<=0 || $earthMu<=0 || $radius<=$moonRadius || $distance<=$radius)
+        throw new InvalidArgumentException('Earth return reference requires Moon orbit inside Earth distance');
+    $up=array_map(static fn($x)=>$x/$radius,$r);
+    $radial=moonSimVectorDot($up,$v);
+    $tangent=[];
+    for($i=0;$i<3;$i++)$tangent[$i]=$v[$i]-$radial*$up[$i];
+    $speed=moonSimVectorMagnitude($tangent);
+    if($speed<1e-6)throw new RuntimeException('Undefined orbital tangential direction');
+    $escapeSpeed=sqrt(2.0*$moonMu/$radius);
+    $dv=max(0.0,$escapeSpeed-$speed);
+    $unit=array_map(static fn($x)=>$x/$speed,$tangent);
+    $elements=moonSimOrbitalElements($craftPosition,$v,$moonPosition,$moonMu);
+    return [
+        'moon_altitude_m'=>$radius-$moonRadius,
+        'moon_radial_velocity_m_s'=>$radial,
+        'moon_tangential_velocity_m_s'=>$speed,
+        'moon_local_escape_speed_m_s'=>$escapeSpeed,
+        'minimum_ideal_escape_delta_v_m_s'=>$dv,
+        'reference_prograde_direction'=>$unit,
+        'current_moon_orbit_eccentricity'=>$elements['eccentricity'],
+        'valid_near_circular_departure'=>abs($radial)<50.0 && abs($speed-sqrt($moonMu/$radius))<250.0,
+        'warning'=>'Moon escape is not Earth return. This does not solve TEI geometry, Earth intercept, return time, atmospheric entry or finite burn. Do not execute as a TEI command.'
+    ];
+}
