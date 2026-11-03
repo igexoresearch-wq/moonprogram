@@ -76,8 +76,9 @@ check($full['fuel_required_kg']===$half['fuel_required_kg'],'requested fuel is i
 check($full['ideal_burn_seconds']>0,'positive impulse implies positive burn duration');
 try {moonSimBurnBudget(10000,-1,90000,300,100);throw new RuntimeException('Negative fuel accepted');}
 catch(InvalidArgumentException $e){echo "PASS negative fuel rejected".PHP_EOL;}
-try {moonSimEncounterPreview($p,$v,$o,$moon,$mv,[0,1,0],-1,$mu,4.9048695e12,1737400,20000,240);}
-catch(InvalidArgumentException $e){echo "PASS negative impulse rejected".PHP_EOL;}
+try {moonSimEncounterPreview($p,$v,$o,$moon,$mv,[0,1,0],-1,$mu,4.9048695e12,1737400,20000,240);
+    throw new RuntimeException('Negative impulse accepted');
+} catch (InvalidArgumentException $e){echo "PASS negative impulse rejected".PHP_EOL;}
 $phase=moonSimMoonPhaseReference($p,$o,$moon,$mv,86400);
 check($phase['moon_rotation_deg']>0,'Moon progresses in orbit during coast');
 check(count($phase['moon_predicted_xyz_m'])===3,'Moon future position has three coordinates');
