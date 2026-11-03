@@ -181,6 +181,7 @@ function moonSimEncounterPreview(
         return [$r[0]*$factor,$r[1]*$factor,$r[2]*$factor];
     };
     $closest=INF;$closestAt=0.0;$relativeSpeed=0.0;
+    $closestRelativePosition=null;$closestRelativeVelocity=null;
     $earthImpact=false;
     $moonImpact=false;
     $closestAtEndpoint=false;
@@ -223,6 +224,8 @@ function moonSimEncounterPreview(
             $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($craftVelocity,$moonVelocity));
             if (!is_finite($relativeSpeed)) throw new RuntimeException('Nonfinite relative encounter velocity');
             $closestAtEndpoint=($k===$steps);
+            $closestRelativePosition=moonSimRelativeVector($craft,$moon);
+            $closestRelativeVelocity=moonSimRelativeVector($craftVelocity,$moonVelocity);
         }
         if($k===$steps)break;
         $h=min($step,$duration-$k*$step);
@@ -252,6 +255,8 @@ function moonSimEncounterPreview(
         'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
         'time_of_closest_approach_h'=>$closestAt/3600.0,
         'relative_speed_at_approach_m_s'=>$relativeSpeed,
+        'relative_position_at_approach_m'=>$closestRelativePosition,
+        'relative_velocity_at_approach_m_s'=>$closestRelativeVelocity,
         'lunar_100km_pass'=>$closest<=$moonRadius+100000.0,
         'warning'=>'Impulsive transfer preview only; fixed Earth, simplified Moon dynamics, finite step and no fuel/attitude effects. Not flight guidance.'
     ];
