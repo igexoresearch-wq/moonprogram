@@ -319,6 +319,19 @@ function moonSimEncounterLocalSearch(
     $best['candidate_count_total']=count($delays)*5*5;
     $best['candidate_count_valid']=$best['candidate_count_total']-$rejected;
     if ($best['candidate_count_valid']<1) throw new RuntimeException('No eligible transfer candidates remained after screening');
+    if ($best['relative_position_at_approach_m']!==null
+        && $best['relative_velocity_at_approach_m_s']!==null) {
+        $arrival=moonSimOrbitalElements(
+            $best['relative_position_at_approach_m'],
+            $best['relative_velocity_at_approach_m_s'],
+            [0.0,0.0,0.0],$moonMu
+        );
+        $best['arrival_specific_energy_j_kg']=$arrival['specific_energy'];
+        $best['arrival_eccentricity']=$arrival['eccentricity'];
+        $best['arrival_is_lunar_bound']=$arrival['specific_energy']<0.0;
+        $best['arrival_periapsis_altitude_km']=$arrival['periapsis_radius']!==null
+            ?($arrival['periapsis_radius']-$moonRadius)/1000.0:null;
+    }
     $best['fuel_limit_enabled']=$maxDeltaV!==null;
     $best['postburn_only_comparison']=true;
     $best['lunar_surface_clearance_status']=$best['closest_surface_altitude_km']<100?'LOW PASS':'DISTANT PASS';
