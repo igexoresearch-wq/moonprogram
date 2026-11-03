@@ -36,4 +36,20 @@ try {
         100.0,$mu,4.9048695e12,1737400.0,20000,240,3700);
     throw new RuntimeException('Unaligned delay unexpectedly accepted');
 } catch (InvalidArgumentException $ex) {echo "PASS unaligned departure rejected".PHP_EOL;}
+try {
+    moonSimEncounterLocalSearch($p,$v,$o,$moon,$mv,
+        $t['reference_burn_direction'],abs($t['reference_signed_delta_v_m_s']),
+        $mu,4.9048695e12,1737400.0,$t['reference_coast_seconds']*1.35,0.0);
+    throw new RuntimeException('Zero-fuel search unexpectedly returned a maneuver');
+} catch (RuntimeException $ex) {
+    if (str_contains($ex->getMessage(),'unexpectedly')) throw $ex;
+    echo "PASS zero-fuel search reports no valid candidate".PHP_EOL;
+}
+try {
+    moonSimEncounterPreview($p,$v,$o,$moon,$mv,[0,0,0],100.0,
+        $mu,4.9048695e12,1737400.0,20000,240);
+    throw new RuntimeException('Zero burn vector accepted');
+} catch (InvalidArgumentException $ex) {
+    echo "PASS invalid burn vector rejected".PHP_EOL;
+}
 echo "All baseline analytical checks passed. Real-flight accuracy NOT proven.".PHP_EOL;
