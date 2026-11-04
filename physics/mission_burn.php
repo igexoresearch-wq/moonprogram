@@ -10,7 +10,7 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  $row=$clock?$clock->fetch_assoc():null;$met=(int)($row['seconds']??-900);
  $start=(int)$p['ignition_met'];$stop=(int)$p['cutoff_met'];
  $phase=(string)$p['phase'];
- if(!in_array($phase,['TLI','MCC','LOI'],true))return;
+ if(!in_array($phase,['TLI','MCC','LOI','TEI'],true))return;
  $engineStage=$phase==='TLI'?'Third Stage':'Service Module';
  if(!$enabled) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
