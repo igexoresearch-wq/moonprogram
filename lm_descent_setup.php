@@ -7,6 +7,7 @@ if(!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PH
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/lm_descent_initialization.php';
+require_once __DIR__.'/shared/lm_powered_descent_targets.php';
 function lunarRows(mysqli $db,string $table):array{
  $q=$db->query("SELECT attribute,value FROM $table");$out=[];
  if(!$q)throw new RuntimeException('Telemetry unavailable');
@@ -24,6 +25,13 @@ try{
  $data=moonSimDescentInitialization(lunarXYZ($lm),lunarXYZ($lm,'delta_'),
    lunarXYZ($moon),lunarXYZ($moon,'delta_'),
    $gravitational_constant*$moon_mass,$moon_radius);
+ $mass=$lander_ascent_empty_mass+$lander_descent_empty_mass+
+  max(0,(float)($lm['fuel_ascent']??0))+max(0,(float)($lm['fuel']??0))+
+  max(0,(float)($lm['RCS']??0));
+ $data['braking']=moonSimPoweredDescentTargets(lunarXYZ($lm),lunarXYZ($lm,'delta_'),
+  lunarXYZ($moon),lunarXYZ($moon,'delta_'),$gravitational_constant*$moon_mass,
+  $moon_radius,$mass,max(0,(float)($lm['fuel']??0)),
+  $lander_descent_thrust,311.0);
 }catch(Throwable $e){$data=['status'=>'UNAVAILABLE','reason'=>$e->getMessage()];}
 ?><!doctype html><html><head><meta charset="utf-8"><title>LM Descent Setup</title>
 <style>body{background:#101310;color:#bfd5ae;font:16px monospace;max-width:850px;margin:30px auto}dt{margin-top:13px;color:#a3ce9c}dd{color:#fff}a{color:#bce9a2}</style></head>
