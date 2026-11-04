@@ -156,6 +156,40 @@ function moonSimFiniteTliSearch(
   }
  }
  if($best===null)throw new RuntimeException('No resolved safe finite-thrust lunar encounter within search grid');
+ // Local refinement around the best coarse candidate. Search the missing
+ // out-of-plane dimension plus phase and burn duration; never bypass the
+ // propellant or collision constraints.
+ $initialBest=$best;
+ $planeNormal=moonSimVectorCross($r,$velocity);
+ $planeLength=moonSimVectorMagnitude($planeNormal);
+ $planeNormal=array_map(static fn($x)=>$x/$planeLength,$planeNormal);
+ $bestDirection=$best['burn_direction_inertial_xyz'];
+ $bestDelay=$best['departure_delay_seconds'];
+ $bestDuration=$best['burn_duration_seconds'];
+ $refined=0;
+ foreach([-600.0,0.0,600.0] as $delayOffset){
+  $delay=max(0.0,$bestDelay+$delayOffset);
+  foreach([-3.0,0.0,3.0] as $normalDegrees){
+   $angle=deg2rad($normalDegrees);$direction=[];
+   for($j=0;$j<3;$j++)$direction[$j]=$bestDirection[$j]*cos($angle)+$planeNormal[$j]*sin($angle);
+   foreach([0.975,1.0,1.025] as $durationFactor){
+    $duration=$bestDuration*$durationFactor;
+    if($duration*$thrust/($isp*9.80665)>$fuelMass){$fuelRejected++;continue;}
+    $candidate=moonSimFiniteTliPreview($craft,$velocity,$earth,$moon,$moonVelocity,$direction,
+     $delay,$duration,$initialMass,$fuelMass,$thrust,$isp,
+     $earthMu,$moonMu,$moonRadius,$earthRadius,$horizon,30.0);
+    $evaluated++;$refined++;
+    if($candidate['earth_impact_detected']||$candidate['moon_impact_detected']||
+       $candidate['closest_approach_at_horizon']){$collisionRejected++;continue;}
+    if($candidate['closest_surface_altitude_km']<$best['closest_surface_altitude_km']){
+     $best=$candidate;
+     $best['candidate_departure_offset_deg']=$initialBest['candidate_departure_offset_deg'];
+     $best['candidate_normal_offset_deg']=$normalDegrees;
+    }
+   }
+  }
+ }
+ $best['refinement_candidates_evaluated']=$refined;
  if($best['relative_position_at_approach_m']!==null && $best['relative_velocity_at_approach_m_s']!==null){
   $arrival=moonSimOrbitalElements($best['relative_position_at_approach_m'],$best['relative_velocity_at_approach_m_s'],[0,0,0],$moonMu);
   $best['arrival_specific_energy_j_kg']=$arrival['specific_energy'];
@@ -165,7 +199,10 @@ function moonSimFiniteTliSearch(
  $best['candidate_evaluated']=$evaluated;
  $best['candidate_rejected_fuel']=$fuelRejected;
  $best['candidate_rejected_impact_or_horizon']=$collisionRejected;
- $best['targeting_quality']=$best['closest_surface_altitude_km']<=100.0?'NEAR_LUNAR_PASS':'DISTANT_LUNAR_PASS';
+ $best['targeting_quality']=$best['closest_surface_altitude_km']<=100.0?'NEAR_LUNAR_PASS':($best['closest_surface_altitude_km']<=10000.0?'FAR_LUNAR_ENCOUNTER':'NO_LUNAR_ENCOUNTER');
+ $best['usable_lunar_encounter']=$best['closest_surface_altitude_km']>=0.0 && $best['closest_surface_altitude_km']<=1000.0;
+ $best['burn_start_seconds_from_now']=$best['departure_delay_seconds'];
+ $best['burn_cutoff_seconds_from_now']=$best['departure_delay_seconds']+$best['burn_duration_seconds'];
  $best['warning']='Coarse finite-thrust search, fixed inertial engine orientation, simplified Moon ephemeris. Human verification and refinement required; no automatic ignition.';
  return $best;
 }
