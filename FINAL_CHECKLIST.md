@@ -314,3 +314,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Added `.github/workflows/lunar-guidance-checks.yml` (bdcc8aa), running PHP syntax checks and deterministic docking capture, ascent stage persistence and lunar guidance regression checks on GitHub Actions pushes. This is repository CI, not server deployment.
 - 6.4 and 7.4 remain unchecked until checks are actually observed passing and full ascent/docking lifecycle requirements are satisfied; adding a workflow is not evidence that it passed.
 - Frozen count unchanged at 31/52; no production server testing.
+
+## 2026-11-03 — Return mission wiring
+- Corrected a real TEI arming mismatch: the CSM burn selector offered TEI but the server-side phase allowlist rejected it. The authenticated physical burn controller now accepts TEI and manual cancel clears engine/steering state (f4da744).
+- Added a post-lunar Earth closest-approach timestamp and 120 km atmospheric entry-interface timestamp directly to the moving Earth/Moon coast solver (8bada13), exposed on FIDO return correction readout (7033b58).
+- Full continuous-thrust trans-Earth targeting, complete return-corridor feasibility and validated abort-to-recovery planning remain source gaps. No deployment or server flight tests. Frozen tally remains 31/52 (59.6%).
