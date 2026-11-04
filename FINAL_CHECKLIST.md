@@ -222,3 +222,11 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 6.2 remains open: ascent radial-speed and horizontal circularization targets added (7c2de8a), but a robust ascent-insertion profile is still needed.
 - LM attitude tilt constrained to throttle alignment limits (c89149d).
 - Total 26/52 implemented (50.0%); no flight tests run.
+
+## 2026-11-03 — Next-five development (5.4, 6.2, 6.3, 6.4, 7.2)
+- **5.4 still open:** LM descent controller now inhibits guidance when the LM is attached and clears steering commands on disable (`4b0498f`). Full LM DSKY display and verified touchdown behavior still require work.
+- **6.2 still open:** Existing ascent pitch/radial-speed/fuel references need robust, trajectory-solved orbit insertion; no signoff.
+- **6.3 source advanced:** `physics/lm_ascent_guidance.php` (`c9d6d61`) executes physical LM APS thrust and quaternion attitude rates with nominal orbital cutoff, stage/fuel guards; `physics/step.php` (`d69102d`) connects it. Persistent controls in `database/migrations/2026-11-03-lm-ascent-guidance.sql` (`da69c12`), protected `lm_ascent_control.php` (`1cf1c8f`), and pilot link (`d20bab8`). Requires initial migration and flight-path validation before checkoff.
+- **6.4 not complete:** LM launch-to-orbit stage-state persistence and engine-performance behavior have not been verified. Do not claim this objective from controller wiring alone.
+- **7.2 source advanced:** `shared/lm_rendezvous_reference.php` (`a09b9f7`) calculates live LM/CSM separation, closing speed and lunar orbit phase; linked from `lm_rendezvous_reference.php` (`aa504b4`) and pilot page (`9a023d6`). This is NOT yet a maneuver-quality transfer/correction solver.
+- This batch does not sign off any new objective; frozen source completion remains **26/52 = 50.0%**. No deployment/test validation was done.
