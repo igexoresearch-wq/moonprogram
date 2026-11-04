@@ -19,7 +19,8 @@ function moonSimEnsureLmAssist(mysqli $conn): void {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
     $conn->query("INSERT IGNORE INTO lm_descent_assist(id) VALUES (1)");
-    $conn->query("ALTER TABLE lm_descent_assist ADD COLUMN IF NOT EXISTS attitude_assist TINYINT(1) NOT NULL DEFAULT 0");
+    $column=$conn->query("SHOW COLUMNS FROM lm_descent_assist LIKE 'attitude_assist'");
+    if($column && $column->num_rows===0)$conn->query("ALTER TABLE lm_descent_assist ADD COLUMN attitude_assist TINYINT(1) NOT NULL DEFAULT 0");
     $ready = true;
 }
 
