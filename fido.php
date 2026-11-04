@@ -69,6 +69,9 @@ try{
   $answer['solution_status']='ADVISORY / NOT A BURN COMMAND';
   $answer['assumed_propellant_kg']=$fuel;
   $answer['engine_model']='S-IVB J-2 NOMINAL / 421 S';
+  $answer['fido_assessment']=!empty($answer['usable_lunar_encounter'])
+    ?'CANDIDATE LUNAR ENCOUNTER — VERIFY INDEPENDENTLY'
+    :'NO ACCEPTABLE LUNAR ENCOUNTER — DO NOT TRANSMIT AS BURN SOLUTION';
  }
 }catch(Throwable $e){$error=$e->getMessage();}
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
