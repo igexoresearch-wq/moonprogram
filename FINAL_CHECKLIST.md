@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 30 implemented in source, 22 remaining (57.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 31 implemented in source, 21 remaining (59.6%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -48,7 +48,7 @@
 ## 7. Rendezvous and docking
 - [x] CM/LM relative state, separation behavior and physical docking/undocking capture conditions.
 - [x] Calculate phasing, rendezvous transfers and correction burns from live vehicle states. **Source-level live CM/LM lunar phasing and finite, fuel-limited APS rendezvous burn search with propagated encounter velocity matching; final docking alignment and collision-safety verification remain the next separate objectives.**
-- [ ] Implement docking alignment, closure guidance and cockpit displays.
+- [x] Implement docking alignment, closure guidance and cockpit displays. **Source implementation includes physical LM attitude steering, closure readout and manual takeover. Docking verification remains in 7.4.**
 - [ ] Verify rendezvous guidance, proximity safety and physical docking end-to-end.
 
 ## 8. Trans-Earth injection and return
@@ -294,3 +294,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Integrated protected SPS fuel reserve calculation into FIDO TEI results (af108a2), instead of showing departure delta-v without available fuel reserve.
 - All six items remain unchecked. 6.4 needs executed isolated flight/stage validation; 7.3 needs attitude/physical docking guidance; 7.4 needs repeatable docking capture demonstration; 8.2 needs full continuous-thrust TEI targeting; 8.3 needs arrival/entry-timing and entry corridor solution; 8.4 needs a fuel-feasible recovery-capable abort trajectory. These are source-level gaps, not a request for deployment.
 - Frozen tally unchanged: 30/52. No production server changes.
+
+## Docking guidance development update
+- 7.3 source-complete: attitude alignment in worker, crew toggle, relative velocity guidance and existing capture mechanism connected. Full docking validation stays in 7.4.
+- APS insertion event-log schema initialization repaired.
+- No production testing performed. Remaining objective count: 21.
