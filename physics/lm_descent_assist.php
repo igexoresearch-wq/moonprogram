@@ -77,7 +77,7 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
             $horizontalMagnitude=sqrt(array_sum(array_map(static fn($x)=>$x*$x,$horizontal)));
             $desired=$normal;
             if($horizontalMagnitude>0.3){
-                $brakeFraction=max(0.0,min(0.65,$horizontalMagnitude/100.0));
+                $brakeFraction=max(0.0,min(0.30,$horizontalMagnitude/250.0));
                 for($i=0;$i<3;$i++)$desired[$i]=$normal[$i]*(1-$brakeFraction)-$horizontal[$i]/$horizontalMagnitude*$brakeFraction;
             }
             $rates=moonSimAscentBodyRates($q,$desired,2.0);
@@ -88,7 +88,7 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
             $status='HOLD: POINT ENGINE UP (<32 DEG ERROR)';
             $throttle=0.0;
         } elseif ($tangential>12.0 && $alt<500.0) {
-            $status='WARNING: EXCESSIVE LATERAL SPEED';
+            $status='WARNING: HIGH LATERAL SPEED — PILOT CORRECTION REQUIRED';
             $throttle=0.0;
         } else {
             // Height-dependent descent target, then a radial-speed PD command.
