@@ -127,7 +127,7 @@ try{
     }
 } catch(Throwable $e){$error='Required telemetry unavailable: '.$e->getMessage();}
 ?><!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit Maneuver Advisor</title>
-<style>body{font:16px system-ui;background:#15202c;color:#edf3fc;padding:22px}main{max-width:900px;margin:auto}dt{color:#9fd4ec}dd{margin:0 0 12px}form{padding:18px;border:1px solid #526679}input,select,button{font:inherit;padding:8px;background:#293c4f;color:white}</style></head><body><main><h1>ORBIT MANEUVER ADVISOR</h1>
+<style>body{font:16px system-ui;background:#15202c;color:#edf3fc;padding:22px}main{max-width:900px;margin:auto}dt{color:#9fd4ec}dd{margin:0 0 12px}form{padding:18px;border:1px solid #526679}input,select,button{font:inherit;padding:8px;background:#293c4f;color:white}</style></head><body><main><h1>ORBIT MANEUVER ADVISOR</h1><p><a href="orbit_navigation.php" style="color:#99d9ff">Open cockpit orbital navigation and manual controls</a></p>
 <form method="get"><label>Craft <select name="vehicle"><option <?=$vehicle==='CM'?'selected':''?>>CM</option><option <?=$vehicle==='LM'?'selected':''?>>LM</option></select></label>
 <label>Central body <select name="body"><option <?=$body==='EARTH'?'selected':''?>>EARTH</option><option <?=$body==='MOON'?'selected':''?>>MOON</option></select></label>
 <label>Target altitude (m) <input name="altitude" type="number" min="0" max="5000000" value="<?=(int)$altitude?>"></label>
