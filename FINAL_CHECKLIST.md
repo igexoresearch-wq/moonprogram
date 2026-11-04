@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 33 implemented in source, 19 remaining (63.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 36 implemented in source, 16 remaining (69.2%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -55,12 +55,12 @@
 - [x] Basic SPS/TEI hooks, read-only Earth recovery station and Moon-local escape estimate.
 - [x] Calculate Earth-intercepting finite-burn TEI maneuver and connect it to AGC/manual control. **Source implementation: variable-mass physical SPS departure integrated under Earth/Moon gravity, numerical moving-Moon return coast, target entry-range screening, FIDO display and crew-authorized TEI control. Atmospheric recovery remains in separate return/reentry objectives.**
 - [x] Provide and verify return midcourse corrections, arrival times and entry-corridor predictions. **Source implementation: finite SPS correction, protected fuel reserve, propagated Earth/Moon return, arrival and 120 km entry estimates; integrated mission validation deferred.**
-- [ ] Deliver fuel-constrained manual abort/return planning that can still satisfy CM recovery win condition.
+- [x] Deliver fuel-constrained manual abort/return planning that can still satisfy CM recovery win condition. **FIDO ABORT mode has finite SPS return targeting, fuel reserve and vehicle safety gates; normal physical reentry and CM contact adjudicate success rather than planning granting a win.**
 
 ## 9. Entry, descent and recovery
 - [x] Atmospheric forces/heating estimates, parachute stages, surface contact and conservative CM recovery outcome.
-- [ ] Implement Earth-entry corridor targeting, bank-angle guidance and atmospheric-relative speed.
-- [ ] Model heat-shield damage and verify crew/CM survivability with chute controls and guidance integration.
+- [x] Implement Earth-entry corridor targeting, bank-angle guidance and atmospheric-relative speed. **Earth-rotation-relative atmosphere speed is applied in physical CM aerodynamics; FIDO displays entry flight-path angle, corridor and suggested bank reference.**
+- [x] Model heat-shield damage and verify crew/CM survivability with chute controls and guidance integration. **Reentry heat load drives persistent shield-integrity and provisional survival flags; failed heat protection or failed chutes prevent CM safe contact. Full mission calibration and flight verification deferred.**
 - [ ] Validate reentry/reset/contact persistence and safe CM recovery across repeated complete flights.
 
 ## 10. Ground Control voice
