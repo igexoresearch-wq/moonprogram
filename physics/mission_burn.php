@@ -30,7 +30,8 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  if($r)while($v=$r->fetch_assoc())$s[$v['attribute']]=(float)$v['value'];
  if((int)($s['ABORT']??0)!==0){
   $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
-  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='$engineStage'");
   return;
  }
  $engineAvailable=$phase==='TLI'
@@ -38,7 +39,8 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
   :(int)($s['stage3']??0)===0&&(int)($s['service_module']??0)===1&&(float)($s['fuel']??0)>0;
  if(!$engineAvailable){
   $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
-  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='$engineStage'");
   return;
  }
  $dir=[(float)$p['dir_x'],(float)$p['dir_y'],(float)$p['dir_z']];
