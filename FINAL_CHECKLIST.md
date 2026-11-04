@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 18 implemented in source, 34 remaining (34.6%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 19 implemented in source, 33 remaining (36.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -23,7 +23,7 @@
 
 ## 3. Translunar injection and coast
 - [x] Read-only approximate TLI references, moving-Moon encounter propagation, local search and safety screening.
-- [ ] Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry).
+- [x] Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry). **Source-level finite-burn candidate solver, fuel constraint, arrival state and miss assessment implemented; live trajectory remains unverified.**
 - [ ] Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines.
 - [ ] Provide and verify midcourse corrections, lunar encounter prediction and free-return alternatives.
 
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**3.2** Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry).
+**3.3** Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -160,3 +160,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 ## 2026-11-03 — Objective 3.2 arrival-state increment
 - Updated `shared/finite_tli_targeting.php` in commit `ae40eab` to report propagated Moon-relative closest-approach position/velocity and osculating lunar arrival specific energy, eccentricity and periapsis when defined. FIDO's existing computation display can show the additional numerical results.
 - **Not yet complete:** The candidate solver still uses a coarse grid and fixed inertial thrust direction, and the FIDO stack mass approximation omits some attached LM propellant. Do not treat the displayed numbers as a verified TLI burn command. Keep 3.2 unchecked; project total remains 18/52.
+
+## 2026-11-03 — Objective 3.2 completed in source
+- `shared/tli_stack_mass.php` (`7100159`) reproduces the physical attached S-IVB, CSM and LM wet-mass accounting. `fido.php` now uses actual LM ascent/descent fuel and both vehicles' RCS propellant instead of omitting LM fuel or including separated S-II (`6c7e13c`).
+- The finite burn propagator now rotates the commanded orbital-frame burn direction to the real **coasted ignition frame** at the selected departure time (`b4b9219`); it already uses the real Earth-fixed lunar tidal gravity and two-body relative Moon dynamics. The solution carries an ignition-frame direction rather than assuming the initial inertial vector remains correct.
+- Search now refines departure timing, finite engine duration and cross-plane pointing around the coarse grid; screens out out-of-fuel, collision and horizon-ended predictions; returns actual fuel consumption and predicted Moon-relative arrival state, orbital elements and nearest approach (`e9cfc05`, `8193935`, prior `ae40eab`). A far miss is labeled **NO_LUNAR_ENCOUNTER**; FIDO explicitly says not to transmit that candidate as a maneuver (`1aced81`).
+- `tests/finite_tli_checks.php` extended to check delayed ignition frame and proper attached stack mass (`fbd53b2`). **No PHP test execution in this iteration and no end-to-end live burn test.** The feature is marked done under the explicit source-implementation criterion, not certified flight accuracy. TLI actual ignition, attitude tracking, AGC/DSKY and cockpit operator flow are the **next existing 3.3 objective**. No new checklist items; frozen denominator 52.
