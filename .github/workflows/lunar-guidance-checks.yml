@@ -1,0 +1,28 @@
+name: Lunar guidance source checks
+on:
+  push:
+    paths:
+      - 'physics/**'
+      - 'shared/**'
+      - 'tests/**'
+      - '.github/workflows/lunar-guidance-checks.yml'
+  workflow_dispatch:
+jobs:
+  lunar-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: none
+          coverage: none
+      - name: PHP syntax
+        run: |
+          find physics shared tests -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+      - name: Docking capture
+        run: php tests/docking_capture_checks.php
+      - name: Stage persistence
+        run: php tests/lm_ascent_stage_persistence.php
+      - name: Lunar orbital guidance
+        run: php tests/lunar_guidance_checks.php
