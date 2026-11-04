@@ -33,7 +33,8 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     $control = $result?$result->fetch_assoc():null;
     $enabled = $control && (int)($control['enabled'] ?? 0) === 1;
     $attitudeAssist = $control && (int)($control['attitude_assist'] ?? 0) === 1;
-    if (!$enabled) return;
+    // Surface classification must still be observed with pilot manual control.
+    // Do not return here: only guidance commands are conditional on enabled.
     // Never run descent guidance while LM is attached to the CSM or Saturn stack.
     $dock=$conn->query("SELECT attribute,value FROM command_module WHERE attribute IN ('dock','stage3')");
     if($dock){while($d=$dock->fetch_assoc()){
@@ -56,6 +57,21 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     $lm=$read('telemetry',['x','y','z','delta_x','delta_y','delta_z','descent','fuel','crash']);
     $moon=$read('moon',['x','y','z','delta_x','delta_y','delta_z']);
     if (count($lm)<9 || count($moon)<6) return;
+    if(!$enabled){
+      include __DIR__.'/../shared/physical_constants.php';
+      $dx=$lm['x']-$moon['x'];$dy=$lm['y']-$moon['y'];$dz=$lm['z']-$moon['z'];
+      $distance=sqrt($dx*$dx+$dy*$dy+$dz*$dz);
+      if($distance>0 && $distance<=$moon_radius){
+        $up=[$dx/$distance,$dy/$distance,$dz/$distance];
+        $v=[$lm['delta_x']-$moon['delta_x'],$lm['delta_y']-$moon['delta_y'],$lm['delta_z']-$moon['delta_z']];
+        $radial=$v[0]*$up[0]+$v[1]*$up[1]+$v[2]*$up[2];
+        $speed=sqrt(array_sum(array_map(static fn($x)=>$x*$x,$v)));
+        $lateral=sqrt(max(0,$speed*$speed-$radial*$radial));
+        $classification=abs($radial)<=2 && $lateral<=2?'SOFT_ENVELOPE':'HARD_CONTACT';
+        $conn->query("UPDATE lm_descent_assist SET touchdown_result='$classification',status='CONTACT' WHERE id=1 AND touchdown_result='PENDING'");
+      }
+      return;
+    }
 
     $dx=$lm['x']-$moon['x']; $dy=$lm['y']-$moon['y']; $dz=$lm['z']-$moon['z'];
     $r=sqrt($dx*$dx+$dy*$dy+$dz*$dz);
