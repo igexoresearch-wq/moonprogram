@@ -133,3 +133,55 @@ function moonSimMidcourseSearch(
   'candidate_is_better'=>$best!==null&&$best['predicted_closest_lunar_altitude_km']<$baseline['predicted_closest_lunar_altitude_km'],
   'warning'=>'Discrete impulsive correction study; no engine command, no verified free-return guarantee.'];
 }
+
+/** Ground-computer free-return screening: never label a flyby as free-return
+ * unless post-lunar Earth approach appears inside the integrated time horizon.
+ */
+function moonSimFreeReturnSearch(
+ array $craft,array $velocity,array $earth,array $moon,array $moonVelocity,
+ float $earthMu,float $moonMu,float $earthRadius,float $moonRadius,
+ float $maxCorrection=35.0,float $horizon=1036800.0
+):array{
+ if($maxCorrection<=0||$maxCorrection>300)throw new InvalidArgumentException('Invalid correction limit');
+ $base=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+  $earthMu,$moonMu,$earthRadius,$moonRadius,$horizon,null,120.0);
+ $forward=moonSimRelativeVector($velocity,$moonVelocity);
+ $speed=moonSimVectorMagnitude($forward);
+ if($speed<1.0)throw new RuntimeException('Insufficient relative state for targeting');
+ $forward=array_map(static fn($x)=>$x/$speed,$forward);
+ $toward=moonSimRelativeVector($moon,$craft);
+ $distance=moonSimVectorMagnitude($toward);
+ if($distance<1.0)throw new RuntimeException('Undefined Moon sightline');
+ $toward=array_map(static fn($x)=>$x/$distance,$toward);
+ $normal=moonSimVectorCross($forward,$toward);
+ $n=moonSimVectorMagnitude($normal);
+ if($n<1e-8)throw new RuntimeException('Undefined candidate plane');
+ $normal=array_map(static fn($x)=>$x/$n,$normal);
+ $lateral=moonSimVectorCross($normal,$forward);
+ $best=null;$tested=0;
+ foreach([$forward,$toward,$lateral,$normal] as $axis){
+  foreach([-1.0,1.0] as $sign){
+   foreach([0.25,0.5,1.0] as $factor){
+    $dv=array_map(static fn($x)=>$x*$maxCorrection*$sign*$factor,$axis);
+    $preview=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+     $earthMu,$moonMu,$earthRadius,$moonRadius,$horizon,$dv,180.0);
+    $tested++;
+    if($preview['moon_impact']||$preview['predicted_closest_lunar_altitude_km']<100.0)continue;
+    // Return corridor only requires an Earth approach after the lunar flyby,
+    // not a forced surface impact or an artificially guaranteed reentry.
+    $peri=$preview['post_lunar_earth_min_altitude_m'];
+    if($peri===null||$peri<100000.0||$peri>2000000.0)continue;
+    $error=abs($peri-120000.0);
+    if($best===null||$error<$best['earth_return_corridor_error_m']){
+      $best=$preview;
+      $best['correction_delta_v_xyz']=$dv;
+      $best['correction_magnitude_m_s']=$maxCorrection*$factor;
+      $best['earth_return_corridor_error_m']=$error;
+    }
+   }
+  }
+ }
+ return ['unmodified_track'=>$base,'return_candidate'=>$best,
+ 'searched_candidates'=>$tested,'return_corridor_found'=>$best!==null,
+ 'warning'=>'Finite-horizon numeric Earth-return corridor screening, not proof of safe reentry, capture or actual free-return. Verify under production physics and full flight timeline.'];
+}
