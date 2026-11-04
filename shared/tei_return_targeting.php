@@ -19,7 +19,7 @@ function moonSimTeiReference(array $craft,array $velocity,array $earth,array $mo
    $d=array_map(static fn($x)=>$sgn*$x/$mag,$raw);
    foreach([30.0,60.0,120.0,240.0,360.0] as $seconds){
     $spent=$seconds*$flow;
-    if($spent>0.9*$fuel)continue;
+    if($spent>0.85*$fuel)continue;
     try{
       $burn=moonSimFiniteSpsDeparture($craft,$velocity,$earth,$moon,$moonVelocity,
        $earthMu,$moonMu,$earthRadius,$moonRadius,$wet,$fuel,$thrust,$isp,$d,$seconds);
@@ -30,8 +30,8 @@ function moonSimTeiReference(array $craft,array $velocity,array $earth,array $mo
     $dv=$isp*9.80665*log($wet/($wet-$spent));
     $tested++;
     $arrival=$coast['post_lunar_earth_min_altitude_m'];
-    if($coast['moon_impact']||$arrival===null||$arrival<60000||$arrival>300000)continue;
-    $score=abs($arrival-120000);
+    if($coast['moon_impact']||$arrival===null||$arrival<65000||$arrival>140000)continue;
+    $score=abs($arrival-100000);
     if($best===null||$score<$best['entry_altitude_target_error_m'])
      $best=['direction_xyz'=>$d,'duration_seconds'=>$seconds,'fuel_used_kg'=>$spent,
        'ideal_delta_v_m_s'=>$dv,'entry_altitude_target_error_m'=>$score,
