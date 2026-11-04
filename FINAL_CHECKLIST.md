@@ -325,3 +325,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Source completed private provider adapter and authenticated push-to-talk Ground voice with optional local speech output. Provider credentials remain external and require server setup at deployment.
 - Read-only mission telemetry source labeling implemented. Navigation and procedure reference tools remain incomplete; 10.3 open.
 - Full repeated-mission reentry persistence verification is deferred to final mission testing; 9.4 remains open.
+
+## 2026-11-04 — Apollo radio panel implementation
+- Added pending CAPCOM call routing, voice-only FIDO specialist selector, and browser-held push-to-talk. Crew voice is routed to CAPCOM rather than specialists.
+- FIDO's CAPCOM selector plays the oldest queued crew request over audio and acknowledges it. Per-specialist previous reply is preserved for say-again/readback questions.
+- This is a source implementation milestone, not full two-way CAPCOM-mediated crew communication: forwarding Flight Director-approved ground instructions to the correct crew console and specialist numerical solver dispatch remain open. No production deployment or full mission test was performed.
