@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 25 implemented in source, 27 remaining (48.1%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 26 implemented in source, 26 remaining (50.0%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -35,7 +35,7 @@
 
 ## 5. Lunar module landing
 - [x] LM descent propulsion/RCS physics, lunar contact detection and optional throttle-only descent assist.
-- [ ] Initialize descent from lunar orbit with valid braking and powered-descent targets.
+- [x] Initialize descent from lunar orbit with valid braking and powered-descent targets. **Source-level fuel-bounded candidate finite-burn initialization and impact screening; flight verification deferred.**
 - [x] Implement Moon-relative horizontal-speed, attitude and final landing guidance with pilot takeover. **Optional LM pitch/yaw attitude steering plus existing gravity/radial-speed throttle assistance, crew-selectable guidance or manual takeover; physical touchdown verification remains under the separate landing-integration objective and Section 13.**
 - [ ] Integrate complete descent guidance, landing predictions and LM DSKY with verified touchdown behavior.
 
@@ -215,3 +215,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **5.4 remains open:** Full LM DSKY integration, continuously recomputed landing predictions, safe terminal landing envelope, and full source touchdown workflow still require development. Real mission end-to-end validation remains in Section 13.
 - **6.2 remains open:** `shared/lm_ascent_targets.php` now calculates Moon-relative ascent direction/pitch, orbital insertion reference, thrust-to-weight and remaining ideal delta-v (`9f6fc12`) and the LM setup console displays it (`63c4275`). Closed-loop safe orbital insertion profile is not yet solved.
 - Frozen progress **25/52 (48.1%)**; user requested four objectives worked on, not four falsely checked off. No live integrated flight validation was performed.
+
+## 2026-11-03 — Descent and ascent continuation
+- 5.2 source completed: finite fuel-consuming braking forecast and live setup screen (6256c2e, ddad772).
+- 5.4 remains open: terminal landing envelope display integrated into LM page (64cf7ce, a1b97ed), but LM DSKY and touchdown validation remain.
+- 6.2 remains open: ascent radial-speed and horizontal circularization targets added (7c2de8a), but a robust ascent-insertion profile is still needed.
+- LM attitude tilt constrained to throttle alignment limits (c89149d).
+- Total 26/52 implemented (50.0%); no flight tests run.
