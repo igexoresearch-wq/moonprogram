@@ -10,7 +10,7 @@ if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(ran
 <body style="background:#111b18;color:#e0ecdd;font:17px monospace;max-width:800px;margin:30px auto">
 <h1>GROUND / PUSH TO TALK</h1>
 <p>Advisory only. Replies include source references. No vehicle actions are available.</p>
-<button id="talk">HOLD TO SPEAK</button><p id="state">READY</p>
+<button id="talk">HOLD TO SPEAK</button><label><input type="checkbox" id="speak"> SPEAK REPLY</label><p id="state">READY</p>
 <pre id="answer" style="white-space:pre-wrap"></pre>
 <script>
 const button=document.getElementById('talk'),state=document.getElementById('state'),answer=document.getElementById('answer');
@@ -30,6 +30,9 @@ async function start(){
     const data=await res.json();
     if(!res.ok)throw Error(data.error||'Failed');
     answer.textContent='CREW: '+data.transcript+'\n\nFIDO: '+data.reply;
+    if(document.getElementById('speak').checked && 'speechSynthesis' in window){
+      speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(data.reply));
+    }
     state.textContent='READY';
    }catch(e){state.textContent='ERROR: '+e.message;}
   };
