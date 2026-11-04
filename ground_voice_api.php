@@ -24,7 +24,7 @@ try{
  $station=strtoupper((string)($_POST['station']??'FIDO'));
  $specialist=strtoupper((string)($_POST['specialist']??'TRAJECTORY'));
  $roles=['GUIDO','RETRO','EECOM','GNC','TELMU','TRAJECTORY','CAPCOM'];
- if(!in_array($station,['FIDO','CREW'],true))voiceFail(400,'Unknown radio station');
+ if(!in_array($station,['FIDO','CREW'],true)||$station!==($_SESSION['moon_radio_role']??''))voiceFail(403,'Radio station authorization required');
  if($station==='CREW')$specialist='CAPCOM';
  if(!in_array($specialist,$roles,true))voiceFail(400,'Unknown controller');
  $context=moonSimRadioCalculation($conn,$specialist,$utterance);
