@@ -47,5 +47,6 @@ function moonSimRendezvousTransferSearch(array $lmP,array $lmV,array $cmP,array 
   }
  }
  return ['best'=>$best,'candidates_evaluated'=>$sampled,
+  'candidate_usable_for_approach'=>$best!==null&&$best['closest_range_m']<=10000.0&&$best['relative_speed_at_closest_m_s']<=5.0,
   'warning'=>'Moon-only impulsive transfer study. No docking command, proximity approach controls, or verified collision-safe terminal rendezvous.'];
 }
