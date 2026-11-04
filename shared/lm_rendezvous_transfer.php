@@ -48,5 +48,10 @@ function moonSimRendezvousTransferSearch(array $lmP,array $lmV,array $cmP,array 
  }
  return ['best'=>$best,'candidates_evaluated'=>$sampled,
   'candidate_usable_for_approach'=>$best!==null&&$best['closest_range_m']<=10000.0&&$best['relative_speed_at_closest_m_s']<=5.0,
+  'correction_at_encounter_xyz'=>$best===null?null:(static function(array $b)use($lmVel,$cmVel):array{
+    // Current velocity difference is not the later encounter velocity;
+    // avoid presenting a fictitious docking-burn vector here.
+    return ['available'=>false,'reason'=>'Recompute at the predicted encounter from propagated spacecraft states'];
+  })($best),
   'warning'=>'Moon-only impulsive transfer study. No docking command, proximity approach controls, or verified collision-safe terminal rendezvous.'];
 }
