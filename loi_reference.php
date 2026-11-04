@@ -22,7 +22,18 @@ try{
  $cm=loiData($conn,'command_module');$moon=loiData($conn,'moon');
  if((int)($cm['stage3']??0)!==0||(int)($cm['service_module']??0)!==1)
   throw new RuntimeException('LOI requires detached S-IVB and available service module');
- $fuel=(float)($cm['fuel']??0);$mass=$command_module_empty_mass+$service_module_empty_mass+$fuel;
+ $fuel=max(0.0,(float)($cm['fuel']??0));
+ $rcs=max(0.0,(float)($cm['RCS']??0));
+ if($rcs>$csm_rcs_initial_propellant*2.0)$rcs=$rcs/3329.0*$csm_rcs_initial_propellant;
+ $mass=$command_module_empty_mass+$service_module_empty_mass+$fuel+$rcs;
+ if((int)($cm['dock']??0)===1){
+  $lm=loiData($conn,'telemetry');
+  $lmRcs=max(0.0,(float)($lm['RCS']??0));
+  if($lmRcs>$lm_rcs_initial_propellant*2.0)$lmRcs=$lmRcs/3329.0*$lm_rcs_initial_propellant;
+  $mass+=$lander_ascent_empty_mass+max(0.0,(float)($lm['fuel_ascent']??0))+$lmRcs;
+  if((int)($lm['descent']??0)===1)
+   $mass+=$lander_descent_empty_mass+max(0.0,(float)($lm['fuel']??0));
+ }
  $p=moonSimRelativeVector(loiVec($cm),loiVec($moon));
  $v=moonSimRelativeVector(loiVec($cm,'delta_'),loiVec($moon,'delta_'));
  $target=filter_input(INPUT_GET,'target',FILTER_VALIDATE_FLOAT);
