@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 22 implemented in source, 30 remaining (42.3%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 24 implemented in source, 28 remaining (46.2%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -30,8 +30,8 @@
 ## 4. Lunar orbit insertion
 - [x] Read-only Moon-relative orbital elements and provisional impulsive lunar-capture estimates.
 - [x] Calculate usable live finite-burn LOI targets and predicted postburn lunar orbit. **Coupled Earth–Moon finite SPS burn search with propellant limits and safe bound-orbit screening, connected to live LOI console; full flight validation deferred to Section 13.**
-- [ ] Execute LOI ignition, attitude, throttle/cutoff and guidance monitoring using physical engine state.
-- [ ] Expose LOI orbit predictions, safe manual procedure and recovery controls in cockpit.
+- [x] Execute LOI ignition, attitude, throttle/cutoff and guidance monitoring using physical engine state. **LOI armed plan uses physical SPS via the mission clock, AGC enabled/attitude hold gating, existing switch and fuel path; integrated flight validation deferred to Section 13.**
+- [x] Expose LOI orbit predictions, safe manual procedure and recovery controls in cockpit. **Numerical LOI target display linked to authenticated crew arm/cancel and recovery procedures; additional authentic DSKY interaction remains under instrument fidelity.**
 
 ## 5. Lunar module landing
 - [x] LM descent propulsion/RCS physics, lunar contact detection and optional throttle-only descent assist.
@@ -202,3 +202,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **3.4 completed in source:** FIDO midcourse and free-return search, SPS duration/fuel advisory, manual crew-authorized SPS physical correction execution, coupled gravity and candidate screening. No forced safe return.
 - **4.2 completed in source:** coupled Earth–Moon finite SPS LOI search with actual state and fuel-limited lunar orbit predictions; LOI ignition/execution remains existing 4.3.
 - Current tally: **22 implemented / 52 frozen objectives (42.3%), 30 remaining**. The regression scripts are committed, but not executed this session. Full end-to-end flight verification remains Section 13.
+
+## 2026-11-03 — Three-objective batch 4.3 / 4.4 / 5.2
+- **4.3 implemented in source:** `physics/mission_burn.php` now accepts `LOI` alongside TLI/MCC in the one-second worker, driving the existing SPS switch-governed physical thrust/fuel, stored quaternion body-rate guidance, ignition and cutoff timing, manual cancellation and abort logic (`8f210ca`). `csm_burn_control.php` permits crew-approved LOI arming (`af38fb6`). Flight-level testing remains in Section 13.
+- **4.4 implemented in source:** `loi_reference.php` exposes current coupled Earth–Moon target predictions with a direct crew maneuver link and a stop/recompute procedure (`b5086e0`). Actual maneuver is never automatically inferred from a calculation.
+- **5.2 underway, not yet completed:** `shared/lm_descent_initialization.php` adds a state-dependent Moon-relative deorbit reference, orbital validity screening and braking orientation (`7e24958`), shown in `lm_descent_setup.php` (`b979101`) and linked from LM pilot (`37704c8`). Still requires finite-thrust powered-descent targeting and rigorously bounded braking target before completion; do not mark a two-body reference as a valid full descent profile.
+- Frozen objectives: **24/52 = 46.2%, 28 remaining**. Source changes are committed; integrated flights remain untested.
