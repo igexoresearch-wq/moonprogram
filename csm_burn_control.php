@@ -13,13 +13,14 @@ if(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
  $action=(string)($_POST['action']??'');
  if($action==='cancel'){
   $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
-  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage IN ('Service Module','Third Stage')");
   $message='BURN CANCELLED';
  }elseif($action==='arm'){
   $r=$conn->query("SELECT seconds FROM mission_clock WHERE id=1");
   $clock=$r?$r->fetch_assoc():null;$met=(int)($clock['seconds']??-900);
   $phase=(string)($_POST['phase']??'TLI');
-  if(!in_array($phase,['TLI','MCC','LOI'],true))exit('Unknown maneuver phase');
+  if(!in_array($phase,['TLI','MCC','LOI','TEI'],true))exit('Unknown maneuver phase');
   $stateQuery=$conn->query("SELECT attribute,value FROM command_module WHERE attribute IN ('stage3','service_module','s3fuel','fuel','ABORT')");
   $state=[];
   if($stateQuery)while($row=$stateQuery->fetch_assoc())$state[$row['attribute']]=(float)$row['value'];
