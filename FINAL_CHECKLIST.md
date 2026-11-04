@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 26 implemented in source, 26 remaining (50.0%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 27 implemented in source, 25 remaining (51.9%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -42,7 +42,7 @@
 ## 6. Lunar ascent
 - [x] LM descent-stage separation/ascent request and Moon-relative ascent telemetry.
 - [ ] Calculate safe live ascent pitch, heading, velocity, altitude and orbit-insertion profile.
-- [ ] Implement APS ignition, cutoff and orbital insertion with independent guidance executor and manual override.
+- [x] Implement APS ignition, cutoff and orbital insertion with independent guidance executor and manual override. **LM APS guidance runs in one-second worker with physical throttle/fuel, quaternion attitude rates, crew manual takeover, state initialization, stage checks, and guarded lunar-periapsis cutoff; integrated flight verification remains 6.4 and Section 13.**
 - [ ] Validate LM launch-to-orbit performance and stage-state persistence.
 
 ## 7. Rendezvous and docking
@@ -230,3 +230,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **6.4 not complete:** LM launch-to-orbit stage-state persistence and engine-performance behavior have not been verified. Do not claim this objective from controller wiring alone.
 - **7.2 source advanced:** `shared/lm_rendezvous_reference.php` (`a09b9f7`) calculates live LM/CSM separation, closing speed and lunar orbit phase; linked from `lm_rendezvous_reference.php` (`aa504b4`) and pilot page (`9a023d6`). This is NOT yet a maneuver-quality transfer/correction solver.
 - This batch does not sign off any new objective; frozen source completion remains **26/52 = 50.0%**. No deployment/test validation was done.
+
+## 2026-11-03 — Follow-up: five-objective completion effort
+- LM ascent guidance now initializes its database state and requires safe instantaneous lunar periapsis before insertion cutoff (`c68c543`). Existing APS guidance, physical engine, pilot manual takeover and one-second worker are connected, so **6.3 is complete at the checklist's source-implementation level**; full launch-to-orbit validation remains 6.4.
+- LM rendezvous has a 3-D orbital correction candidate search (`c08684e`) connected to the numerical console (`8ba88b5`); not yet a collision-safe commanded transfer, so **7.2 remains open**.
+- Landing navigation data now appears as a read-only LM instrument (`246ff4b`, `6c80ef9`). This does not prove touchdown outcomes, so **5.4 remains open**.
+- **6.2** still needs robust fuel-feasible ascent profile and **6.4** still needs launch-to-orbit persistence verification. No live flight test or schema migration deployment was performed.
+- Fixed checklist remains **27/52 (51.9%)**, not five completed.
