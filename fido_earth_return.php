@@ -49,6 +49,7 @@ try{
   if(!empty($answer['candidate'])){
    $answer['manual_return_fuel_budget']=moonSimReturnAbortBudget($mass,$fuel,$service_module_thrust,314.0,
      (float)$answer['candidate']['duration_seconds']);
+   $answer['recovery_gate']=moonSimReturnRecoveryGate($answer['manual_return_fuel_budget'],$answer['candidate']['predicted_return'],$cm);
    $answer['recovery_entry_candidate']=$answer['candidate']['predicted_return']['post_lunar_earth_min_altitude_m']>=65000&&$answer['candidate']['predicted_return']['post_lunar_earth_min_altitude_m']<=140000;
   }
  }
