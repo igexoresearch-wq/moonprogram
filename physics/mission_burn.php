@@ -9,17 +9,31 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  $clock=$conn->query("SELECT seconds FROM mission_clock WHERE id=1");
  $row=$clock?$clock->fetch_assoc():null;$met=(int)($row['seconds']??-900);
  $start=(int)$p['ignition_met'];$stop=(int)$p['cutoff_met'];
- if(!$enabled) return;
+ if(!$enabled) {
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
+  $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
+  return;
+ }
  if($met>=$stop) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
   $conn->query("UPDATE mission_burn_plan SET status='COMPLETE' WHERE id=1");
   return;
  }
  if($met<$start-45)return;
  $r=$conn->query("SELECT attribute,value FROM command_module");$s=[];
  if($r)while($v=$r->fetch_assoc())$s[$v['attribute']]=(float)$v['value'];
- if((int)($s['ABORT']??0)!==0)return;
- if((int)($s['stage3']??0)!==1)return;
+ if((int)($s['ABORT']??0)!==0){
+  $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  return;
+ }
+ if((int)($s['stage3']??0)!==1||((float)($s['s3fuel']??0)<=0)){
+  $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
+  $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
+  return;
+ }
  $dir=[(float)$p['dir_x'],(float)$p['dir_y'],(float)$p['dir_z']];
  $rate=moonSimAscentBodyRates(moonSimLoadVehicleQuaternion($conn,'CM'),$dir,3.0);
  $pitch=sprintf('%.5f',$rate['pitch_rate']);$yaw=sprintf('%.5f',$rate['yaw_rate']);
