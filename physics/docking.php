@@ -299,6 +299,28 @@ function moonSimConsumeDockingCommands(
     return $changed;
 }
 
+/** Side-effect-free capture predicate for local reproducible verification. */
+function moonSimDockCaptureEligible(
+ array $cmPosition,array $cmVelocity,array $lmPosition,array $lmVelocity,
+ array $cmQuaternion,array $lmQuaternion,int $stage3,int $dock,bool $inhibited=false
+): bool {
+ if($inhibited||$stage3!==0||$dock!==0)return false;
+ $r=[];$v=[];
+ for($i=0;$i<3;$i++){
+  $r[$i]=$lmPosition[$i]-$cmPosition[$i];
+  $v[$i]=$lmVelocity[$i]-$cmVelocity[$i];
+ }
+ $distance=sqrt(array_sum(array_map(static fn($x)=>$x*$x,$r)));
+ if($distance>2.0)return false;
+ $speed=sqrt(array_sum(array_map(static fn($x)=>$x*$x,$v)));
+ if($speed>0.30)return false;
+ if($distance>1.0e-6){
+  $radial=($r[0]*$v[0]+$r[1]*$v[1]+$r[2]*$v[2])/$distance;
+  if($radial>0.05)return false;
+ }
+ return moonSimQuaternionSeparationDeg($cmQuaternion,$lmQuaternion)<=15.0;
+}
+
 function moonSimTryDockCapture(
     mysqli $conn,
     array $cmPosition,
