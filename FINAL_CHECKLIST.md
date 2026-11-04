@@ -309,3 +309,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 7.4: Extracted the actual capture predicate into a side-effect-free function used by the physical docking worker (`b3cf7f9`, `687975a`); added nominal, overspeed, excess-range, alignment, Saturn attachment and already-docked regression cases in `tests/docking_capture_checks.php` (`d01087a`). Test source is committed but not executed.
 - 6.4: Added strict flight-telemetry/stage/mission cutoff event consistency checks to `shared/lm_ascent_validation.php` (`f192b5a`) and regression cases to `tests/lm_ascent_stage_persistence.php` (`da70b2d`). The full staged launch/APS orbital injection has not yet been demonstrated.
 - Both remain unchecked; 31/52 source-complete. No deployment or server testing.
+
+## 2026-11-03 — Development-only automated verification
+- Added `.github/workflows/lunar-guidance-checks.yml` (bdcc8aa), running PHP syntax checks and deterministic docking capture, ascent stage persistence and lunar guidance regression checks on GitHub Actions pushes. This is repository CI, not server deployment.
+- 6.4 and 7.4 remain unchecked until checks are actually observed passing and full ascent/docking lifecycle requirements are satisfied; adding a workflow is not evidence that it passed.
+- Frozen count unchanged at 31/52; no production server testing.
