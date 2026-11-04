@@ -42,3 +42,46 @@ function moonSimFiniteLoiEstimate(array $relativePosition,array $relativeVelocit
  'predicted_lunar_bound'=>$after['specific_energy']<0,
  'warning'=>'Moon-only fixed-attitude finite-burn reference. Must refine with coupled Earth-Moon propagation before flight execution.'];
 }
+
+/**
+ * Search finite SPS capture burns from the present Moon-relative state.
+ * A viable candidate must finish bound, with a periapsis safely above lunar
+ * terrain and an apoapsis compatible with the requested target.
+ */
+function moonSimFiniteLoiTarget(
+ array $relativePosition,array $relativeVelocity,float $moonMu,float $moonRadius,
+ float $stackMass,float $fuelMass,float $thrust,float $isp,
+ float $desiredApoapsisAltitude=120000.0,float $safePeriapsisAltitude=80000.0
+):array {
+ if($desiredApoapsisAltitude<$safePeriapsisAltitude || $safePeriapsisAltitude<10000)
+  throw new InvalidArgumentException('Unsafe lunar orbit target');
+ $r=moonSimVectorMagnitude($relativePosition);
+ if($r<=$moonRadius+$safePeriapsisAltitude)throw new RuntimeException('Too low for safe targeting');
+ $v=moonSimVectorMagnitude($relativeVelocity);
+ $radial=moonSimVectorDot($relativePosition,$relativeVelocity)/$r;
+ if($radial>=0.0)throw new RuntimeException('Target LOI on inbound approach before perilune');
+ $maxDuration=min(1200.0,0.95*$fuelMass*$isp*9.80665/$thrust);
+ if($maxDuration<1.0)throw new RuntimeException('Insufficient fuel for a burn');
+ $best=null;$tested=0;$rejected=0;
+ for($t=5.0;$t<=$maxDuration;$t+=5.0){
+  try{
+   $p=moonSimFiniteLoiEstimate($relativePosition,$relativeVelocity,$moonMu,
+     $moonRadius,$stackMass,$fuelMass,$thrust,$isp,$t,1.0);
+  }catch(RuntimeException $ex){$rejected++;continue;}
+  $tested++;
+  if(!$p['predicted_lunar_bound'] || $p['predicted_periapsis_altitude_m']===null
+    || $p['predicted_periapsis_altitude_m']<$safePeriapsisAltitude
+    || $p['predicted_apoapsis_altitude_m']===null)continue;
+  $err=abs($p['predicted_apoapsis_altitude_m']-$desiredApoapsisAltitude);
+  if($best===null||$err<$best['apoapsis_target_error_m']){
+   $best=$p;$best['apoapsis_target_error_m']=$err;
+  }
+ }
+ if($best===null)throw new RuntimeException('No safe, bound lunar capture in tested finite-burn durations');
+ $best['target_apoapsis_altitude_m']=$desiredApoapsisAltitude;
+ $best['minimum_periapsis_altitude_m']=$safePeriapsisAltitude;
+ $best['evaluated_candidates']=$tested;
+ $best['rejected_candidates']=$rejected;
+ $best['target_achieved_within_20km']=$best['apoapsis_target_error_m']<=20000.0;
+ return $best;
+}
