@@ -26,6 +26,14 @@ function moonSimLunarAscentTargets(array $p,array $v,array $moonP,array $moonV,
  $requiredHorizontalDv=max(0.0,$desiredCircular-$currentHorizontal);
  $pitchDeg=$alt<3000?75.0:($alt<20000?45.0:($alt<$orbitAltitude*0.8?15.0:0.0));
  if($alt>=20000) $pitchDeg=max(-5.0,min(40.0,0.05*($targetRadial-$radial)));
+ // Circular-orbit insertion requires bound energy and a safe perilune,
+ // not merely altitude or a near-circular instantaneous speed.
+ $elements=moonSimOrbitalElements($rel,$rv,[0,0,0],$mu);
+ $peri=$elements['periapsis_radius']===null?null:$elements['periapsis_radius']-$radius;
+ $apo=$elements['apoapsis_radius']===null?null:$elements['apoapsis_radius']-$radius;
+ $insertionReady=$elements['specific_energy']<0 && $peri!==null
+  && $peri>=30000 && $apo!==null && abs($apo-$orbitAltitude)<20000
+  && abs($radial)<40 && abs($currentHorizontal-$desiredCircular)<50;
  $pitch=deg2rad($pitchDeg);
  $dir=[];
  for($i=0;$i<3;$i++)$dir[$i]=$up[$i]*sin($pitch)+$heading[$i]*cos($pitch);
@@ -37,7 +45,9 @@ function moonSimLunarAscentTargets(array $p,array $v,array $moonP,array $moonV,
   'estimated_horizontal_acceleration_s'=>$requiredHorizontalDv/max(1e-5,$thrust/$mass),
   'recommended_pitch_deg'=>$pitchDeg,'reference_thrust_direction_xyz'=>$dir,
   'ascent_possible'=>$availableTwr>1.0&&$maxDv>$desiredCircular*0.8,
-  'cutoff_reference_met'=>$alt>=$orbitAltitude*0.95&&abs($radial)<50&&abs($currentHorizontal-$desiredCircular)<50,
+  'predicted_perilune_altitude_m'=>$peri,
+  'predicted_apolune_altitude_m'=>$apo,
+  'cutoff_reference_met'=>$insertionReady,
   'warning'=>'Preliminary lunar ascent pitch schedule; not a closed-loop orbital insertion guarantee.'
  ];
 }
