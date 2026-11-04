@@ -151,6 +151,7 @@ function moonSimFiniteTliSearch(
        $preview['closest_approach_at_horizon']){$collisionRejected++;continue;}
     if($best===null||$preview['closest_surface_altitude_km']<$best['closest_surface_altitude_km']){
      $best=$preview;$best['candidate_departure_offset_deg']=$tilt;
+     $best['candidate_initial_direction_xyz']=$direction;
     }
    }
   }
@@ -163,7 +164,7 @@ function moonSimFiniteTliSearch(
  $planeNormal=moonSimVectorCross($r,$velocity);
  $planeLength=moonSimVectorMagnitude($planeNormal);
  $planeNormal=array_map(static fn($x)=>$x/$planeLength,$planeNormal);
- $bestDirection=$best['burn_direction_inertial_xyz'];
+ $bestDirection=$best['candidate_initial_direction_xyz'];
  $bestDelay=$best['departure_delay_seconds'];
  $bestDuration=$best['burn_duration_seconds'];
  $refined=0;
@@ -185,6 +186,7 @@ function moonSimFiniteTliSearch(
      $best=$candidate;
      $best['candidate_departure_offset_deg']=$initialBest['candidate_departure_offset_deg'];
      $best['candidate_normal_offset_deg']=$normalDegrees;
+     $best['candidate_initial_direction_xyz']=$direction;
     }
    }
   }
