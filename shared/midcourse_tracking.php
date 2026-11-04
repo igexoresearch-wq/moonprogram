@@ -85,3 +85,51 @@ function moonSimMidcoursePropagatedPreview(
   'warning'=>'Numerical coast preview only. A free return needs demonstrated post-flyby Earth encounter, not an osculating conic or hypothetical correction alone.'
  ];
 }
+
+/** Solve bounded manual midcourse correction candidates with the same propagator
+ * as the existing FIDO coast display. No simulated spacecraft state is changed. */
+function moonSimMidcourseSearch(
+ array $craft,array $velocity,array $earth,array $moon,array $moonVelocity,
+ float $earthMu,float $moonMu,float $earthRadius,float $moonRadius,
+ float $maxDeltaV=35.0,float $horizon=604800.0
+):array {
+ if($maxDeltaV<=0||$maxDeltaV>300||!is_finite($maxDeltaV))throw new InvalidArgumentException('Invalid correction budget');
+ $baseline=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+  $earthMu,$moonMu,$earthRadius,$moonRadius,$horizon,null,120.0);
+ $relative=moonSimRelativeVector($velocity,$moonVelocity);
+ $unit=moonSimVectorMagnitude($relative);
+ if($unit<1e-8)throw new RuntimeException('Undefined relative velocity');
+ $forward=array_map(static fn($x)=>$x/$unit,$relative);
+ $radial=moonSimRelativeVector($moon,$craft);
+ $mag=moonSimVectorMagnitude($radial);
+ if($mag<1.0)throw new RuntimeException('Undefined lunar direction');
+ $radial=array_map(static fn($x)=>$x/$mag,$radial);
+ $normal=moonSimVectorCross($forward,$radial);
+ $nm=moonSimVectorMagnitude($normal);
+ if($nm<1e-8)throw new RuntimeException('Undefined correction plane');
+ $normal=array_map(static fn($x)=>$x/$nm,$normal);
+ $side=moonSimVectorCross($normal,$forward);
+ $best=null;$evaluated=0;
+ foreach([0.25,0.5,0.75,1.0] as $fraction){
+  foreach([$forward,$radial,$normal,$side] as $axis){
+   foreach([-1.0,1.0] as $sign){
+    $dv=array_map(static fn($x)=>$x*$maxDeltaV*$fraction*$sign,$axis);
+    $candidate=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+     $earthMu,$moonMu,$earthRadius,$moonRadius,$horizon,$dv,120.0);
+    $evaluated++;
+    if($candidate['earth_impact']||$candidate['moon_impact'])continue;
+    $alt=$candidate['predicted_closest_lunar_altitude_km'];
+    if($alt<100.0 || !is_finite($alt))continue;
+    if($best===null||$alt<$best['predicted_closest_lunar_altitude_km']){
+     $best=$candidate;$best['correction_delta_v_xyz']=$dv;
+     $best['correction_magnitude_m_s']=$maxDeltaV*$fraction;
+    }
+   }
+  }
+ }
+ return ['baseline'=>$baseline,'candidate'=>$best,
+  'evaluated_candidates'=>$evaluated,
+  'improvement_m'=>$best===null?null:1000.0*($baseline['predicted_closest_lunar_altitude_km']-$best['predicted_closest_lunar_altitude_km']),
+  'candidate_is_better'=>$best!==null&&$best['predicted_closest_lunar_altitude_km']<$baseline['predicted_closest_lunar_altitude_km'],
+  'warning'=>'Discrete impulsive correction study; no engine command, no verified free-return guarantee.'];
+}
