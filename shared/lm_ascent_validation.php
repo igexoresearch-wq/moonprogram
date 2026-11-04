@@ -14,3 +14,21 @@ function moonSimAscentValidationCase(array $p,array $v,array $moonP,array $moonV
  'stage_expected_at_cutoff'=>['descent'=>0,'fuel_ascent_kg'=>$fuel-$profile['fuel_consumed_kg']],
  'note'=>'Deterministic isolated model verification; integration with database stages is a separate assertion.'];
 }
+
+/** Verify staged flight telemetry snapshot and flight event after a cutoff.
+ * Pure input arrays allow local checks without contacting production DB. */
+function moonSimAscentStagePersistenceCheck(array $telemetry,array $cm,array $event,
+ float $minimumPeriluneM,float $moonRadius):array{
+ $fail=[];
+ if((int)($telemetry['descent']??1)!==0)$fail[]='Descent stage still attached';
+ if((int)($cm['dock']??1)!==0)$fail[]='LM still docked';
+ if((int)($cm['stage3']??1)!==0)$fail[]='Saturn stage still attached';
+ if((float)($telemetry['fuel_ascent']??-1)<0)$fail[]='Negative APS fuel';
+ if((float)($telemetry['thrust']??1)>0)$fail[]='APS thrust not cut off';
+ if((string)($event['event_name']??'')!=='ORBIT_CUTOFF')$fail[]='Missing insertion event';
+ if((int)($event['descent_attached']??1)!==0)$fail[]='Recorded stage attached';
+ if(abs((float)($event['fuel_kg']??-999)-(float)($telemetry['fuel_ascent']??0))>1.0)
+  $fail[]='Logged APS fuel mismatch';
+ if($minimumPeriluneM<$moonRadius+30000)$fail[]='Unsafe lunar perilune';
+ return ['pass'=>$fail===[],'violations'=>$fail];
+}
