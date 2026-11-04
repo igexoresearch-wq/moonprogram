@@ -7,6 +7,7 @@ if(!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PH
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/finite_loi_targeting.php';
+require_once __DIR__.'/shared/coupled_loi_targeting.php';
 function loiData(mysqli $conn,string $table):array{
  $result=$conn->query("SELECT attribute,value FROM $table");$data=[];
  if($result)while($r=$result->fetch_assoc())$data[$r['attribute']]=(float)$r['value'];
@@ -40,8 +41,11 @@ try{
  if($target===false||$target===null)$target=120000.0;
  $target=max(80000.0,min(1000000.0,(float)$target));
  if(($_GET['mode']??'estimate')==='target'){
-  $output=moonSimFiniteLoiTarget($p,$v,$gravitational_constant*$moon_mass,
-   $moon_radius,$mass,$fuel,$service_module_thrust,314.0,$target,80000.0);
+  $earth=[$earth_center_x,$earth_center_y,$earth_center_z];
+  $output=moonSimCoupledLoiSearch(loiVec($cm),loiVec($cm,'delta_'),$earth,
+   loiVec($moon),loiVec($moon,'delta_'),$gravitational_constant*$earth_mass,
+   $gravitational_constant*$moon_mass,$moon_radius,$earth_radius,
+   $mass,$fuel,$service_module_thrust,314.0,$target,80000.0);
  }else{
   $output=moonSimFiniteLoiEstimate($p,$v,$gravitational_constant*$moon_mass,$moon_radius,
    $mass,$fuel,$service_module_thrust,314.0,(float)$duration,1.0);
@@ -49,7 +53,7 @@ try{
 }catch(Throwable $e){$error=$e->getMessage();}
 ?><!doctype html><html><head><meta charset="utf-8"><title>LOI Reference Console</title>
 <style>body{background:#010601;color:#a1dc9d;font:17px monospace;max-width:860px;margin:30px auto}input,button{background:#172517;color:#d4f4c8;padding:9px;border:1px solid #557e52}dt{margin:15px 0 5px}dd{color:#fff}</style></head><body>
-<h1>LOI / FINITE-BURN REFERENCE</h1><p>Calculation only. No engine commands. Simplified Moon-relative gravitational reference.</p>
+<h1>LOI / FINITE-BURN REFERENCE</h1><p>Calculation only. No engine commands. Target search propagates the moving Moon and both gravitational fields; manual entry and verification required.</p>
 <form method="get"><label>Burn seconds <input name="duration" type="number" min="1" max="1000" value="<?=loiEsc($duration)?>"></label><button name="mode" value="estimate">COMPUTE DURATION</button><br><label>Target apoapsis (m) <input type="number" name="target" min="80000" max="1000000" value="120000"></label><button name="mode" value="target">SEARCH BOUND LOI</button></form>
 <?php if($error):?><p>NOT AVAILABLE: <?=loiEsc($error)?></p><?php endif;?>
 <?php if($output):?><dl><?php foreach($output as $key=>$value):?><dt><?=loiEsc(strtoupper($key))?></dt>
