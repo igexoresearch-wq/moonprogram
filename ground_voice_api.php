@@ -37,12 +37,13 @@ try{
  $reply=moonSimOpenAiRequest('https://api.openai.com/v1/responses',[
   'model'=>(string)(getenv('MOON_VOICE_MODEL')?:'gpt-4.1-mini'),
   'instructions'=>$instructions,
-  'input'=>'Mission telemetry: '.json_encode($context)."\n".$station.': '.$utterance,
+  'input'=>'Mission telemetry: '.json_encode($context)."\nPrevious reply from this circuit: ".(string)($_SESSION['radio_previous'][$specialist]??'')."\n".$station.': '.$utterance,
   'max_output_tokens'=>350]);
  $answer=(string)($reply['output_text']??'');
  if($answer===''){
   foreach(($reply['output']??[]) as $o)foreach(($o['content']??[]) as $c)
    if(isset($c['text']))$answer.=$c['text'];
  }
+ $_SESSION['radio_previous'][$specialist]=mb_substr($answer,0,1500);
  echo json_encode(['reply'=>$answer,'radio_id'=>$radioId],JSON_THROW_ON_ERROR);
 }catch(Throwable $e){voiceFail(503,'Voice service unavailable; check server configuration');}
