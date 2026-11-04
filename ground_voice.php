@@ -32,6 +32,17 @@ setInterval(async()=>{
  try{const r=await fetch('ground_radio_pending.php',{cache:'no-store'});const data=await r.json();
  document.getElementById('alert').style.display=(data.pending||[]).length?'block':'none';}catch(e){}
 },2500);
+async function pickUpCapcom(){
+ try{
+  const f=new FormData();f.append('csrf',<?=json_encode($_SESSION['moon_voice_csrf'])?>);
+  const response=await fetch('ground_radio_answer.php',{method:'POST',body:f,credentials:'same-origin'});
+  if(!response.ok)return;
+  const call=await response.json();
+  if(call.message && 'speechSynthesis' in window){
+   speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance('FIDO, CAPCOM. '+call.message));
+  }
+ }catch(e){state.textContent='RADIO ERROR';}
+}
 let recorder=null,chunks=[],stream=null;
 async function start(){
  try{
