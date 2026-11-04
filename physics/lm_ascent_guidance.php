@@ -32,6 +32,10 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
  $safeOrbit=$orb['specific_energy']<0&&$orb['periapsis_radius']!==null&&
   $orb['periapsis_radius']>$moon_radius+30000.0;
  if($target['cutoff_reference_met']&&$safeOrbit){
+  $clock=$conn->query("SELECT seconds FROM mission_clock WHERE id=1");
+  $time=$clock?$clock->fetch_assoc():null;
+  $met=(int)($time['seconds']??0);$fuel=sprintf('%.7f',(float)$lm['fuel_ascent']);
+  $conn->query("INSERT INTO lm_ascent_flight_log(mission_second,event_name,fuel_kg,descent_attached) VALUES($met,'ORBIT_CUTOFF',$fuel,0)");
   $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='ORBIT INSERTION CUTOFF' WHERE id=1");
   return;
