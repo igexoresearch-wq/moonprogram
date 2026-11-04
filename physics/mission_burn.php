@@ -10,7 +10,7 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  $row=$clock?$clock->fetch_assoc():null;$met=(int)($row['seconds']??-900);
  $start=(int)$p['ignition_met'];$stop=(int)$p['cutoff_met'];
  $phase=(string)$p['phase'];
- if(!in_array($phase,['TLI','MCC'],true))return;
+ if(!in_array($phase,['TLI','MCC','LOI'],true))return;
  $engineStage=$phase==='TLI'?'Third Stage':'Service Module';
  if(!$enabled) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
@@ -20,7 +20,7 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  }
  if($met>=$stop) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
-  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='$engineStage'");
   $conn->query("UPDATE command_module SET value=0 WHERE attribute IN ('pitch_rate','yaw_rate','roll_rate')");
   $conn->query("UPDATE mission_burn_plan SET status='COMPLETE' WHERE id=1");
   return;
@@ -47,10 +47,10 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  $conn->query("UPDATE command_module SET value=CASE attribute WHEN 'pitch_rate' THEN $pitch WHEN 'yaw_rate' THEN $yaw ELSE 0 END WHERE attribute IN ('pitch_rate','yaw_rate','roll_rate')");
  if($met>=$start && $rate['alignment_error_deg']>=5.0) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
-  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='$engineStage'");
  }
  if($met>=$start && $rate['alignment_error_deg']<5.0 && $engineAvailable) {
   $conn->query("UPDATE command_module SET value=100 WHERE attribute='thrust'");
-  $conn->query("UPDATE EngineStatus SET status='ON' WHERE engine_stage='Third Stage' AND operational_status='OK'");
+  if($phase==='TLI')$conn->query("UPDATE EngineStatus SET status='ON' WHERE engine_stage='Third Stage' AND operational_status='OK'");
  }
 }
