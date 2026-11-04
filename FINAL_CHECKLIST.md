@@ -304,3 +304,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - The existing capture rules were extracted into a side-effect-free function `moonSimDockCaptureEligible` and the live capture path now invokes it before DB changes (b3cf7f9, 687975a).
 - Added `tests/docking_capture_checks.php` (d01087a) for low-speed safe capture, overspeed, excessive range, attitude error, Saturn-stage attachment, and already-docked rejection. Test committed but not executed in this session.
 - Objective 7.4 stays open until physical integration and persistence are checked. Checklist still 31/52; no production testing or deployment.
+
+## 2026-11-03 — Next development pass: staged ascent and docking predicates
+- 7.4: Extracted the actual capture predicate into a side-effect-free function used by the physical docking worker (`b3cf7f9`, `687975a`); added nominal, overspeed, excess-range, alignment, Saturn attachment and already-docked regression cases in `tests/docking_capture_checks.php` (`d01087a`). Test source is committed but not executed.
+- 6.4: Added strict flight-telemetry/stage/mission cutoff event consistency checks to `shared/lm_ascent_validation.php` (`f192b5a`) and regression cases to `tests/lm_ascent_stage_persistence.php` (`da70b2d`). The full staged launch/APS orbital injection has not yet been demonstrated.
+- Both remain unchecked; 31/52 source-complete. No deployment or server testing.
