@@ -117,4 +117,4 @@ h1{font-size:21px;letter-spacing:2px}h2{font-size:17px}section{margin:24px 0}str
 <?php if($answer):?><table>
 <?php foreach($answer as $key=>$value):?><tr><td><?=fidoDisplay(strtoupper($key))?></td><td><?=fidoDisplay($value)?></td></tr><?php endforeach;?></table>
 <p>NOTICE: Candidate is an estimate. Verify inclination, engine performance, and arrival geometry before transmitting guidance to crew. No engine commands issued.</p><?php endif;?>
-</section><p>FIDO&gt; _</p></main></body></html>
+</section><p>FIDO&gt; _</p></main><a href="ground_voice.php" style="position:fixed;bottom:12px;right:12px;background:#172e22;color:#efdf96;padding:12px;z-index:9999">RADIO / CONTROLLERS</a></body></html>
