@@ -8,6 +8,7 @@ require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/tei_return_targeting.php';
 require_once __DIR__.'/shared/earth_return_corridor.php';
+require_once __DIR__.'/shared/return_abort_budget.php';
 function erRows(mysqli $conn,string $table):array{
  $q=$conn->query("SELECT attribute,value FROM $table");$data=[];
  if(!$q)throw new RuntimeException('Missing tracking table');
@@ -33,6 +34,10 @@ try{
   $answer=moonSimTeiReference($position,$velocity,$earth,$moonP,$moonV,
    $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
    $earth_radius,$moon_radius,$mass,$fuel,$service_module_thrust,314.0);
+  if(!empty($answer['candidate'])){
+   $answer['manual_return_fuel_budget']=moonSimReturnAbortBudget($mass,$fuel,$service_module_thrust,314.0,
+     (float)$answer['candidate']['duration_seconds']);
+  }
  }
 }catch(Throwable $e){$error=$e->getMessage();}
 ?><!doctype html><html><meta charset="utf-8"><title>FIDO Earth Return</title>
