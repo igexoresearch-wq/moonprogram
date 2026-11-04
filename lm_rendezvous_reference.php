@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/lm_rendezvous_reference.php';
+require_once __DIR__.'/shared/lm_rendezvous_transfer.php';
 function rdRows(mysqli $conn,string $table):array{
  $q=$conn->query("SELECT attribute,value FROM $table");$r=[];
  if($q)while($v=$q->fetch_assoc())$r[$v['attribute']]=(float)$v['value'];
@@ -18,6 +19,9 @@ try{
  $ans=moonSimLunarRendezvousReference(rdVector($lm),rdVector($lm,'delta_'),
   rdVector($cm),rdVector($cm,'delta_'),rdVector($moon),rdVector($moon,'delta_'),
   $gravitational_constant*$moon_mass,$moon_radius);
+ $ans['transfer_study']=moonSimRendezvousTransferSearch(rdVector($lm),rdVector($lm,'delta_'),
+ rdVector($cm),rdVector($cm,'delta_'),rdVector($moon),rdVector($moon,'delta_'),
+ $gravitational_constant*$moon_mass,$moon_radius);
 }catch(Throwable $e){$ans=['error'=>$e->getMessage()];}
 ?><!doctype html><html lang="en"><meta charset="utf-8"><title>LM Rendezvous</title>
 <body style="background:#0b140c;color:#b7e4b2;font:17px monospace;max-width:900px;margin:30px auto">
