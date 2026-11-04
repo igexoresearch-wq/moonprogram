@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 21 implemented in source, 31 remaining (40.4%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 22 implemented in source, 30 remaining (42.3%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -24,7 +24,7 @@
 ## 3. Translunar injection and coast
 - [x] Read-only approximate TLI references, moving-Moon encounter propagation, local search and safety screening.
 - [x] Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry). **Source-level finite-burn candidate solver, fuel constraint, arrival state and miss assessment implemented; live trajectory remains unverified.**
-- [ ] Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines.
+- [x] Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines. **Crew-authorized timed plan, AGC-on gate, adjacent DSKY maneuver readout, physical attitude and S-IVB throttle/cutoff implemented in source. Legacy DSKY numeric-keypad command entry remains an interface realism refinement; integrated flight validation deferred to Section 13.**
 - [x] Provide and verify midcourse corrections, lunar encounter prediction and free-return alternatives. **Source implementation includes physical crew-approved SPS correction burns and FIDO moving-Moon correction/free-return corridor searches; integrated flight validation deferred to Section 13. Return corridor is a prediction, not guaranteed safe reentry.**
 
 ## 4. Lunar orbit insertion
@@ -196,3 +196,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **3.4 COMPLETED IN SOURCE:** Extended `mission_burn_plan` executor to support `MCC` SPS corrections using normal service propulsion fuel, physical attitude and engine switch (`30c778f`); crew can arm TLI or MCC in `csm_burn_control.php` (`2c17fa4`). FIDO's independent gravity-backed candidate search and Earth-return corridor options remain read-only until explicitly entered by crew, and FIDO now estimates SPS burn seconds and propellant (`acb362c`). This preserves no hidden state edits and real failure possibilities. Full mission verification deferred to Section 13; return corridor not certified reentry.
 - **4.2 remains COMPLETE IN SOURCE:** Coupled Earth/Moon LOI finite-burn search implemented and connected (`e736aa9`, `5087120`). Regression tests for fuel limits and midcourse zero-dV propagation added in `tests/mission_transfer_guidance_checks.php` (`43695e9`); tests not executed in this session.
 - Frozen denominator **52**, currently **21/52 = 40.4%**; no new objectives. Continue 3.3 AGC/DSKY integration next before moving to 4.3.
+
+## 2026-11-03 — Three-objective batch source completion: 3.3, 3.4, 4.2
+- **3.3 now checked off under the frozen source-implementation criterion.** `shared/burn_status_instrument.php` (`efbfd0b`) displays currently armed AGC maneuver phase, MET and ignition/cutoff data alongside `Diskey.php` on `index.php` (`043b074`). Crew click-through opens protected `csm_burn_control.php` for actual arming/cancellation. Physical worker `physics/mission_burn.php` owns attitude steering, AGC-enabled execution, engine cutoff, abort and staging/fuel interlocks. This is **not** a historical Apollo AGC binary emulation and the old DSKY numerical keypad does not yet enter burn parameters; further fidelity can be improved under already-existing instrument objectives without inflating count.
+- **3.4 completed in source:** FIDO midcourse and free-return search, SPS duration/fuel advisory, manual crew-authorized SPS physical correction execution, coupled gravity and candidate screening. No forced safe return.
+- **4.2 completed in source:** coupled Earth–Moon finite SPS LOI search with actual state and fuel-limited lunar orbit predictions; LOI ignition/execution remains existing 4.3.
+- Current tally: **22 implemented / 52 frozen objectives (42.3%), 30 remaining**. The regression scripts are committed, but not executed this session. Full end-to-end flight verification remains Section 13.
