@@ -243,3 +243,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Rendezvous candidate search now accounts for relative closing speed at approach (db761da).
 - Regression checks added for insertion, landing-envelope classifications and rendezvous (f4d74f5). Not executed here.
 - Items 5.4, 6.2, 6.4 and 7.2 remain open; 27/52 completed in source. Touchdown, full ascent trajectory and stage persistence have not been verified.
+
+## 2026-11-03 — Four-objective integration work
+- LM landing assist now records contact as SOFT_ENVELOPE or HARD_CONTACT based on physical vertical and lateral velocities (`ca54949`); cockpit shows persisted contact classification (`0fd6be3`). This is a classification of live telemetry, not executed touchdown validation.
+- LM ascent worker now writes a one-time orbital cutoff record with mission clock, separated-stage flag and APS fuel (`fe26e3e`). End-to-end stage persistence and orbital insertion not yet validated.
+- Lunar rendezvous planner reports explicit combined proximity/relative-speed acceptability (`bdd4515`), and regression assertions for ascent perilune and rendezvous conditions were extended (`c99c2f3`).
+- The following checklist requirements remain unmet: 5.4 integrated touchdown verification; 6.2 complete fuel-feasible ascent profile; 6.4 executed launch-to-orbit and stage persistence; 7.2 maneuver-quality transfer/correction plan. Count remains 27/52. No tests executed in this batch.
