@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 38 implemented in source, 14 remaining (73.1%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 39 implemented in source, 13 remaining (75.0%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -66,7 +66,7 @@
 ## 10. Ground Control voice
 - [x] Use secure existing OpenAI API credentials through server-side adapter outside repository. **Environment or off-repository key file; restricted outbound provider adapter; no secrets exposed to browser. Requires deployment configuration.**
 - [x] Implement push-to-talk voice transcription, grounded tool responses and optional audio return. **Protected Ground browser voice station uses microphone capture, server transcription, sourced telemetry context, advisory responses and optional speech synthesis.**
-- [ ] Expose verified read-only telemetry/navigation/procedure tools with reference attribution.
+- [x] Expose verified read-only telemetry/navigation/procedure tools with reference attribution. **Role-filtered live orbital elements, CSM/LM fuel and 15% reserve, and numerical Earth-return correction candidate from existing return solver; unavailable maneuver parameters must not be invented. More specialist targeting can be extended later.**
 - [ ] Share the voice button among Ground/Pilot/Commander/LM with explicit permission for physical actions.
 
 ## 11. Cockpit and mission operations
