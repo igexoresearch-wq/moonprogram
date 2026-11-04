@@ -16,5 +16,6 @@ function moonBurnEsc($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'U
  CUT: <?=moonBurnEsc($burnPlan['cutoff_met']??'---')?><br>
  T-IGN: <?=moonBurnEsc(isset($burnPlan['ignition_met'])?(int)$burnPlan['ignition_met']-$met:'---')?><br>
  <small>DISPLAY ONLY: actual steering, thrust and cutoff controlled by physics worker.</small><br>
+ <a href="crew_radio.php" style="color:#efdf96">CAPCOM / CREW RADIO</a><br>
  <a href="csm_burn_control.php" style="color:#a8f0b1">REVIEW / ARM / ABORT MANEUVER</a>
 </div>
