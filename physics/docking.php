@@ -355,6 +355,11 @@ function moonSimTryDockCapture(
         return false;
     }
 
+    if (!moonSimDockCaptureEligible(
+        $cmPosition,$cmVelocity,$lmPosition,$lmVelocity,
+        $cmQuaternion,$lmQuaternion,$stage3,$dock,false
+    )) return false;
+
     $r = [
         $lmPosition[0]-$cmPosition[0],
         $lmPosition[1]-$cmPosition[1],
