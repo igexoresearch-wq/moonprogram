@@ -27,6 +27,10 @@ try{
   $answer=moonSimReturnCourseSearch($position,$velocity,$earth,$moonP,$moonV,
    $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
    $earth_radius,$moon_radius);
+  if(!empty($answer['candidate'])){
+   $answer['entry_interface_estimate_seconds']=$answer['candidate']['return_preview']['numerical_preview']['entry_interface_120km_time_s']??null;
+   $answer['closest_earth_arrival_seconds']=$answer['candidate']['return_preview']['numerical_preview']['post_lunar_earth_closest_approach_time_s']??null;
+  }
  }
  if(($_GET['study']??'')==='TEI'){
   $fuel=max(0.0,(float)($cm['fuel']??0));
