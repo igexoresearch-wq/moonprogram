@@ -4,6 +4,8 @@ require_once __DIR__.'/../shared/lm_ascent_targets.php';
 require_once __DIR__.'/../shared/ascent_guidance_math.php';
 require_once __DIR__.'/attitude.php';
 function moonSimLmAscentGuidanceStep(mysqli $conn):void {
+ $conn->query("CREATE TABLE IF NOT EXISTS lm_ascent_guidance (id TINYINT UNSIGNED PRIMARY KEY,enabled TINYINT NOT NULL DEFAULT 0,status VARCHAR(100) NOT NULL DEFAULT 'MANUAL',target_altitude_m DOUBLE NOT NULL DEFAULT 100000)");
+ $conn->query("INSERT IGNORE INTO lm_ascent_guidance(id) VALUES(1)");
  $r=$conn->query("SELECT enabled,status,target_altitude_m FROM lm_ascent_guidance WHERE id=1");
  $cfg=$r?$r->fetch_assoc():null;
  if(!$cfg||(int)$cfg['enabled']!==1)return;
@@ -26,7 +28,10 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
  $target=moonSimLunarAscentTargets($p,$v,$mp,$mv,$gravitational_constant*$moon_mass,
    $moon_radius,$mass,(float)$lm['fuel_ascent'],$lander_ascent_thrust,311.0,
    (float)$cfg['target_altitude_m']);
- if($target['cutoff_reference_met']){
+ $orb=moonSimOrbitalElements(moonSimRelativeVector($p,$mp),moonSimRelativeVector($v,$mv),[0,0,0],$gravitational_constant*$moon_mass);
+ $safeOrbit=$orb['specific_energy']<0&&$orb['periapsis_radius']!==null&&
+  $orb['periapsis_radius']>$moon_radius+30000.0;
+ if($target['cutoff_reference_met']&&$safeOrbit){
   $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='ORBIT INSERTION CUTOFF' WHERE id=1");
   return;
