@@ -270,3 +270,12 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **7.2 source-complete:** Finite SPS/APS? LM **APS** rendezvous burn solver now models changing fuel mass and both lunar trajectories, predicts closest approach and the required follow-up velocity match (3575b28, 5997ee6); live LM panel now displays calculation (16eba42).
 - **6.4 still pending:** Source code and checks cannot substitute for actual reproducible local launch-to-orbit performance and stage-state persistence validation. A test harness and run results are still required. No server mission test performed.
 - Frozen 52-objective checklist: 30 source-complete (57.7%), 22 remaining.
+
+## 2026-11-03 — 6.4 plus five following objectives development batch
+- 6.4: New isolated ascent invariants helper `shared/lm_ascent_validation.php` (038dfe0). Does not yet provide completed local stage-persistence flight validation.
+- 7.3: Added physically derived CM/LM closing and lateral speed targets, plus proximity caution, in `shared/docking_closure_guidance.php` (a1cd9de), linked to LM cockpit reference (1eab769). Attitude and docking actuation remain separate work.
+- 7.4: Full end-to-end physical docking validation not yet performed. No false signoff.
+- 8.2: Added fuel-limited lunar escape/Earth-coast candidate study `shared/tei_return_targeting.php` (a218014). TEI phase is accepted by physical timed maneuver executor (62e6734) and crew controls (5415d46), but continuous-burn Earth intercept and crew calculation transfer remain unfinished.
+- 8.3: Full return-course correction and entry corridor targeting remains unfinished.
+- 8.4: Manual fuel-bounded contingency Earth recovery planning remains unfinished.
+- No deployment or integrated server testing. All items remain open until full source requirements are implemented. Fixed 52-item checklist tally unchanged.
