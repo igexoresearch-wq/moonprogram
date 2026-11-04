@@ -5,7 +5,7 @@ $pw=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
 if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){http_response_code(401);exit('{}');}
 if(($_SERVER['REQUEST_METHOD']??'')!=='POST'||!hash_equals((string)($_SESSION['moon_voice_csrf']??''),(string)($_POST['csrf']??''))){http_response_code(403);exit('{}');}
 $station=(string)($_POST['station']??'');
-if(!in_array($station,['CREW','FIDO'],true)){http_response_code(400);exit('{}');}
+if(!in_array($station,['CREW','FIDO'],true)||$station!==($_SESSION['moon_radio_role']??'')){http_response_code(400);exit('{}');}
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/radio_routing.php';
 moonSimRadioEnsure($conn);
