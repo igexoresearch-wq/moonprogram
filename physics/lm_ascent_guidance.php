@@ -6,6 +6,7 @@ require_once __DIR__.'/attitude.php';
 function moonSimLmAscentGuidanceStep(mysqli $conn):void {
  $conn->query("CREATE TABLE IF NOT EXISTS lm_ascent_guidance (id TINYINT UNSIGNED PRIMARY KEY,enabled TINYINT NOT NULL DEFAULT 0,status VARCHAR(100) NOT NULL DEFAULT 'MANUAL',target_altitude_m DOUBLE NOT NULL DEFAULT 100000)");
  $conn->query("INSERT IGNORE INTO lm_ascent_guidance(id) VALUES(1)");
+ $conn->query("CREATE TABLE IF NOT EXISTS lm_ascent_flight_log(id BIGINT AUTO_INCREMENT PRIMARY KEY,mission_second INT NOT NULL,event_name VARCHAR(40) NOT NULL,fuel_kg DOUBLE NOT NULL,descent_attached TINYINT NOT NULL,recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
  $r=$conn->query("SELECT enabled,status,target_altitude_m FROM lm_ascent_guidance WHERE id=1");
  $cfg=$r?$r->fetch_assoc():null;
  if(!$cfg||(int)$cfg['enabled']!==1)return;
