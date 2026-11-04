@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 20 implemented in source, 32 remaining (38.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 21 implemented in source, 31 remaining (40.4%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -25,7 +25,7 @@
 - [x] Read-only approximate TLI references, moving-Moon encounter propagation, local search and safety screening.
 - [x] Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry). **Source-level finite-burn candidate solver, fuel constraint, arrival state and miss assessment implemented; live trajectory remains unverified.**
 - [ ] Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines.
-- [ ] Provide and verify midcourse corrections, lunar encounter prediction and free-return alternatives.
+- [x] Provide and verify midcourse corrections, lunar encounter prediction and free-return alternatives. **Source implementation includes physical crew-approved SPS correction burns and FIDO moving-Moon correction/free-return corridor searches; integrated flight validation deferred to Section 13. Return corridor is a prediction, not guaranteed safe reentry.**
 
 ## 4. Lunar orbit insertion
 - [x] Read-only Moon-relative orbital elements and provisional impulsive lunar-capture estimates.
@@ -190,3 +190,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **3.4 Midcourse:** `moonSimFreeReturnSearch()` uses long-horizon Earth/Moon numerical coasts to search corrections leading to post-lunar Earth return corridors (`8dce085`); FIDO can select the computation directly (`0e8fe0b`). **Still open** until free-return and corrections have a verified physical execution path rather than a hypothetical instantaneous delta-V.
 - **4.2 LOI TARGETING COMPLETED IN SOURCE:** `shared/coupled_loi_targeting.php` solves time-delayed, propellant-limited finite SPS burns with moving-Moon and terrestrial gravity, checks lunar impact and predicted bound-orbit peri/apoapsis. `loi_reference.php` now actually calls the coupled solver with current state and docked mass (`e736aa9`, `5087120`). This is a target calculation, not ignition or a guarantee of a stable orbit. Physical LOI burn belongs under the next existing objective 4.3; live tests remain under Section 13.
 - Frozen denominator **52**; **20 implemented (38.5%)**, 32 remaining. Maintain four physical cockpit panels and simple browser-based FIDO, no external spacecraft views.
+
+## 2026-11-03 — Midcourse execution, coupled LOI and safety integration
+- **3.3 remains OPEN:** Enhanced `physics/mission_burn.php` (`b060d12`) with alignment-loss engine cutoff and steering reset, but existing AGC/DSKY interface is not yet a true programmed TLI operator workflow. Do not mark complete before instrument/program integration.
+- **3.4 COMPLETED IN SOURCE:** Extended `mission_burn_plan` executor to support `MCC` SPS corrections using normal service propulsion fuel, physical attitude and engine switch (`30c778f`); crew can arm TLI or MCC in `csm_burn_control.php` (`2c17fa4`). FIDO's independent gravity-backed candidate search and Earth-return corridor options remain read-only until explicitly entered by crew, and FIDO now estimates SPS burn seconds and propellant (`acb362c`). This preserves no hidden state edits and real failure possibilities. Full mission verification deferred to Section 13; return corridor not certified reentry.
+- **4.2 remains COMPLETE IN SOURCE:** Coupled Earth/Moon LOI finite-burn search implemented and connected (`e736aa9`, `5087120`). Regression tests for fuel limits and midcourse zero-dV propagation added in `tests/mission_transfer_guidance_checks.php` (`43695e9`); tests not executed in this session.
+- Frozen denominator **52**, currently **21/52 = 40.4%**; no new objectives. Continue 3.3 AGC/DSKY integration next before moving to 4.3.
