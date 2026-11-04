@@ -20,7 +20,7 @@ function moonSimRendezvousTransferSearch(array $lmP,array $lmV,array $cmP,array 
  foreach([$tangent,$normal,$radial] as $axis){
   $dv=[];for($j=0;$j<3;$j++)$dv[$j]=$sign*$fraction*$maxDv*$axis[$j];
   $p=$lmR;$v=$lmVel;for($j=0;$j<3;$j++)$v[$j]+=$dv[$j];
-  $cp=$cmR;$cv=$cmVel;$closest=INF;$at=0.0;$contact=false;
+  $cp=$cmR;$cv=$cmVel;$closest=INF;$at=0.0;$contact=false;$closestRelativeSpeed=INF;
   $duration=18000.0;$step=10.0;
   for($time=0.0;$time<$duration;$time+=$step){
    $pr=moonSimVectorMagnitude($p);$cr=moonSimVectorMagnitude($cp);
@@ -32,13 +32,18 @@ function moonSimRendezvousTransferSearch(array $lmP,array $lmV,array $cmP,array 
     $cv[$j]+=$b[$j]*$step;$cp[$j]+=$cv[$j]*$step;
    }
    $range=moonSimVectorMagnitude(moonSimRelativeVector($p,$cp));
-   if($range<$closest){$closest=$range;$at=$time+$step;}
+   if($range<$closest){$closest=$range;$at=$time+$step;$closestRelativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($v,$cv));}
   }
   $sampled++;
   if($contact)continue;
-  if($best===null||$closest<$best['closest_range_m']){
+  // Penalize hazardous high-speed intercepts; these are not dockable.
+  $score=$closest+max(0.0,$closestRelativeSpeed-5.0)*10000.0;
+  if($best===null||$score<$best['candidate_score']){
    $best=['impulsive_candidate_delta_v_xyz'=>$dv,'candidate_delta_v_m_s'=>$fraction*$maxDv,
-    'closest_range_m'=>$closest,'closest_time_s'=>$at];
+    'closest_range_m'=>$closest,'closest_time_s'=>$at,
+    'relative_speed_at_closest_m_s'=>$closestRelativeSpeed,
+    'candidate_score'=>$score,
+    'proximity_caution'=>$closest<10000.0&&$closestRelativeSpeed>5.0];
   }
  }
  return ['best'=>$best,'candidates_evaluated'=>$sampled,
