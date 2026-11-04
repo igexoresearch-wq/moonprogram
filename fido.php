@@ -44,6 +44,11 @@ try{
   'V_INERTIAL_X'=>$velocity[0],'V_INERTIAL_Y'=>$velocity[1],'V_INERTIAL_Z'=>$velocity[2],
   'MOON_TRACK_X'=>$moonPos[0],'MOON_TRACK_Y'=>$moonPos[1],'MOON_TRACK_Z'=>$moonPos[2],
  ];
+ if(($_GET['solve']??'')==='MIDCOURSE'){
+  $answer=moonSimMidcourseSearch($craft,$velocity,$earth,$moonPos,$moonVel,
+   $mu,$moonMu,$earth_radius,$moon_radius,35.0,604800.0);
+  $answer['solution_status']='CANDIDATE ONLY / REQUEST CREW VERIFICATION';
+ }
  if(($_GET['solve']??'')==='COAST'){
   $answer=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moonPos,$moonVel,
     $mu,$moonMu,$earth_radius,$moon_radius,345600.0,null,120.0);
@@ -92,7 +97,7 @@ h1{font-size:21px;letter-spacing:2px}h2{font-size:17px}section{margin:24px 0}str
 <?php foreach($fields as $key=>$value):?><tr><td><?=fidoDisplay($key)?></td><td><?=fidoDisplay($value)?></td></tr><?php endforeach;?></table></section>
 <section><h2>GROUND COMPUTATION</h2>
 <p>Tracking data are displayed separately from computed burn solutions. Request a calculation; do not treat the result as flight authorization.</p>
-<form method="get"><button name="solve" value="TLI">RUN FINITE TLI SEARCH</button> <button name="solve" value="COAST">PROPAGATE MIDCOURSE TRACK</button></form>
+<form method="get"><button name="solve" value="TLI">RUN FINITE TLI SEARCH</button> <button name="solve" value="COAST">PROPAGATE MIDCOURSE TRACK</button> <button name="solve" value="MIDCOURSE">SEARCH MIDCOURSE CORRECTIONS</button></form>
 <?php if($error):?><p><strong>COMPUTATION FAILED: <?=fidoDisplay($error)?></strong></p><?php endif;?>
 <?php if($answer):?><table>
 <?php foreach($answer as $key=>$value):?><tr><td><?=fidoDisplay(strtoupper($key))?></td><td><?=fidoDisplay($value)?></td></tr><?php endforeach;?></table>
