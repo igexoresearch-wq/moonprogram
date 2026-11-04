@@ -14,21 +14,32 @@ if(!is_uploaded_file($file['tmp_name']))voiceFail(400,'Invalid audio upload');
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/openai_server_adapter.php';
 require_once __DIR__.'/shared/voice_ground_tools.php';
+require_once __DIR__.'/shared/radio_routing.php';
 try{
  $transcript=moonSimOpenAiRequest('https://api.openai.com/v1/audio/transcriptions',[
   'model'=>'gpt-4o-mini-transcribe','file'=>new CURLFile($file['tmp_name'],'audio/webm','speech.webm')]);
  $utterance=trim((string)($transcript['text']??''));
  if($utterance==='')voiceFail(400,'Speech not recognized');
+ $station=strtoupper((string)($_POST['station']??'FIDO'));
+ $specialist=strtoupper((string)($_POST['specialist']??'TRAJECTORY'));
+ $roles=['GUIDO','RETRO','EECOM','GNC','TELMU','TRAJECTORY','CAPCOM'];
+ if(!in_array($station,['FIDO','CREW'],true))voiceFail(400,'Unknown radio station');
+ if($station==='CREW')$specialist='CAPCOM';
+ if(!in_array($specialist,$roles,true))voiceFail(400,'Unknown controller');
  $context=moonSimVoiceMissionContext($conn);
+ $radioId=null;
+ if($station==='CREW')$radioId=moonSimRadioQueue($conn,'CREW','CAPCOM',$utterance);
+ $instructions='You are '.$specialist.', an Apollo mission controller speaking over radio. Speak concisely, in natural radio phrasing. Respond only within this role. CAPCOM relays crew requests and never invents trajectory calculations. For technical questions outside your specialty direct FIDO to the proper controller. Never claim you have operated physical controls. Do not guess missing numbers. Say again and read-back requests must be answered clearly.';
+
  $reply=moonSimOpenAiRequest('https://api.openai.com/v1/responses',[
   'model'=>(string)(getenv('MOON_VOICE_MODEL')?:'gpt-4.1-mini'),
-  'instructions'=>'You are FIDO, a mission navigation advisor in a simulator. Cite the provided table.attribute references for telemetry. Never claim a burn, staging or physical action was performed. Missing information must be acknowledged.',
-  'input'=>'Mission telemetry: '.json_encode($context)."\nCrew: ".$utterance,
+  'instructions'=>$instructions,
+  'input'=>'Mission telemetry: '.json_encode($context)."\n".$station.': '.$utterance,
   'max_output_tokens'=>350]);
  $answer=(string)($reply['output_text']??'');
  if($answer===''){
   foreach(($reply['output']??[]) as $o)foreach(($o['content']??[]) as $c)
    if(isset($c['text']))$answer.=$c['text'];
  }
- echo json_encode(['transcript'=>$utterance,'reply'=>$answer,'sources'=>$context],JSON_THROW_ON_ERROR);
+ echo json_encode(['reply'=>$answer,'radio_id'=>$radioId],JSON_THROW_ON_ERROR);
 }catch(Throwable $e){voiceFail(503,'Voice service unavailable; check server configuration');}
