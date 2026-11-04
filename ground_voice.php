@@ -5,6 +5,7 @@ $pw=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
 if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){
  header('WWW-Authenticate: Basic realm="Moon Simulator"');http_response_code(401);exit;
 }
+$_SESSION['moon_radio_role']='FIDO';
 if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(random_bytes(16));
 ?><!doctype html><html lang="en"><meta charset="utf-8"><title>Ground Voice</title>
 <body style="background:#111b18;color:#e0ecdd;font:17px monospace;max-width:800px;margin:30px auto">
@@ -15,7 +16,7 @@ if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(ran
 <button type="button" class="channel" data-channel="<?=$ch?>"><?=$ch?></button>
 <?php endforeach;?>
 </div>
-<p><label>STATION <select id="station"><option value="FIDO">FIDO</option><option value="CREW">CREW / CAPCOM ONLY</option></select></label></p>
+<p>TRANSMITTING STATION: FIDO</p>
 <button id="talk" style="font-size:25px;padding:20px">HOLD TO TRANSMIT</button>
 <p id="state">READY</p><p id="alert" style="color:#fbb;display:none">● CAPCOM CALLING FIDO</p>
 <style>.channel{background:#1e342a;color:#a7d1ad;padding:15px;margin:5px;border:2px solid #526}.channel.selected{border-color:#ffcf63;color:#ffcf63}</style>
@@ -29,7 +30,7 @@ document.querySelectorAll('.channel').forEach(b=>b.addEventListener('click',()=>
 }));
 document.querySelector('[data-channel="TRAJECTORY"]').click();
 setInterval(async()=>{
- if(document.getElementById('station').value!=='FIDO')return;
+ if(false)return;
  try{const r=await fetch('ground_radio_pending.php',{cache:'no-store'});const data=await r.json();
  document.getElementById('alert').style.display=(data.pending||[]).length?'block':'none';}catch(e){}
 },2500);
@@ -55,7 +56,7 @@ async function start(){
    try{
     const fd=new FormData();
     fd.append('csrf',<?=json_encode($_SESSION['moon_voice_csrf'])?>);
-    fd.append('station',document.getElementById('station').value);
+    fd.append('station','FIDO');
     fd.append('specialist',selected);
     fd.append('audio',new Blob(chunks,{type:'audio/webm'}),'speech.webm');
     const res=await fetch('ground_voice_api.php',{method:'POST',body:fd,credentials:'same-origin'});
