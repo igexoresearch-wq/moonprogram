@@ -9,6 +9,7 @@ require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/tei_return_targeting.php';
 require_once __DIR__.'/shared/earth_return_corridor.php';
 require_once __DIR__.'/shared/return_abort_budget.php';
+require_once __DIR__.'/shared/entry_guidance.php';
 function erRows(mysqli $conn,string $table):array{
  $q=$conn->query("SELECT attribute,value FROM $table");$data=[];
  if(!$q)throw new RuntimeException('Missing tracking table');
@@ -23,6 +24,7 @@ try{
  $earth=[$earth_center_x,$earth_center_y,$earth_center_z];
  $position=erVector($cm);$velocity=erVector($cm,'delta_');
  $moonP=erVector($moon);$moonV=erVector($moon,'delta_');
+ $entryReference=moonSimEntryState($position,$velocity,$earth,$earth_radius);
  if(($_GET['study']??'')==='RETURN'){
   $answer=moonSimReturnCourseSearch($position,$velocity,$earth,$moonP,$moonV,
    $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
@@ -59,6 +61,7 @@ try{
 <h1>FIDO / EARTH RETURN</h1><p>Ground computer predictions, not automatic burns.</p>
 <form method="get"><button name="study" value="TEI">SEARCH TRANS-EARTH DEPARTURE</button>
 <button name="study" value="RETURN">SEARCH RETURN COURSE CORRECTIONS</button><button name="study" value="ABORT">ABORT RETURN STUDY</button></form>
+<h2>LIVE EARTH ENTRY REFERENCE</h2><pre><?=erOut(json_encode($entryReference??[],JSON_PRETTY_PRINT))?></pre>
 <?php if($error):?><p>NO SOLUTION: <?=erOut($error)?></p><?php endif;?>
 <?php if($answer):?><pre><?=erOut(json_encode($answer,JSON_PRETTY_PRINT))?></pre><?php endif;?>
 <p>Flight Director: verify time, direction, SPS fuel and predicted corridor before requesting crew action.</p>
