@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS mission_burn_plan (
+ id INT PRIMARY KEY,
+ phase VARCHAR(16) NOT NULL,
+ status VARCHAR(16) NOT NULL,
+ ignition_met INT NOT NULL,
+ cutoff_met INT NOT NULL,
+ dir_x DOUBLE NOT NULL,
+ dir_y DOUBLE NOT NULL,
+ dir_z DOUBLE NOT NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
