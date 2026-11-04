@@ -170,6 +170,14 @@ function moonSimRecordSurfaceContact(
 ): void {
     moonSimEnsureSurfaceContactTable($conn);
 
+    if($vehicle==='CM' && $body==='EARTH' && $state==='LANDED'){
+        $q=$conn->query("SELECT shield_integrity,crew_survives,chute_state FROM reentry_state WHERE id=1");
+        $reentry=$q?$q->fetch_assoc():null;
+        if($reentry && ((float)$reentry['shield_integrity']<=0 ||
+          (int)$reentry['crew_survives']!==1 || $reentry['chute_state']==='FAILED')){
+            $state='CRASHED';
+        }
+    }
     $vehicleEsc = $conn->real_escape_string($vehicle);
     $bodyEsc = $conn->real_escape_string($body);
     $stateEsc = $conn->real_escape_string($state);
