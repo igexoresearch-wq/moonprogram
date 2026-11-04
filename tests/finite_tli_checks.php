@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/../shared/finite_tli_targeting.php';
+require_once __DIR__.'/../shared/tli_stack_mass.php';
 function checkTli(bool $ok,string $description):void{
  if(!$ok)throw new RuntimeException('FAIL: '.$description);
  echo 'PASS '.$description.PHP_EOL;
@@ -27,4 +28,20 @@ try {
  if(str_contains($e->getMessage(),'accepted'))throw $e;
  echo 'PASS impossible burn is refused'.PHP_EOL;
 }
-echo 'Finite TLI propagation checks passed; live lunar-target optimization is not yet certified.'.PHP_EOL;
+$delayed=moonSimFiniteTliPreview($craft,$velocity,$earth,$moon,$moonVelocity,
+ $dir,1200.0,120.0,$mass,$fuel,$thrust,$isp,$mu,$lunarMu,1737400.0,6371000.0,
+ 30000.0,60.0);
+checkTli(abs($delayed['propellant_used_kg']-$expected)<1e-4,'Delayed ignition retains finite burn mass flow');
+checkTli($delayed['ignition_direction_inertial_xyz']!==null,'Delayed coast computes ignition-frame attitude');
+checkTli(abs($delayed['ignition_direction_inertial_xyz'][0])>0.01,'Delayed ignition follows rotated orbital frame');
+$c=['csm_rcs_initial_propellant'=>600.0,'lm_rcs_initial_propellant'=>250.0,
+ 'command_module_empty_mass'=>5000.0,'stage3_empty_mass'=>10000.0,
+ 'service_module_empty_mass'=>5000.0,'escape_tower_empty_mass'=>3000.0,
+ 'lander_ascent_empty_mass'=>2000.0,'lander_descent_empty_mass'=>2000.0];
+$cm=['stage1'=>0,'stage2'=>0,'stage3'=>1,'s3fuel'=>4000,'service_module'=>1,
+ 'fuel'=>1000,'RCS'=>100,'escape'=>0];
+$lm=['fuel_ascent'=>300,'descent'=>1,'fuel'=>400,'RCS'=>50];
+$expectedMass=5000+10000+4000+5000+1000+100+2000+300+2000+400+50;
+checkTli(abs(moonSimTliStackMass($cm,$lm,$c)-$expectedMass)<1e-5,
+ 'S-IVB wet mass counts CSM and attached LM propellant without detached S-II');
+echo 'Finite TLI source-level regression checks defined; run on a PHP checkout.'.PHP_EOL;
