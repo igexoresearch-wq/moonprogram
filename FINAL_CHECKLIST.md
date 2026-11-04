@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 32 implemented in source, 20 remaining (61.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 33 implemented in source, 19 remaining (63.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -54,7 +54,7 @@
 ## 8. Trans-Earth injection and return
 - [x] Basic SPS/TEI hooks, read-only Earth recovery station and Moon-local escape estimate.
 - [x] Calculate Earth-intercepting finite-burn TEI maneuver and connect it to AGC/manual control. **Source implementation: variable-mass physical SPS departure integrated under Earth/Moon gravity, numerical moving-Moon return coast, target entry-range screening, FIDO display and crew-authorized TEI control. Atmospheric recovery remains in separate return/reentry objectives.**
-- [ ] Provide and verify return midcourse corrections, arrival times and entry-corridor predictions.
+- [x] Provide and verify return midcourse corrections, arrival times and entry-corridor predictions. **Source implementation: finite SPS correction, protected fuel reserve, propagated Earth/Moon return, arrival and 120 km entry estimates; integrated mission validation deferred.**
 - [ ] Deliver fuel-constrained manual abort/return planning that can still satisfy CM recovery win condition.
 
 ## 9. Entry, descent and recovery
