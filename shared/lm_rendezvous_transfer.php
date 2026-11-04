@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/orbital_mechanics.php';
+require_once __DIR__.'/lm_rendezvous_reference.php';
 /** Finite-horizon lunar rendezvous study with Moon gravity. Does not command burns. */
 function moonSimRendezvousTransferSearch(array $lmP,array $lmV,array $cmP,array $cmV,
  array $moonP,array $moonV,float $mu,float $moonRadius,float $maxDv=120.0):array{
