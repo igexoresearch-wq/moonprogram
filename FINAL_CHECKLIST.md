@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 29 implemented in source, 23 remaining (55.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 30 implemented in source, 22 remaining (57.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -47,7 +47,7 @@
 
 ## 7. Rendezvous and docking
 - [x] CM/LM relative state, separation behavior and physical docking/undocking capture conditions.
-- [ ] Calculate phasing, rendezvous transfers and correction burns from live vehicle states.
+- [x] Calculate phasing, rendezvous transfers and correction burns from live vehicle states. **Source-level live CM/LM lunar phasing and finite, fuel-limited APS rendezvous burn search with propagated encounter velocity matching; final docking alignment and collision-safety verification remain the next separate objectives.**
 - [ ] Implement docking alignment, closure guidance and cockpit displays.
 - [ ] Verify rendezvous guidance, proximity safety and physical docking end-to-end.
 
@@ -263,3 +263,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **6.4 still open:** Actual launch-to-orbit performance plus persisted stage-state transitions have not been validated locally. This is a distinct verification objective; no fabricated signoff.
 - **7.2 still open:** Transfer search is read-only, coarse and impulsive, not yet a finite-burn correction plan with encounter targeting.
 - Fixed checklist: 29/52 implemented in source, 23 remaining. No deployment or server testing.
+
+## 2026-11-03 — Four-objective finishing work
+- **5.4 source-complete:** LM physical touchdown classification also observes manual landing states (adc31db); the readout remains tied to actual physics telemetry.
+- **6.2 source-complete:** Finite, variable-mass lunar APS launch profile search evaluates steering schedules, feasible fuel mass, surface impact and safe lunar bound orbit (f9a4577) and displays the best profile to crew (e331cb2).
+- **7.2 source-complete:** Finite SPS/APS? LM **APS** rendezvous burn solver now models changing fuel mass and both lunar trajectories, predicts closest approach and the required follow-up velocity match (3575b28, 5997ee6); live LM panel now displays calculation (16eba42).
+- **6.4 still pending:** Source code and checks cannot substitute for actual reproducible local launch-to-orbit performance and stage-state persistence validation. A test harness and run results are still required. No server mission test performed.
+- Frozen 52-objective checklist: 30 source-complete (57.7%), 22 remaining.
