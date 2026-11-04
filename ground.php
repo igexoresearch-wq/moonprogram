@@ -121,7 +121,7 @@ if ($result && $result->num_rows > 0) {
         }
     </style>
 </head>
-<body>
+<body><div style="background:#010601;padding:12px;text-align:center;font-family:monospace"><a href="fido.php" style="color:#a2e4a4">FIDO — FLIGHT DYNAMICS CONSOLE</a></div>
 <div style="padding:8px;text-align:center">
   <a href="ground_control/orbit_diagnostics.php" style="color:#ffff66">ORBIT DIAGNOSTICS</a>
 </div>
