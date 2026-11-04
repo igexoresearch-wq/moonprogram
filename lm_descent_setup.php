@@ -8,6 +8,7 @@ require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/lm_descent_initialization.php';
 require_once __DIR__.'/shared/lm_powered_descent_targets.php';
+require_once __DIR__.'/shared/lm_ascent_targets.php';
 function lunarRows(mysqli $db,string $table):array{
  $q=$db->query("SELECT attribute,value FROM $table");$out=[];
  if(!$q)throw new RuntimeException('Telemetry unavailable');
@@ -38,4 +39,4 @@ try{
 <body><h1>LM / DESCENT ORBIT PREPARATION</h1><p>Computed reference only. No automatic deorbit burn is issued.</p>
 <dl><?php foreach($data as $key=>$value):?><dt><?=lunarOut(strtoupper($key))?></dt><dd><?=lunarOut($value)?></dd><?php endforeach;?></dl>
 <p>Confirm actual LM separation, descent engine and propellant, alignment and ground approval before initiating a descent.</p>
-<a href="pilot.php">LM PILOT</a></body></html>
+<a href="lm_guidance.php">LM DESCENT GUIDANCE / PILOT TAKEOVER</a> | <a href="pilot.php">LM PILOT</a></body></html>
