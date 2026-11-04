@@ -51,7 +51,7 @@ function moonSimMidcoursePropagatedPreview(
   for($i=0;$i<3;$i++)$velocity[$i]+=(float)$deltaVelocity[$i];
  }
  $closest=INF;$at=0.0;$approachVelocity=null;$moonHit=false;$earthHit=false;
- $time=0.0;$passedMoon=false;$postMoonEarthPeriapsis=INF;
+ $time=0.0;$passedMoon=false;$postMoonEarthPeriapsis=INF;$postMoonEarthClosestTime=null;$entry120kmTime=null;
  while($time<$duration-1e-8){
   $h=min($step,$duration-$time);
   $a0=moonSimGravityAcceleration($craft,$earth,$moon,$earthMu,$moonMu);
@@ -69,7 +69,10 @@ function moonSimMidcoursePropagatedPreview(
    $closest=$moonRange;$at=$time;
    $approachVelocity=moonSimVectorMagnitude(moonSimRelativeVector($velocity,$moonVelocity));
   }elseif($time>$at+3600){$passedMoon=true;}
-  if($passedMoon)$postMoonEarthPeriapsis=min($postMoonEarthPeriapsis,$earthRange);
+  if($passedMoon){
+    if($earthRange<$postMoonEarthPeriapsis){$postMoonEarthPeriapsis=$earthRange;$postMoonEarthClosestTime=$time;}
+    if($entry120kmTime===null && $earthRange<=$earthRadius+120000.0)$entry120kmTime=$time;
+  }
   if($earthRange<=$earthRadius){$earthHit=true;break;}
   if($moonRange<=$moonRadius){$moonHit=true;break;}
  }
@@ -80,6 +83,8 @@ function moonSimMidcoursePropagatedPreview(
   'relative_speed_at_approach_m_s'=>$approachVelocity,
   'earth_impact'=>$earthHit,'moon_impact'=>$moonHit,
   'post_lunar_earth_min_altitude_m'=>is_finite($postMoonEarthPeriapsis)?$postMoonEarthPeriapsis-$earthRadius:null,
+  'post_lunar_earth_closest_approach_time_s'=>$postMoonEarthClosestTime,
+  'entry_interface_120km_time_s'=>$entry120kmTime,
   'free_return_observed'=>$passedMoon&&$earthHit&&!$moonHit,
   'horizon_seconds'=>$duration,
   'warning'=>'Numerical coast preview only. A free return needs demonstrated post-flyby Earth encounter, not an osculating conic or hypothetical correction alone.'
