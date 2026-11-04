@@ -11,6 +11,7 @@ function moonSimEnsureLmAssist(mysqli $conn): void {
     $conn->query("CREATE TABLE IF NOT EXISTS lm_descent_assist (
         id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
         enabled TINYINT(1) NOT NULL DEFAULT 0,
+        attitude_assist TINYINT(1) NOT NULL DEFAULT 0,
         status VARCHAR(100) NOT NULL DEFAULT 'MANUAL',
         altitude_m DOUBLE NOT NULL DEFAULT 0,
         radial_speed_m_s DOUBLE NOT NULL DEFAULT 0,
@@ -18,13 +19,16 @@ function moonSimEnsureLmAssist(mysqli $conn): void {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB");
     $conn->query("INSERT IGNORE INTO lm_descent_assist(id) VALUES (1)");
+    $conn->query("ALTER TABLE lm_descent_assist ADD COLUMN IF NOT EXISTS attitude_assist TINYINT(1) NOT NULL DEFAULT 0");
     $ready = true;
 }
 
 function moonSimLmDescentAssistStep(mysqli $conn): void {
     moonSimEnsureLmAssist($conn);
-    $result = $conn->query("SELECT enabled FROM lm_descent_assist WHERE id=1");
-    $enabled = $result && (int)($result->fetch_assoc()['enabled'] ?? 0) === 1;
+    $result = $conn->query("SELECT enabled,attitude_assist FROM lm_descent_assist WHERE id=1");
+    $control = $result?$result->fetch_assoc():null;
+    $enabled = $control && (int)($control['enabled'] ?? 0) === 1;
+    $attitudeAssist = $control && (int)($control['attitude_assist'] ?? 0) === 1;
     if (!$enabled) return;
 
     $read = static function (string $table, array $keys) use ($conn): array {
@@ -66,6 +70,19 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
         $q=moonSimLoadVehicleQuaternion($conn,'LM');
         $forward=moonSimRotateBodyVector($q,[1.0,0.0,0.0]);
         $alignment=$forward[0]*$normal[0]+$forward[1]*$normal[1]+$forward[2]*$normal[2];
+        if($attitudeAssist){
+            require_once __DIR__.'/../shared/ascent_guidance_math.php';
+            $horizontal=[$relative[0]-$radial*$normal[0],$relative[1]-$radial*$normal[1],$relative[2]-$radial*$normal[2]];
+            $horizontalMagnitude=sqrt(array_sum(array_map(static fn($x)=>$x*$x,$horizontal)));
+            $desired=$normal;
+            if($horizontalMagnitude>0.3){
+                $brakeFraction=max(0.0,min(0.65,$horizontalMagnitude/100.0));
+                for($i=0;$i<3;$i++)$desired[$i]=$normal[$i]*(1-$brakeFraction)-$horizontal[$i]/$horizontalMagnitude*$brakeFraction;
+            }
+            $rates=moonSimAscentBodyRates($q,$desired,2.0);
+            $pr=sprintf('%.6f',$rates['pitch_rate']);$yr=sprintf('%.6f',$rates['yaw_rate']);
+            $conn->query("UPDATE telemetry SET value=CASE attribute WHEN 'pitch_rate' THEN $pr WHEN 'yaw_rate' THEN $yr ELSE 0 END WHERE attribute IN ('pitch_rate','yaw_rate','roll_rate')");
+        }
         if ($alignment<0.85) {
             $status='HOLD: POINT ENGINE UP (<32 DEG ERROR)';
             $throttle=0.0;
