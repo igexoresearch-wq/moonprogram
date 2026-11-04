@@ -22,6 +22,14 @@ try{
  $ans['transfer_study']=moonSimRendezvousTransferSearch(rdVector($lm),rdVector($lm,'delta_'),
  rdVector($cm),rdVector($cm,'delta_'),rdVector($moon),rdVector($moon,'delta_'),
  $gravitational_constant*$moon_mass,$moon_radius);
+ $fuel=max(0.0,(float)($lm['fuel_ascent']??0));
+ $wetMass=$lander_ascent_empty_mass+$fuel;
+ if($fuel>0 && (int)($lm['descent']??1)===0)
+  $ans['finite_aps_rendezvous']=moonSimFiniteRendezvousSearch(
+    rdVector($lm),rdVector($lm,'delta_'),rdVector($cm),rdVector($cm,'delta_'),
+    rdVector($moon),rdVector($moon,'delta_'),
+    $gravitational_constant*$moon_mass,$moon_radius,
+    $wetMass,$fuel,$lander_ascent_thrust,311.0);
 }catch(Throwable $e){$ans=['error'=>$e->getMessage()];}
 ?><!doctype html><html lang="en"><meta charset="utf-8"><title>LM Rendezvous</title>
 <body style="background:#0b140c;color:#b7e4b2;font:17px monospace;max-width:900px;margin:30px auto">
