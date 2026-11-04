@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 17 implemented in source, 35 remaining (32.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 18 implemented in source, 34 remaining (34.6%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -19,7 +19,7 @@
 - [x] Earth–Moon gravitational propagation and orbital-element calculations are implemented.
 - [x] Live read-only orbit elements, circularization references and estimated propulsion budget are available.
 - [x] Validate orbital propagation, energy behavior and parking-orbit accuracy with executed reproducible tests. **Production numerical kernels now have committed regression coverage; equivalent local PHP checks passed; deployed flight validation remains in Section 13.**
-- [ ] Provide cockpit operational orbital navigation, maneuver targets and manual override.
+- [x] Provide cockpit operational orbital navigation, maneuver targets and manual override. **Authenticated manual cockpit controls connected to existing physical throttle/body-rate telemetry; finite burn automation is outside this objective.**
 
 ## 3. Translunar injection and coast
 - [x] Read-only approximate TLI references, moving-Moon encounter propagation, local search and safety screening.
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**2.4** Provide cockpit operational orbital navigation, maneuver targets and manual override.
+**3.2** Solve state-specific fuel-feasible finite-burn TLI targeting (direction, departure time, duration, arrival geometry).
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -138,3 +138,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Fixed an identified coordinate-frame error: with Earth fixed, the direct lunar gravitational acceleration on a craft must be reduced by the Moon's acceleration of Earth's origin (the indirect tidal term). The Moon's Earth-relative dynamics now use the sum of Earth and Moon GM (`a48e005`, `f475cb2`).
 - Committed `tests/orbital_propagation_checks.php` (`eb76b4b`, `c757f78`) for two-orbit circular energy/angular momentum drift, elliptical turning radii, 24-hour Moon motion, lunar tidal perturbations, and actual parking-orbit criteria. A local PHP 8.4 harness reproducing the production numerical formulas passed the corresponding checks. See `docs/ORBITAL_VALIDATION_2026-11-03.md` (`1ef4cc7`) for values and reproducibility instructions. **The exact committed script has not been run on a deployed server.**
 - **2.3 checked under the agreed source-implementation standard**, not as proof of a successful end-to-end flight. Section 13 continues to own deployment and actual mission verification. Frozen checklist total remains **52**.
+
+## 2026-11-03 — Objective 2.4: cockpit orbital navigation
+- Added `orbit_navigation.php` (commit `0bed144`): authenticated CM Earth/Moon orbital elements, target-altitude circularization reference, physical pitch/yaw/roll rate and main-engine throttle commands including immediate manual cutoff request. Safety: server-side AGC-off check, per-session CSRF token, bounded numeric inputs and no direct writes to position/velocity or arbitrary delta-V.
+- The new console is linked from `pilot.php`, `index.php`, and `orbit_maneuver.php` (commits `d347f36`, `4ffcd80`, `8d39c1c`). Existing cockpit instruments and manual physics are unchanged.
+- **2.4 complete at repository implementation level.** Simulated flights, credentials, switch inventory and actual pilot maneuver outcomes are not yet deployment-tested. Frozen total 52.
