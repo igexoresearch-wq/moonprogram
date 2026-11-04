@@ -7,5 +7,5 @@ if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){http_respo
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/radio_routing.php';
 $station=(string)($_GET['station']??'FIDO');
-if(!in_array($station,['FIDO','CREW'],true)){http_response_code(400);exit('{}');}
+if(!in_array($station,['FIDO','CREW'],true)||$station!==($_SESSION['moon_radio_role']??'')){http_response_code(400);exit('{}');}
 echo json_encode(['pending'=>moonSimRadioPending($conn,$station)]);
