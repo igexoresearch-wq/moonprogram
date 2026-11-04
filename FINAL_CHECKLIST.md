@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 27 implemented in source, 25 remaining (51.9%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 28 implemented in source, 24 remaining (53.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -37,7 +37,7 @@
 - [x] LM descent propulsion/RCS physics, lunar contact detection and optional throttle-only descent assist.
 - [x] Initialize descent from lunar orbit with valid braking and powered-descent targets. **Source-level fuel-bounded candidate finite-burn initialization and impact screening; flight verification deferred.**
 - [x] Implement Moon-relative horizontal-speed, attitude and final landing guidance with pilot takeover. **Optional LM pitch/yaw attitude steering plus existing gravity/radial-speed throttle assistance, crew-selectable guidance or manual takeover; physical touchdown verification remains under the separate landing-integration objective and Section 13.**
-- [ ] Integrate complete descent guidance, landing predictions and LM DSKY with verified touchdown behavior.
+- [x] Integrate complete descent guidance, landing predictions and LM DSKY with verified touchdown behavior. **Source-level LM guidance, live cockpit landing readout and physical contact classification work under assisted or manual control; end-to-end flight validation remains in Section 13.**
 
 ## 6. Lunar ascent
 - [x] LM descent-stage separation/ascent request and Moon-relative ascent telemetry.
@@ -249,3 +249,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - LM ascent worker now writes a one-time orbital cutoff record with mission clock, separated-stage flag and APS fuel (`fe26e3e`). End-to-end stage persistence and orbital insertion not yet validated.
 - Lunar rendezvous planner reports explicit combined proximity/relative-speed acceptability (`bdd4515`), and regression assertions for ascent perilune and rendezvous conditions were extended (`c99c2f3`).
 - The following checklist requirements remain unmet: 5.4 integrated touchdown verification; 6.2 complete fuel-feasible ascent profile; 6.4 executed launch-to-orbit and stage persistence; 7.2 maneuver-quality transfer/correction plan. Count remains 27/52. No tests executed in this batch.
+
+## 2026-11-03 — Four-objective implementation continuation
+- 5.4 checked as source-implemented: LM physical contact classification now observes contact even with pilot manual guidance disabled (adc31db), using the existing live LM landing readout. Actual flight validation is deferred.
+- 6.2 continues: ascent targeting now exposes approximate fuel required and remaining reserve based on lunar-relative velocity needs (7bff2ca). It is not a guaranteed optimum powered ascent profile, so the safe trajectory criterion remains open.
+- 6.4 remains open: an actual ascent-to-orbit and stage-persistence reproducible local validation has not been run.
+- 7.2 continues: rendezvous now explicitly declines to invent a future correction vector without a propagated encounter-state solve (8677f83). Rendezvous burn targeting remains open.
+- Frozen total 52, source implemented 28/52 (53.8%). No deployed tests.
