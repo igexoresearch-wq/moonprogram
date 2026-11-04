@@ -29,6 +29,17 @@ function moonSimFiniteTliPreview(
  $requiredFuel=$flow*$burnSeconds;
  if($requiredFuel>$fuelMass+1e-7)throw new RuntimeException('Requested burn exceeds onboard propellant');
  $mass=$initialMass;$spent=0.0;
+ $initialR=moonSimRelativeVector($craft,$earth);
+ $initialNormal=moonSimVectorCross($initialR,$velocity);
+ $normalLength=moonSimVectorMagnitude($initialNormal);
+ if($normalLength<1e-9)throw new InvalidArgumentException('Undefined departure orbital plane');
+ $initialNormal=array_map(static fn($x)=>$x/$normalLength,$initialNormal);
+ $initialUp=array_map(static fn($x)=>$x/moonSimVectorMagnitude($initialR),$initialR);
+ $initialTang=moonSimVectorCross($initialNormal,$initialUp);
+ $radialComponent=moonSimVectorDot($dir,$initialUp);
+ $tangentComponent=moonSimVectorDot($dir,$initialTang);
+ $normalComponent=moonSimVectorDot($dir,$initialNormal);
+ $orientationSet=false;
  $closest=INF;$closestAt=null;$relativeSpeed=null;$earthImpact=false;$moonImpact=false;
  $atEnd=false;$time=0.0;$closestRelativePosition=null;$closestRelativeVelocity=null;
  $maxSteps=(int)ceil($horizon/min($step,30.0));
@@ -39,6 +50,18 @@ function moonSimFiniteTliPreview(
   elseif($time<$departureDelay+$burnSeconds)$dt=min($dt,$departureDelay+$burnSeconds-$time,10.0);
   if($dt<1e-7)throw new RuntimeException('Finite burn timestep collapsed');
   $burn=$time>=$departureDelay-1e-8 && $time<$departureDelay+$burnSeconds-1e-8;
+  if($burn && !$orientationSet){
+   $up=moonSimRelativeVector($craft,$earth);$uMag=moonSimVectorMagnitude($up);
+   $up=array_map(static fn($x)=>$x/$uMag,$up);
+   $tang=moonSimVectorCross($initialNormal,$up);
+   $tMag=moonSimVectorMagnitude($tang);
+   if($tMag<1e-9)throw new RuntimeException('Undefined coasting prograde');
+   $tang=array_map(static fn($x)=>$x/$tMag,$tang);
+   for($j=0;$j<3;$j++)$dir[$j]=$up[$j]*$radialComponent+$tang[$j]*$tangentComponent+$initialNormal[$j]*$normalComponent;
+   $dMag=moonSimVectorMagnitude($dir);
+   $dir=array_map(static fn($x)=>$x/$dMag,$dir);
+   $orientationSet=true;
+  }
   $a0=moonSimGravityAcceleration($craft,$earth,$moon,$earthMu,$moonMu);
   $am0=moonSimMoonAcceleration($moon,$earth,$earthMu,$moonMu);
   if($burn){
@@ -76,6 +99,7 @@ function moonSimFiniteTliPreview(
   'departure_delay_seconds'=>$departureDelay,
   'burn_duration_seconds'=>$burnSeconds,
   'burn_direction_inertial_xyz'=>$dir,
+  'ignition_direction_inertial_xyz'=>$orientationSet?$dir:null,
   'propellant_used_kg'=>$spent,
   'propellant_remaining_kg'=>$fuelMass-$spent,
   'closest_approach_km'=>$closest/1000.0,
@@ -88,6 +112,7 @@ function moonSimFiniteTliPreview(
   'moon_impact_detected'=>$moonImpact,
   'closest_approach_at_horizon'=>$atEnd,
   'horizon_seconds'=>$horizon,
+  'propellant_feasible'=>$spent<=$fuelMass+1e-6,
  ];
 }
 
