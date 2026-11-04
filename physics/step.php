@@ -141,6 +141,8 @@ require_once __DIR__.'/mission_burn.php';
 moonSimMissionBurnStep($conn,(int)($Guidance_Computer_SWITCH ?? 0)===1);
 require_once __DIR__.'/lm_ascent_guidance.php';
 moonSimLmAscentGuidanceStep($conn);
+require_once __DIR__.'/lm_docking_alignment.php';
+moonSimDockingAlignmentStep($conn);
 
 // Central stage transitions are independent of database-stored AGC snippets.
 // Re-read the post-guidance state before applying a physical separation.
