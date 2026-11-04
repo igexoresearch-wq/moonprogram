@@ -52,6 +52,16 @@ try{
  if(($_GET['solve']??'')==='MIDCOURSE'){
   $answer=moonSimMidcourseSearch($craft,$velocity,$earth,$moonPos,$moonVel,
    $mu,$moonMu,$earth_radius,$moon_radius,35.0,604800.0);
+  if(!empty($answer['candidate']['correction_magnitude_m_s'])){
+   $fuel=max(0.0,(float)($cm['fuel']??0));
+   $mass=$command_module_empty_mass+$service_module_empty_mass+$fuel;
+   $burnBudget=moonSimBurnBudget($mass,$fuel,$service_module_thrust,314.0,
+      (float)$answer['candidate']['correction_magnitude_m_s']);
+   $answer['candidate']['estimated_sps_burn_seconds']=$burnBudget['ideal_burn_seconds'];
+   $answer['candidate']['estimated_sps_propellant_kg']=$burnBudget['fuel_required_kg'];
+   $answer['candidate']['sps_fuel_sufficient']=$burnBudget['fuel_sufficient'];
+   $answer['candidate']['propulsion_estimate']='UNDocked CSM mass assumption; crew must verify attached LM and actual engine configuration.';
+  }
   $answer['solution_status']='CANDIDATE ONLY / REQUEST CREW VERIFICATION';
  }
  if(($_GET['solve']??'')==='COAST'){
