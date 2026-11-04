@@ -40,7 +40,7 @@ try{
    $answer['closest_earth_arrival_seconds']=$answer['candidate']['return_preview']['numerical_preview']['post_lunar_earth_closest_approach_time_s']??null;
   }
  }
- if(($_GET['study']??'')==='TEI'){
+ if(in_array(($_GET['study']??''),['TEI','ABORT'],true)){
   $fuel=max(0.0,(float)($cm['fuel']??0));
   $mass=$command_module_empty_mass+$service_module_empty_mass+$fuel;
   $answer=moonSimTeiReference($position,$velocity,$earth,$moonP,$moonV,
@@ -58,7 +58,7 @@ try{
 <body style="background:#0d1511;color:#d2e7ce;font:16px monospace;margin:30px auto;max-width:850px">
 <h1>FIDO / EARTH RETURN</h1><p>Ground computer predictions, not automatic burns.</p>
 <form method="get"><button name="study" value="TEI">SEARCH TRANS-EARTH DEPARTURE</button>
-<button name="study" value="RETURN">SEARCH RETURN COURSE CORRECTIONS</button></form>
+<button name="study" value="RETURN">SEARCH RETURN COURSE CORRECTIONS</button><button name="study" value="ABORT">ABORT RETURN STUDY</button></form>
 <?php if($error):?><p>NO SOLUTION: <?=erOut($error)?></p><?php endif;?>
 <?php if($answer):?><pre><?=erOut(json_encode($answer,JSON_PRETTY_PRINT))?></pre><?php endif;?>
 <p>Flight Director: verify time, direction, SPS fuel and predicted corridor before requesting crew action.</p>
