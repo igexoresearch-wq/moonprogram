@@ -15,6 +15,7 @@ require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/openai_server_adapter.php';
 require_once __DIR__.'/shared/voice_ground_tools.php';
 require_once __DIR__.'/shared/radio_routing.php';
+require_once __DIR__.'/shared/radio_specialist_facts.php';
 try{
  $transcript=moonSimOpenAiRequest('https://api.openai.com/v1/audio/transcriptions',[
   'model'=>'gpt-4o-mini-transcribe','file'=>new CURLFile($file['tmp_name'],'audio/webm','speech.webm')]);
@@ -26,7 +27,7 @@ try{
  if(!in_array($station,['FIDO','CREW'],true))voiceFail(400,'Unknown radio station');
  if($station==='CREW')$specialist='CAPCOM';
  if(!in_array($specialist,$roles,true))voiceFail(400,'Unknown controller');
- $context=moonSimVoiceMissionContext($conn);
+ $context=moonSimSpecialistFacts($conn,$specialist);
  $radioId=null;
  if($station==='CREW'){
   $radioId=moonSimRadioQueue($conn,'CREW','CAPCOM',$utterance);
