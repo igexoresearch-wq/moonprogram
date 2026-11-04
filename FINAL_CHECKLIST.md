@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 19 implemented in source, 33 remaining (36.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 20 implemented in source, 32 remaining (38.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -29,7 +29,7 @@
 
 ## 4. Lunar orbit insertion
 - [x] Read-only Moon-relative orbital elements and provisional impulsive lunar-capture estimates.
-- [ ] Calculate usable live finite-burn LOI targets and predicted postburn lunar orbit.
+- [x] Calculate usable live finite-burn LOI targets and predicted postburn lunar orbit. **Coupled Earth–Moon finite SPS burn search with propellant limits and safe bound-orbit screening, connected to live LOI console; full flight validation deferred to Section 13.**
 - [ ] Execute LOI ignition, attitude, throttle/cutoff and guidance monitoring using physical engine state.
 - [ ] Expose LOI orbit predictions, safe manual procedure and recovery controls in cockpit.
 
@@ -184,3 +184,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **3.4:** Built `moonSimMidcourseSearch()` in `shared/midcourse_tracking.php` (`5ef591b`): 3D correction candidate grid, real moving-Moon gravitational preview, impact rejection, baseline comparison and bounded 35 m/s impulse budget. Exposed via FIDO's independent calculation command (`8bdb285`). Free-return solution and validated correction execution remain incomplete; retain unchecked.
 - **4.2:** Updated `loi_reference.php` (`91d613b`) to calculate SPS LOI wet mass including docked LM ascent/descent fuel and CSM/LM RCS, rather than silently ignoring the docked LM. Full coupled Earth-Moon LOI search remains pending; retain unchecked.
 - No deployment flight tests in this pass, no extra checklist objectives. **19/52 (36.5%)** unchanged.
+
+## 2026-11-03 — Focused completion work (3.3, 3.4, 4.2)
+- **3.3 TLI:** `physics/mission_burn.php` now commands cutoff on loss of ignition attitude and clears rate steering at scheduled cutoff (`b060d12`). Physical engine and manual cockpit plan exist. **Still open** until AGC/DSKY registration and crew operational integration are implemented; do not misrepresent a separate HTML burn form as working AGC.
+- **3.4 Midcourse:** `moonSimFreeReturnSearch()` uses long-horizon Earth/Moon numerical coasts to search corrections leading to post-lunar Earth return corridors (`8dce085`); FIDO can select the computation directly (`0e8fe0b`). **Still open** until free-return and corrections have a verified physical execution path rather than a hypothetical instantaneous delta-V.
+- **4.2 LOI TARGETING COMPLETED IN SOURCE:** `shared/coupled_loi_targeting.php` solves time-delayed, propellant-limited finite SPS burns with moving-Moon and terrestrial gravity, checks lunar impact and predicted bound-orbit peri/apoapsis. `loi_reference.php` now actually calls the coupled solver with current state and docked mass (`e736aa9`, `5087120`). This is a target calculation, not ignition or a guarantee of a stable orbit. Physical LOI burn belongs under the next existing objective 4.3; live tests remain under Section 13.
+- Frozen denominator **52**; **20 implemented (38.5%)**, 32 remaining. Maintain four physical cockpit panels and simple browser-based FIDO, no external spacecraft views.
