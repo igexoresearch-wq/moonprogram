@@ -30,7 +30,7 @@ function moonSimFiniteTliPreview(
  if($requiredFuel>$fuelMass+1e-7)throw new RuntimeException('Requested burn exceeds onboard propellant');
  $mass=$initialMass;$spent=0.0;
  $closest=INF;$closestAt=null;$relativeSpeed=null;$earthImpact=false;$moonImpact=false;
- $atEnd=false;$time=0.0;
+ $atEnd=false;$time=0.0;$closestRelativePosition=null;$closestRelativeVelocity=null;
  $maxSteps=(int)ceil($horizon/min($step,30.0));
  if($maxSteps>250000)throw new InvalidArgumentException('Preview too many integration steps');
  while($time<$horizon-1e-8){
@@ -63,7 +63,9 @@ function moonSimFiniteTliPreview(
   if($time>=$departureDelay+$burnSeconds){
    if($range<$closest){
     $closest=$range;$closestAt=$time;
-    $relativeSpeed=moonSimVectorMagnitude(moonSimRelativeVector($velocity,$moonVelocity));
+    $closestRelativePosition=moonSimRelativeVector($craft,$moon);
+    $closestRelativeVelocity=moonSimRelativeVector($velocity,$moonVelocity);
+    $relativeSpeed=moonSimVectorMagnitude($closestRelativeVelocity);
     $atEnd=true;
    }else{$atEnd=false;}
    if($range<=$moonRadius)$moonImpact=true;
@@ -80,6 +82,8 @@ function moonSimFiniteTliPreview(
   'closest_surface_altitude_km'=>($closest-$moonRadius)/1000.0,
   'closest_approach_time_seconds'=>$closestAt,
   'relative_speed_at_approach_m_s'=>$relativeSpeed,
+  'relative_position_at_approach_m'=>$closestRelativePosition,
+  'relative_velocity_at_approach_m_s'=>$closestRelativeVelocity,
   'earth_impact_detected'=>$earthImpact,
   'moon_impact_detected'=>$moonImpact,
   'closest_approach_at_horizon'=>$atEnd,
@@ -127,6 +131,12 @@ function moonSimFiniteTliSearch(
   }
  }
  if($best===null)throw new RuntimeException('No resolved safe finite-thrust lunar encounter within search grid');
+ if($best['relative_position_at_approach_m']!==null && $best['relative_velocity_at_approach_m_s']!==null){
+  $arrival=moonSimOrbitalElements($best['relative_position_at_approach_m'],$best['relative_velocity_at_approach_m_s'],[0,0,0],$moonMu);
+  $best['arrival_specific_energy_j_kg']=$arrival['specific_energy'];
+  $best['arrival_eccentricity']=$arrival['eccentricity'];
+  $best['arrival_periapsis_altitude_km']=$arrival['periapsis_radius']===null?null:($arrival['periapsis_radius']-$moonRadius)/1000;
+ }
  $best['candidate_evaluated']=$evaluated;
  $best['candidate_rejected_fuel']=$fuelRejected;
  $best['candidate_rejected_impact_or_horizon']=$collisionRejected;
