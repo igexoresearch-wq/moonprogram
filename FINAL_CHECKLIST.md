@@ -299,3 +299,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 7.3 source-complete: attitude alignment in worker, crew toggle, relative velocity guidance and existing capture mechanism connected. Full docking validation stays in 7.4.
 - APS insertion event-log schema initialization repaired.
 - No production testing performed. Remaining objective count: 21.
+
+## 2026-11-03 — Physical docking capture regression work
+- The existing capture rules were extracted into a side-effect-free function `moonSimDockCaptureEligible` and the live capture path now invokes it before DB changes (b3cf7f9, 687975a).
+- Added `tests/docking_capture_checks.php` (d01087a) for low-speed safe capture, overspeed, excessive range, attitude error, Saturn-stage attachment, and already-docked rejection. Test committed but not executed in this session.
+- Objective 7.4 stays open until physical integration and persistence are checked. Checklist still 31/52; no production testing or deployment.
