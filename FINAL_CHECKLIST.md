@@ -288,3 +288,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 8.3: Return corridor / correction search implemented in `shared/earth_return_corridor.php` (6ba9c43) and exposed in FIDO Earth-return console. Accurate atmospheric entry-corridor and arrival-time verification remains open.
 - 8.4: Fuel and SPS reserve calculations in `shared/return_abort_budget.php` (26fef70) do not yet establish a CM recovery-capable return route. Still open.
 - No production deployment, no server testing, no claimed passing integrated flights. Current checklist unchanged at 30/52 (57.7%).
+
+## 2026-11-03 — Finishing pass on 6.4 / 7.3 / 7.4 / 8.2 / 8.3 / 8.4
+- Hardened the shared physical maneuver executor to clear steering, thrust and engine status on aborted or unavailable mission-burn stages (7d48156). This applies to TEI as well as TLI, MCC, LOI.
+- Integrated protected SPS fuel reserve calculation into FIDO TEI results (af108a2), instead of showing departure delta-v without available fuel reserve.
+- All six items remain unchecked. 6.4 needs executed isolated flight/stage validation; 7.3 needs attitude/physical docking guidance; 7.4 needs repeatable docking capture demonstration; 8.2 needs full continuous-thrust TEI targeting; 8.3 needs arrival/entry-timing and entry corridor solution; 8.4 needs a fuel-feasible recovery-capable abort trajectory. These are source-level gaps, not a request for deployment.
+- Frozen tally unchanged: 30/52. No production server changes.
