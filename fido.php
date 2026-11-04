@@ -8,6 +8,7 @@ require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/orbit_maneuver_planner.php';
 require_once __DIR__.'/shared/finite_tli_targeting.php';
+require_once __DIR__.'/shared/tli_stack_mass.php';
 function fidoRead(mysqli $conn,string $table):array{
  $result=$conn->query("SELECT attribute,value FROM $table");$rows=[];
  if(!$result)throw new RuntimeException('Telemetry unavailable');
@@ -49,16 +50,23 @@ try{
    throw new RuntimeException('TLI calculation requires attached S-IVB and no lower stages');
   $fuel=(float)($cm['s3fuel']??0);
   if($fuel<=0)throw new RuntimeException('No S-IVB propellant');
-  $mass=$command_module_empty_mass+$service_module_empty_mass+
-    $stage3_empty_mass+$fuel+max(0,(float)($cm['fuel']??0))+
-    $lander_ascent_empty_mass+$lander_descent_empty_mass+
-    max(0,(float)($cm['s2fuel']??0));
-  // Mass estimate may omit specific mission consumables; display assumptions.
+  $lm=fidoRead($conn,'telemetry');
+  $mass=moonSimTliStackMass($cm,$lm,[
+    'csm_rcs_initial_propellant'=>$csm_rcs_initial_propellant,
+    'lm_rcs_initial_propellant'=>$lm_rcs_initial_propellant,
+    'command_module_empty_mass'=>$command_module_empty_mass,
+    'stage3_empty_mass'=>$stage3_empty_mass,
+    'service_module_empty_mass'=>$service_module_empty_mass,
+    'escape_tower_empty_mass'=>$escape_tower_empty_mass,
+    'lander_ascent_empty_mass'=>$lander_ascent_empty_mass,
+    'lander_descent_empty_mass'=>$lander_descent_empty_mass
+  ]);
   $answer=moonSimFiniteTliSearch($craft,$velocity,$earth,$moonPos,$moonVel,
     $reference['reference_burn_direction'],
     max(0,(float)$reference['reference_signed_delta_v_m_s']),
     $mass,$fuel,$stage3_thrust,421.0,$mu,$moonMu,$moon_radius,$earth_radius);
   $answer['assumed_stack_mass_kg']=$mass;
+  $answer['solution_status']='ADVISORY / NOT A BURN COMMAND';
   $answer['assumed_propellant_kg']=$fuel;
   $answer['engine_model']='S-IVB J-2 NOMINAL / 421 S';
  }
