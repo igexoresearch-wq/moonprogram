@@ -153,7 +153,7 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
     <div class="secondary-grid">
         <div class="grid-item">
             <!-- Include the first additional grid content here -->
-            <table><tr><td><?php include 'Diskey.php'; ?></td><td><?php include 'readout.php'; ?><?php include 'switches.php'; ?></td></tr></table>
+            <table><tr><td><?php include 'Diskey.php'; ?><?php include 'shared/burn_status_instrument.php'; ?></td><td><?php include 'readout.php'; ?><?php include 'switches.php'; ?></td></tr></table>
         </div>
     </div>
 
