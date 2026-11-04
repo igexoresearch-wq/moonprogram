@@ -53,7 +53,7 @@ try{
 }catch(Throwable $e){$error=$e->getMessage();}
 ?><!doctype html><html><head><meta charset="utf-8"><title>LOI Reference Console</title>
 <style>body{background:#010601;color:#a1dc9d;font:17px monospace;max-width:860px;margin:30px auto}input,button{background:#172517;color:#d4f4c8;padding:9px;border:1px solid #557e52}dt{margin:15px 0 5px}dd{color:#fff}</style></head><body>
-<h1>LOI / FINITE-BURN REFERENCE</h1><p>Calculation only. No engine commands. Target search propagates the moving Moon and both gravitational fields; manual entry and verification required.</p>
+<h1>LOI / FINITE-BURN REFERENCE</h1><p><a href="csm_burn_control.php">CREW LOI ARM / CANCEL</a> — <a href="index.php">CM PANEL</a></p><p>PROCEDURE: Verify SPS availability and burn target. Align attitude. Arm LOI. Monitor engine and fuel. Cancel on deviation, then recompute.</p><p>Calculation only. No engine commands. Target search propagates the moving Moon and both gravitational fields; manual entry and verification required.</p>
 <form method="get"><label>Burn seconds <input name="duration" type="number" min="1" max="1000" value="<?=loiEsc($duration)?>"></label><button name="mode" value="estimate">COMPUTE DURATION</button><br><label>Target apoapsis (m) <input type="number" name="target" min="80000" max="1000000" value="120000"></label><button name="mode" value="target">SEARCH BOUND LOI</button></form>
 <?php if($error):?><p>NOT AVAILABLE: <?=loiEsc($error)?></p><?php endif;?>
 <?php if($output):?><dl><?php foreach($output as $key=>$value):?><dt><?=loiEsc(strtoupper($key))?></dt>
