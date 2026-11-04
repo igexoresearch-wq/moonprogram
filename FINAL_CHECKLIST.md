@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 24 implemented in source, 28 remaining (46.2%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 25 implemented in source, 27 remaining (48.1%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -36,7 +36,7 @@
 ## 5. Lunar module landing
 - [x] LM descent propulsion/RCS physics, lunar contact detection and optional throttle-only descent assist.
 - [ ] Initialize descent from lunar orbit with valid braking and powered-descent targets.
-- [ ] Implement Moon-relative horizontal-speed, attitude and final landing guidance with pilot takeover.
+- [x] Implement Moon-relative horizontal-speed, attitude and final landing guidance with pilot takeover. **Optional LM pitch/yaw attitude steering plus existing gravity/radial-speed throttle assistance, crew-selectable guidance or manual takeover; physical touchdown verification remains under the separate landing-integration objective and Section 13.**
 - [ ] Integrate complete descent guidance, landing predictions and LM DSKY with verified touchdown behavior.
 
 ## 6. Lunar ascent
@@ -208,3 +208,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - **4.4 implemented in source:** `loi_reference.php` exposes current coupled Earth–Moon target predictions with a direct crew maneuver link and a stop/recompute procedure (`b5086e0`). Actual maneuver is never automatically inferred from a calculation.
 - **5.2 underway, not yet completed:** `shared/lm_descent_initialization.php` adds a state-dependent Moon-relative deorbit reference, orbital validity screening and braking orientation (`7e24958`), shown in `lm_descent_setup.php` (`b979101`) and linked from LM pilot (`37704c8`). Still requires finite-thrust powered-descent targeting and rigorously bounded braking target before completion; do not mark a two-body reference as a valid full descent profile.
 - Frozen objectives: **24/52 = 46.2%, 28 remaining**. Source changes are committed; integrated flights remain untested.
+
+## 2026-11-03 — Four-objective lunar operations development batch
+- **5.2 remains open:** New `shared/lm_powered_descent_targets.php` computes fuel-constrained braking reference and preliminary descent feasibility (`8c139ae`), shown alongside Moon-relative orbital initial conditions in `lm_descent_setup.php` (`d84863d`). This is a necessary condition only, not a complete finite-burn landing target; do not mark as full initialization.
+- **5.3 implemented in source:** `physics/lm_descent_assist.php` now optionally steers the LM's physical body-axis pitch/yaw toward a Moon-relative up/retrograde blend while its existing throttle controller manages radial descent (`3a2b719`, `0ecc63d`). `lm_guidance.php` provides separate guided, throttle-only, and immediate manual-takeover controls (`0b810c5`). Pilot takeover does not teleport or change physical position. This does not imply verified safe touchdown or completion of 5.4.
+- **5.4 remains open:** Full LM DSKY integration, continuously recomputed landing predictions, safe terminal landing envelope, and full source touchdown workflow still require development. Real mission end-to-end validation remains in Section 13.
+- **6.2 remains open:** `shared/lm_ascent_targets.php` now calculates Moon-relative ascent direction/pitch, orbital insertion reference, thrust-to-weight and remaining ideal delta-v (`9f6fc12`) and the LM setup console displays it (`63c4275`). Closed-loop safe orbital insertion profile is not yet solved.
+- Frozen progress **25/52 (48.1%)**; user requested four objectives worked on, not four falsely checked off. No live integrated flight validation was performed.
