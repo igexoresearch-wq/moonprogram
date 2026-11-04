@@ -31,6 +31,14 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     $enabled = $control && (int)($control['enabled'] ?? 0) === 1;
     $attitudeAssist = $control && (int)($control['attitude_assist'] ?? 0) === 1;
     if (!$enabled) return;
+    // Never run descent guidance while LM is attached to the CSM or Saturn stack.
+    $dock=$conn->query("SELECT attribute,value FROM command_module WHERE attribute IN ('dock','stage3')");
+    if($dock){while($d=$dock->fetch_assoc()){
+      if((int)$d['value']===1){
+        $conn->query("UPDATE lm_descent_assist SET enabled=0,attitude_assist=0,status='INHIBITED: LM ATTACHED' WHERE id=1");
+        return;
+      }
+    }}
 
     $read = static function (string $table, array $keys) use ($conn): array {
         $out = [];
@@ -112,6 +120,7 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     $stmt->bind_param('isddd',$on,$status,$alt,$radial,$tangential);
     $stmt->execute();
     $command=$enabled?$throttle:0.0;
+    if(!$enabled)$conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('pitch_rate','yaw_rate','roll_rate')");
     $stmt=$conn->prepare("UPDATE telemetry SET value=? WHERE attribute='thrust'");
     $stmt->bind_param('d',$command);
     $stmt->execute();
