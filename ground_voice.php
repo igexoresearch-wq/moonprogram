@@ -25,6 +25,7 @@ let selected='TRAJECTORY';
 document.querySelectorAll('.channel').forEach(b=>b.addEventListener('click',()=>{
  selected=b.dataset.channel;
  document.querySelectorAll('.channel').forEach(x=>x.classList.toggle('selected',x===b));
+ if(selected==='CAPCOM')pickUpCapcom();
 }));
 document.querySelector('[data-channel="TRAJECTORY"]').click();
 setInterval(async()=>{
