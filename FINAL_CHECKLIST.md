@@ -279,3 +279,12 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 8.3: Full return-course correction and entry corridor targeting remains unfinished.
 - 8.4: Manual fuel-bounded contingency Earth recovery planning remains unfinished.
 - No deployment or integrated server testing. All items remain open until full source requirements are implemented. Fixed 52-item checklist tally unchanged.
+
+## 2026-11-03 — 6.4 plus five following objectives development pass
+- 6.4: Isolated lunar ascent performance, propellant and expected stage-state invariants in `shared/lm_ascent_validation.php` (038dfe0); still needs executed stage persistence and launch outcome validation.
+- 7.3: Live CM/LM closure, LOS, relative lateral speed and speed-risk calculation implemented in `shared/docking_closure_guidance.php` (a1cd9de) and linked to LM cockpit (1eab769); physical docking attitude guidance not complete.
+- 7.4: Full physical rendezvous and docking integration remains unfinished.
+- 8.2: Coupled Earth/Moon coast and SPS fuel-limited TEI search implemented in `shared/tei_return_targeting.php` (a218014), with TEI physical phase accepted in `physics/mission_burn.php` (62e6734), cockpit option (5415d46), and FIDO Earth-return console (db37e24). Source candidate approximates the finite departure as effective impulse; continuous thrust targeting still needed.
+- 8.3: Return corridor / correction search implemented in `shared/earth_return_corridor.php` (6ba9c43) and exposed in FIDO Earth-return console. Accurate atmospheric entry-corridor and arrival-time verification remains open.
+- 8.4: Fuel and SPS reserve calculations in `shared/return_abort_budget.php` (26fef70) do not yet establish a CM recovery-capable return route. Still open.
+- No production deployment, no server testing, no claimed passing integrated flights. Current checklist unchanged at 30/52 (57.7%).
