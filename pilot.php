@@ -84,7 +84,7 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
     </style>
 </head>
 <body>
-<div><a href="lm_descent_setup.php">LM DESCENT SETUP</a> &nbsp; <a href="lm_ascent_control.php">LM APS ASCENT GUIDANCE</a> &nbsp; <a href="lm_rendezvous_reference.php">CSM RENDEZVOUS REFERENCE</a></div>
+<div><a href="lm_descent_setup.php">LM DESCENT SETUP</a> &nbsp; <a href="lm_ascent_control.php">LM APS ASCENT GUIDANCE</a> &nbsp; <a href="lm_rendezvous_reference.php">CSM RENDEZVOUS REFERENCE</a> &nbsp; <a href="lm_docking_control.php">DOCKING ALIGNMENT / MANUAL</a></div>
 <div style="background:#14273b;padding:9px 18px;text-align:center"><a href="orbit_navigation.php" style="color:#9edcff;font-weight:bold">ORBITAL NAVIGATION / MANUAL MANEUVER</a></div>
 
     <?php include 'lm_landing_instrument.php'; ?>
