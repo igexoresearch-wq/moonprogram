@@ -84,6 +84,8 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
     </style>
 </head>
 <body>
+<div style="background:#14273b;padding:9px 18px;text-align:center"><a href="orbit_navigation.php" style="color:#9edcff;font-weight:bold">ORBITAL NAVIGATION / MANUAL MANEUVER</a></div>
+
     <!-- Top Grid with 3 Divs -->
     <div class="grid-container">
         <div class="grid-item">
