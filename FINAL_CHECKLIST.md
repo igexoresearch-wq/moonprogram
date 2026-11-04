@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 28 implemented in source, 24 remaining (53.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 29 implemented in source, 23 remaining (55.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -41,7 +41,7 @@
 
 ## 6. Lunar ascent
 - [x] LM descent-stage separation/ascent request and Moon-relative ascent telemetry.
-- [ ] Calculate safe live ascent pitch, heading, velocity, altitude and orbit-insertion profile.
+- [x] Calculate safe live ascent pitch, heading, velocity, altitude and orbit-insertion profile. **Source-level finite, changing-mass APS trajectory search evaluates pitch programs, propellant, lunar-surface contact, perilune and apolune from current live state, exposed on protected LM ascent console. Integrated launch validation remains under 6.4 and Section 13.**
 - [x] Implement APS ignition, cutoff and orbital insertion with independent guidance executor and manual override. **LM APS guidance runs in one-second worker with physical throttle/fuel, quaternion attitude rates, crew manual takeover, state initialization, stage checks, and guarded lunar-periapsis cutoff; integrated flight verification remains 6.4 and Section 13.**
 - [ ] Validate LM launch-to-orbit performance and stage-state persistence.
 
@@ -256,3 +256,10 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - 6.4 remains open: an actual ascent-to-orbit and stage-persistence reproducible local validation has not been run.
 - 7.2 continues: rendezvous now explicitly declines to invent a future correction vector without a propagated encounter-state solve (8677f83). Rendezvous burn targeting remains open.
 - Frozen total 52, source implemented 28/52 (53.8%). No deployed tests.
+
+## 2026-11-03 — Four-objective source completion continuation
+- **6.2 completed in source:** Variable-mass finite APS orbital ascent profiles and safe-bound candidate search in `shared/lm_finite_ascent_profile.php` (f9a4577), exposed by `lm_ascent_control.php` (e331cb2). Rejects fuel-exhausting, lunar-impact and below-safe-perilune results. Real trajectory is still monitored and can diverge from reference.
+- **5.4 remains completed in source:** Physical surface-contact classification now runs during manual piloting too (adc31db).
+- **6.4 still open:** Actual launch-to-orbit performance plus persisted stage-state transitions have not been validated locally. This is a distinct verification objective; no fabricated signoff.
+- **7.2 still open:** Transfer search is read-only, coarse and impulsive, not yet a finite-burn correction plan with encounter targeting.
+- Fixed checklist: 29/52 implemented in source, 23 remaining. No deployment or server testing.
