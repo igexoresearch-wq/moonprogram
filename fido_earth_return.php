@@ -27,6 +27,14 @@ try{
   $answer=moonSimReturnCourseSearch($position,$velocity,$earth,$moonP,$moonV,
    $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
    $earth_radius,$moon_radius);
+  $fuel=max(0.0,(float)($cm['fuel']??0));
+  if($fuel>0&&(int)($cm['service_module']??0)===1){
+   $mass=$command_module_empty_mass+$service_module_empty_mass+$fuel;
+   $answer['finite_sps_correction']=moonSimFiniteReturnCorrection(
+     $position,$velocity,$earth,$moonP,$moonV,
+     $gravitational_constant*$earth_mass,$gravitational_constant*$moon_mass,
+     $earth_radius,$moon_radius,$mass,$fuel,$service_module_thrust,314.0);
+  }
   if(!empty($answer['candidate'])){
    $answer['entry_interface_estimate_seconds']=$answer['candidate']['return_preview']['numerical_preview']['entry_interface_120km_time_s']??null;
    $answer['closest_earth_arrival_seconds']=$answer['candidate']['return_preview']['numerical_preview']['post_lunar_earth_closest_approach_time_s']??null;
