@@ -150,6 +150,8 @@ function moonSimEnsureReentryState(mysqli $conn): void
 }
 
 moonSimEnsureReentryState($conn);
+$cols=$conn->query("SHOW COLUMNS FROM reentry_state LIKE 'shield_integrity'");
+if($cols&&$cols->num_rows===0)$conn->query("ALTER TABLE reentry_state ADD COLUMN shield_integrity DOUBLE NOT NULL DEFAULT 1, ADD COLUMN crew_survives TINYINT NOT NULL DEFAULT 1");
 
 $drag_acc_x = 0.0;
 $drag_acc_y = 0.0;
@@ -346,6 +348,10 @@ $aeroG = $aeroMagnitude/9.80665;
 $drag_acc_net = sqrt(
     $drag_acc_x**2+$drag_acc_y**2+$drag_acc_z**2
 );
+
+$integritySql=sprintf('%.8f',$shieldIntegrity);
+$survivalSql=$crewSurvives?1:0;
+$conn->query("UPDATE reentry_state SET shield_integrity=$integritySql,crew_survives=$survivalSql WHERE id=1");
 
 $stmt = $conn->prepare(
     "UPDATE reentry_state
