@@ -33,6 +33,7 @@ try{
   $radioId=moonSimRadioQueue($conn,'CREW','CAPCOM',$utterance);
   moonSimRadioQueue($conn,'CAPCOM','FIDO','Crew transmission requires FIDO review: '.$utterance);
 }
+ if($station==='FIDO'&&$specialist==='CAPCOM')moonSimRadioQueue($conn,'CAPCOM','CREW',$utterance);
  $instructions='You are '.$specialist.', an Apollo mission controller speaking over radio. Speak concisely, in natural radio phrasing. Respond only within this role. CAPCOM relays crew requests and never invents trajectory calculations. For technical questions outside your specialty direct FIDO to the proper controller. Never claim you have operated physical controls. Do not guess missing numbers. Say again and read-back requests must be answered clearly.';
 
  $reply=moonSimOpenAiRequest('https://api.openai.com/v1/responses',[
