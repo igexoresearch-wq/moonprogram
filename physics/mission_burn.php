@@ -9,9 +9,12 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
  $clock=$conn->query("SELECT seconds FROM mission_clock WHERE id=1");
  $row=$clock?$clock->fetch_assoc():null;$met=(int)($row['seconds']??-900);
  $start=(int)$p['ignition_met'];$stop=(int)$p['cutoff_met'];
+ $phase=(string)$p['phase'];
+ if(!in_array($phase,['TLI','MCC'],true))return;
+ $engineStage=$phase==='TLI'?'Third Stage':'Service Module';
  if(!$enabled) {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
-  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='$engineStage'");
   $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
   return;
  }
@@ -30,7 +33,10 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
   return;
  }
- if((int)($s['stage3']??0)!==1||((float)($s['s3fuel']??0)<=0)){
+ $engineAvailable=$phase==='TLI'
+  ?(int)($s['stage3']??0)===1&&(float)($s['s3fuel']??0)>0
+  :(int)($s['stage3']??0)===0&&(int)($s['service_module']??0)===1&&(float)($s['fuel']??0)>0;
+ if(!$engineAvailable){
   $conn->query("UPDATE mission_burn_plan SET status='CANCELLED' WHERE id=1");
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
   return;
@@ -43,7 +49,7 @@ function moonSimMissionBurnStep(mysqli $conn,bool $enabled):void {
   $conn->query("UPDATE command_module SET value=0 WHERE attribute='thrust'");
   $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Third Stage'");
  }
- if($met>=$start && $rate['alignment_error_deg']<5.0 && (float)($s['s3fuel']??0)>0) {
+ if($met>=$start && $rate['alignment_error_deg']<5.0 && $engineAvailable) {
   $conn->query("UPDATE command_module SET value=100 WHERE attribute='thrust'");
   $conn->query("UPDATE EngineStatus SET status='ON' WHERE engine_stage='Third Stage' AND operational_status='OK'");
  }
