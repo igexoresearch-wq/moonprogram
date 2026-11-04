@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/midcourse_tracking.php';
+require_once __DIR__.'/finite_sps_earth_return.php';
 /** Read-only finite-burn Earth-return search with moving-Moon coast. */
 function moonSimTeiReference(array $craft,array $velocity,array $earth,array $moon,array $moonVelocity,
  float $earthMu,float $moonMu,float $earthRadius,float $moonRadius,
@@ -19,11 +20,14 @@ function moonSimTeiReference(array $craft,array $velocity,array $earth,array $mo
    foreach([30.0,60.0,120.0,240.0,360.0] as $seconds){
     $spent=$seconds*$flow;
     if($spent>0.9*$fuel)continue;
-    // Rocket-equation finite burn reference, with midpoint burn direction.
+    try{
+      $burn=moonSimFiniteSpsDeparture($craft,$velocity,$earth,$moon,$moonVelocity,
+       $earthMu,$moonMu,$earthRadius,$moonRadius,$wet,$fuel,$thrust,$isp,$d,$seconds);
+    }catch(RuntimeException $e){continue;}
+    $coast=moonSimMidcoursePropagatedPreview($burn['position'],$burn['velocity'],$earth,
+      $burn['moon'],$burn['moon_velocity'],$earthMu,$moonMu,$earthRadius,$moonRadius,
+      1036800.0,null,180.0);
     $dv=$isp*9.80665*log($wet/($wet-$spent));
-    $kick=array_map(static fn($x)=>$x*$dv,$d);
-    $coast=moonSimMidcoursePropagatedPreview($craft,$velocity,$earth,$moon,$moonVelocity,
-      $earthMu,$moonMu,$earthRadius,$moonRadius,1036800.0,$kick,180.0);
     $tested++;
     $arrival=$coast['post_lunar_earth_min_altitude_m'];
     if($coast['moon_impact']||$arrival===null||$arrival<60000||$arrival>300000)continue;
@@ -36,5 +40,5 @@ function moonSimTeiReference(array $craft,array $velocity,array $earth,array $mo
   }
  }
  return ['candidate'=>$best,'candidates_tested'=>$tested,
- 'warning'=>'Finite fuel accounting with effective impulsive midpoint departure and coupled coast; refine through true continuous-burn dynamics before execution.'];
+ 'warning'=>'Integrated SPS thrust during departure with Earth/Moon gravity and moving Moon coast; entry survivability remains outside this targeting model.'];
 }
