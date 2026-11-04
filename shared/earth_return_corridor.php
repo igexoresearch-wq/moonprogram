@@ -49,3 +49,36 @@ function moonSimReturnCourseSearch(array $craft,array $velocity,array $earth,arr
  return ['candidate'=>$best,'evaluated'=>$evaluated,
   'warning'=>'Impulsive correction screening; candidate must be converted to finite SPS burn and manually confirmed; no entry survivability claim.'];
 }
+
+/** Convert a corridor correction into a truly finite SPS maneuver; no mutation. */
+function moonSimFiniteReturnCorrection(
+ array $craft,array $velocity,array $earth,array $moon,array $moonVelocity,
+ float $earthMu,float $moonMu,float $earthRadius,float $moonRadius,
+ float $wet,float $fuel,float $thrust,float $isp,float $reserve=0.15
+):array{
+ $study=moonSimReturnCourseSearch($craft,$velocity,$earth,$moon,$moonVelocity,
+   $earthMu,$moonMu,$earthRadius,$moonRadius);
+ $candidate=$study['candidate'];
+ if($candidate===null)return ['candidate'=>null,'reason'=>'No corridor correction found'];
+ $dv=$candidate['delta_v_xyz'];$magnitude=moonSimVectorMagnitude($dv);
+ $flow=$thrust/($isp*9.80665);
+ $needed=$wet*(1-exp(-$magnitude/($isp*9.80665)));
+ if($needed>$fuel*(1-$reserve))return ['candidate'=>null,'reason'=>'SPS fuel reserve would be violated'];
+ $direction=array_map(static fn($x)=>$x/$magnitude,$dv);
+ $seconds=$needed/$flow;
+ $burn=moonSimFiniteSpsDeparture($craft,$velocity,$earth,$moon,$moonVelocity,
+  $earthMu,$moonMu,$earthRadius,$moonRadius,$wet,$fuel,$thrust,$isp,$direction,$seconds);
+ $coast=moonSimMidcoursePropagatedPreview($burn['position'],$burn['velocity'],$earth,
+  $burn['moon'],$burn['moon_velocity'],$earthMu,$moonMu,
+  $earthRadius,$moonRadius,1036800.0,null,120.0);
+ $alt=$coast['post_lunar_earth_min_altitude_m'];
+ return ['candidate'=>[
+  'direction_xyz'=>$direction,'duration_seconds'=>$seconds,
+  'fuel_used_kg'=>$burn['fuel_used_kg'],
+  'fuel_remaining_kg'=>$burn['fuel_remaining_kg'],
+  'predicted_entry_altitude_m'=>$alt,
+  'predicted_entry_120km_met_offset_s'=>$seconds+($coast['entry_interface_120km_time_s']??0),
+  'predicted_earth_arrival_met_offset_s'=>$seconds+($coast['post_lunar_earth_closest_approach_time_s']??0),
+  'entry_corridor_candidate'=>$alt!==null&&$alt>=65000&&$alt<=140000&&!$coast['moon_impact']
+ ],'warning'=>'Re-evaluated with finite physical SPS thrust and moving Earth/Moon coast. Atmospheric guidance is separate.'];
+}
