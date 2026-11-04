@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 36 implemented in source, 16 remaining (69.2%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 38 implemented in source, 14 remaining (73.1%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -64,8 +64,8 @@
 - [ ] Validate reentry/reset/contact persistence and safe CM recovery across repeated complete flights.
 
 ## 10. Ground Control voice
-- [ ] Use secure existing OpenAI API credentials through server-side adapter outside repository.
-- [ ] Implement push-to-talk voice transcription, grounded tool responses and optional audio return.
+- [x] Use secure existing OpenAI API credentials through server-side adapter outside repository. **Environment or off-repository key file; restricted outbound provider adapter; no secrets exposed to browser. Requires deployment configuration.**
+- [x] Implement push-to-talk voice transcription, grounded tool responses and optional audio return. **Protected Ground browser voice station uses microphone capture, server transcription, sourced telemetry context, advisory responses and optional speech synthesis.**
 - [ ] Expose verified read-only telemetry/navigation/procedure tools with reference attribution.
 - [ ] Share the voice button among Ground/Pilot/Commander/LM with explicit permission for physical actions.
 
@@ -319,3 +319,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Corrected a real TEI arming mismatch: the CSM burn selector offered TEI but the server-side phase allowlist rejected it. The authenticated physical burn controller now accepts TEI and manual cancel clears engine/steering state (f4da744).
 - Added a post-lunar Earth closest-approach timestamp and 120 km atmospheric entry-interface timestamp directly to the moving Earth/Moon coast solver (8bada13), exposed on FIDO return correction readout (7033b58).
 - Full continuous-thrust trans-Earth targeting, complete return-corridor feasibility and validated abort-to-recovery planning remain source gaps. No deployment or server flight tests. Frozen tally remains 31/52 (59.6%).
+
+## 2026-11-04 — Ground voice and reentry lifecycle implementation
+- Fixed reentry reset to clear shield/crew/heat state for each new simulated flight.
+- Source completed private provider adapter and authenticated push-to-talk Ground voice with optional local speech output. Provider credentials remain external and require server setup at deployment.
+- Read-only mission telemetry source labeling implemented. Navigation and procedure reference tools remain incomplete; 10.3 open.
+- Full repeated-mission reentry persistence verification is deferred to final mission testing; 9.4 remains open.
