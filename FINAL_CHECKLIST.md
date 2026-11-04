@@ -237,3 +237,9 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Landing navigation data now appears as a read-only LM instrument (`246ff4b`, `6c80ef9`). This does not prove touchdown outcomes, so **5.4 remains open**.
 - **6.2** still needs robust fuel-feasible ascent profile and **6.4** still needs launch-to-orbit persistence verification. No live flight test or schema migration deployment was performed.
 - Fixed checklist remains **27/52 (51.9%)**, not five completed.
+
+## 2026-11-03 — Lunar guidance follow-up
+- Ascent insertion now checks computed lunar perilune and apolune (f66e841).
+- Rendezvous candidate search now accounts for relative closing speed at approach (db761da).
+- Regression checks added for insertion, landing-envelope classifications and rendezvous (f4d74f5). Not executed here.
+- Items 5.4, 6.2, 6.4 and 7.2 remain open; 27/52 completed in source. Touchdown, full ascent trajectory and stage persistence have not been verified.
