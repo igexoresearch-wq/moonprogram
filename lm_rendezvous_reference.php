@@ -4,6 +4,7 @@ require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/physical_constants.php';
 require_once __DIR__.'/shared/lm_rendezvous_reference.php';
 require_once __DIR__.'/shared/lm_rendezvous_transfer.php';
+require_once __DIR__.'/shared/docking_closure_guidance.php';
 function rdRows(mysqli $conn,string $table):array{
  $q=$conn->query("SELECT attribute,value FROM $table");$r=[];
  if($q)while($v=$q->fetch_assoc())$r[$v['attribute']]=(float)$v['value'];
@@ -22,6 +23,7 @@ try{
  $ans['transfer_study']=moonSimRendezvousTransferSearch(rdVector($lm),rdVector($lm,'delta_'),
  rdVector($cm),rdVector($cm,'delta_'),rdVector($moon),rdVector($moon,'delta_'),
  $gravitational_constant*$moon_mass,$moon_radius);
+ $ans['docking_closure']=moonSimDockingClosureReference(rdVector($cm),rdVector($cm,'delta_'),rdVector($lm),rdVector($lm,'delta_'));
  $fuel=max(0.0,(float)($lm['fuel_ascent']??0));
  $wetMass=$lander_ascent_empty_mass+$fuel;
  if($fuel>0 && (int)($lm['descent']??1)===0)
