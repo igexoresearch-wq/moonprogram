@@ -10,6 +10,7 @@
  * These are added directly to propulsion acceleration by physics/step.php.
  */
 
+require_once __DIR__.'/../shared/entry_guidance.php';
 function moonSimAtmosphere(float $altitude): array
 {
     if ($altitude < 0.0) {
@@ -163,6 +164,12 @@ $velocity = [
     (float)$delta_yCM,
     (float)$delta_zCM,
 ];
+$entry=moonSimEntryState([(float)$xCM,(float)$yCM,(float)$zCM],$velocity,[$earth_center_x,$earth_center_y,$earth_center_z],$earth_radius);
+$atmosphericVelocity=[(float)$delta_xCM,(float)$delta_yCM,(float)$delta_zCM];
+$relativeEarth=[(float)$xCM-$earth_center_x,(float)$yCM-$earth_center_y,(float)$zCM-$earth_center_z];
+$atmosphericVelocity[0]+=7.2921159e-5*$relativeEarth[1];
+$atmosphericVelocity[1]-=7.2921159e-5*$relativeEarth[0];
+$velocity=$atmosphericVelocity;
 $speed = sqrt(moonSimDot($velocity,$velocity));
 
 $atmosphere = moonSimAtmosphere((float)$altitude);
@@ -320,6 +327,9 @@ if ($entryCapsule && $air_density > 0.0 && $speed > 0.0) {
     $heatFlux = 1.83e-4*sqrt($air_density)*($speed**3);
 }
 $heatLoad += $heatFlux;
+$shieldDamage=max(0.0,($heatLoad-1.0e8)/2.0e8);
+$shieldIntegrity=max(0.0,1.0-$shieldDamage);
+$crewSurvives=$shieldIntegrity>0.0 && $nextChuteState!=='FAILED';
 
 $sigma = 5.670374419e-8;
 $emissivity = 0.90;
