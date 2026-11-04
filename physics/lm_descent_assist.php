@@ -13,6 +13,7 @@ function moonSimEnsureLmAssist(mysqli $conn): void {
         enabled TINYINT(1) NOT NULL DEFAULT 0,
         attitude_assist TINYINT(1) NOT NULL DEFAULT 0,
         status VARCHAR(100) NOT NULL DEFAULT 'MANUAL',
+        touchdown_result VARCHAR(32) NOT NULL DEFAULT 'PENDING',
         altitude_m DOUBLE NOT NULL DEFAULT 0,
         radial_speed_m_s DOUBLE NOT NULL DEFAULT 0,
         tangential_speed_m_s DOUBLE NOT NULL DEFAULT 0,
@@ -21,6 +22,8 @@ function moonSimEnsureLmAssist(mysqli $conn): void {
     $conn->query("INSERT IGNORE INTO lm_descent_assist(id) VALUES (1)");
     $column=$conn->query("SHOW COLUMNS FROM lm_descent_assist LIKE 'attitude_assist'");
     if($column && $column->num_rows===0)$conn->query("ALTER TABLE lm_descent_assist ADD COLUMN attitude_assist TINYINT(1) NOT NULL DEFAULT 0");
+    $touch=$conn->query("SHOW COLUMNS FROM lm_descent_assist LIKE 'touchdown_result'");
+    if($touch&&$touch->num_rows===0)$conn->query("ALTER TABLE lm_descent_assist ADD COLUMN touchdown_result VARCHAR(32) NOT NULL DEFAULT 'PENDING'");
     $ready = true;
 }
 
@@ -69,8 +72,11 @@ function moonSimLmDescentAssistStep(mysqli $conn): void {
     if ((int)$lm['crash']===1 || $lm['fuel']<=0 || (int)$lm['descent']!==1) {
         $status='INHIBITED: VEHICLE/STAGE/FUEL';
         $enabled=false;
-    } elseif ($alt<0.0) {
-        $status='SURFACE CONTACT';
+    } elseif ($alt<=0.0) {
+        $soft=abs($radial)<=2.0&&$tangential<=2.0;
+        $result=$soft?'SOFT_ENVELOPE':'HARD_CONTACT';
+        $conn->query("UPDATE lm_descent_assist SET touchdown_result='$result' WHERE id=1");
+        $status=$soft?'SURFACE CONTACT / SOFT ENVELOPE':'SURFACE CONTACT / HARD CONTACT';
         $enabled=false;
     } else {
         // Pilot must point the descent engine near local-up. Do not apply
