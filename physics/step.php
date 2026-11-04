@@ -137,6 +137,8 @@ include 'physics/CM_AGC.php';
 // on the next simulated second. ABORT/AGC-off leave pilot steering alone.
 require_once __DIR__ . '/ascent_guidance.php';
 moonSimAscentGuidanceStep($conn,(int)($Guidance_Computer_SWITCH ?? 0)===1);
+require_once __DIR__.'/mission_burn.php';
+moonSimMissionBurnStep($conn,(int)($Guidance_Computer_SWITCH ?? 0)===1);
 
 // Central stage transitions are independent of database-stored AGC snippets.
 // Re-read the post-guidance state before applying a physical separation.
