@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 39 implemented in source, 13 remaining (75.0%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 40 implemented in source, 12 remaining (76.9%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -67,7 +67,7 @@
 - [x] Use secure existing OpenAI API credentials through server-side adapter outside repository. **Environment or off-repository key file; restricted outbound provider adapter; no secrets exposed to browser. Requires deployment configuration.**
 - [x] Implement push-to-talk voice transcription, grounded tool responses and optional audio return. **Protected Ground browser voice station uses microphone capture, server transcription, sourced telemetry context, advisory responses and optional speech synthesis.**
 - [x] Expose verified read-only telemetry/navigation/procedure tools with reference attribution. **Role-filtered live orbital elements, CSM/LM fuel and 15% reserve, and numerical Earth-return correction candidate from existing return solver; unavailable maneuver parameters must not be invented. More specialist targeting can be extended later.**
-- [ ] Share the voice button among Ground/Pilot/Commander/LM with explicit permission for physical actions.
+- [x] Share the voice button among Ground/Pilot/Commander/LM with explicit permission for physical actions. **FIDO specialist panel, CAPCOM-only crew radio and cockpit entry links share the same authenticated radio service. Server session restricts stations and CAPCOM relays require deliberate operator confirmation. Voice calls never issue physical flight commands.**
 
 ## 11. Cockpit and mission operations
 - [x] Preserve original Apollo-style control pages, DSKY and added specialist operator stations.
