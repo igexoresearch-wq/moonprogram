@@ -4,6 +4,7 @@ require_once __DIR__.'/orbital_mechanics.php';
 require_once __DIR__.'/physical_constants.php';
 /** Read-only instrument snapshot and deterministic calculations. */
 function moonSimSpecialistFacts(mysqli $db,string $role):array{
+ global $earth_center_x,$earth_center_y,$earth_center_z,$earth_radius,$earth_mass,$gravitational_constant,$service_module_thrust;
  $read=static function(string $table)use($db):array{
   $rows=[];$q=$db->query("SELECT attribute,value FROM ".$table);
   if($q)while($x=$q->fetch_assoc())$rows[$x['attribute']]=(float)$x['value'];
