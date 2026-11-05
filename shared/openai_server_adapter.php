@@ -7,6 +7,13 @@ function moonSimOpenAiKey():string{
   $path=(string)(getenv('MOON_OPENAI_KEY_FILE')?:'');
   if($path!==''&&is_file($path)&&is_readable($path))$key=trim((string)file_get_contents($path));
  }
+ if($key===''){
+  $swcFile=(string)(getenv('SWC_SECRETS_FILE')?:'');
+  if($swcFile!==''&&is_file($swcFile)&&is_readable($swcFile)){
+   $config=(static function($path){return require $path;})($swcFile);
+   if(is_array($config))$key=(string)($config['openai_api_key']??$config['OPENAI_API_KEY']??'');
+  }
+ }
  if($key===''||strlen($key)<20)throw new RuntimeException('Server AI credentials are not configured');
  return $key;
 }
