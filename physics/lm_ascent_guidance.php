@@ -42,7 +42,11 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
   return;
  }
  if(!$target['ascent_possible']){
-  $conn->query("UPDATE lm_ascent_guidance SET status='WARNING: INSUFFICIENT PERFORMANCE' WHERE id=1");
+  // Propellant exhaustion or insufficient APS T/W must not continue commanding
+  // an automatic full-throttle ascent that cannot reach a safe orbit.
+  $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='INFEASIBLE: MANUAL CONTROL' WHERE id=1");
+  $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  return;
  }
  $rates=moonSimAscentBodyRates(moonSimLoadVehicleQuaternion($conn,'LM'),$target['reference_thrust_direction_xyz'],2.0);
  $pitch=sprintf('%.6f',$rates['pitch_rate']);$yaw=sprintf('%.6f',$rates['yaw_rate']);
