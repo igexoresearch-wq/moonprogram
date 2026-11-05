@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 42 implemented in source, 10 remaining (80.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 43 implemented in source, 9 remaining (82.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -78,7 +78,7 @@
 ## 12. Flight history and diagnosis
 - [x] Safe Earth CM recovery is sole win condition; initial real-state event recorder with no scripted failures.
 - [ ] Expand actual telemetry/event history to guidance, burns, orbital markers and reproducible flight replay.
-- [ ] Present in-flight event timeline and accessible postflight/abort/failure report.
+- [x] Present in-flight event timeline and accessible postflight/abort/failure report. **Authenticated flight_timeline.php displays real CM/LM state snapshots and observed stage/engine/abort transitions; flight_report.php summarizes recorded mission samples and actual event evidence without inventing outcomes. FIDO links both pages.**
 - [ ] Verify objective/recovery/abort distinctions, manual recovery and no hidden state repair.
 
 ## 13. Deployment, testing and flight manual
