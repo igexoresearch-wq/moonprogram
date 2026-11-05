@@ -335,3 +335,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 User confirmed that feature checkmarks are determined by implementation and connection in source, **not** passing a live-server test. Source validation can use static inspection, isolated executable tests, and deterministic calculation tests. Deployed end-to-end flights are tracked separately; they must not be described as passed when unperformed. No checkbox changes on the basis of live testing alone.
 
 Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes AGC program, burn phase/status and entry recovery states; commander and pilot landing pages now require operator authentication. Flight replay still samples rather than rerunning the full physics integration, and the separate history/replay objective remains open until its completeness criterion is met.
+
+## 2026-11-04 — Multi-flight history hardening
+- History recordings are separated by run_id; reset advances the run while retaining prior physical snapshots, and repeat writes at one mission second are deduplicated.
+- Timeline and replay display the originating run. AGC program, burn status, LM guidance and entry transitions come from physical state observation, not invented events.
+- **Incomplete:** recorded-snapshot browsing is not full deterministic re-execution of every 0.1-second physics step, so the reproducible flight replay objective remains unchecked. No live-server validation was claimed.
