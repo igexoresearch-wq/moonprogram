@@ -18,3 +18,6 @@ check($unsafe['unsafe_fast_closure']===true,'Docking unsafe closure inhibited');
 check(moonSimClassifySurfaceImpact('CM','EARTH',6,5,1,0,0,1)==='LANDED','CM gentle Earth impact classifies safe');
 check(moonSimClassifySurfaceImpact('CM','EARTH',200,100,5,0,0,1)==='CRASHED','CM high speed impact classifies crash');
 check(moonSimClassifySurfaceImpact('LM','MOON',2,1,1,1,1,0)==='LANDED','LM lunar touchdown envelope');
+
+check(moonSimClassifySurfaceImpact('CM','EARTH',8,7,1,0,1,1)==='CRASHED','CM service module still attached blocks safe recovery');
+check(moonSimClassifySurfaceImpact('LM','MOON',14,10,4,1,0,0)==='CRASHED','LM hard contact failure');
