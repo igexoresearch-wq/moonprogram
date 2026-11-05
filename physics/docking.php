@@ -405,26 +405,41 @@ function moonSimTryDockCapture(
         return false;
     }
 
-    $conn->query("UPDATE command_module SET value=1 WHERE attribute='dock'");
-    $conn->query(
-        "UPDATE telemetry SET value = CASE attribute
-            WHEN 'x' THEN {$cmPosition[0]}
-            WHEN 'y' THEN {$cmPosition[1]}
-            WHEN 'z' THEN {$cmPosition[2]}
-            WHEN 'delta_x' THEN {$cmVelocity[0]}
-            WHEN 'delta_y' THEN {$cmVelocity[1]}
-            WHEN 'delta_z' THEN {$cmVelocity[2]}
-         END
-         WHERE attribute IN ('x','y','z','delta_x','delta_y','delta_z')"
-    );
-    moonSimStoreVehicleQuaternion($conn, 'LM', $cmQuaternion);
-
-    $conn->query(
-        "UPDATE docking_runtime
-         SET redock_inhibit_until=NULL,
-             last_capture_at=NOW(6)
-         WHERE id=1"
-    );
+    // Capture is a single physical transition. Never persist the dock latch
+    // without the matching LM state, quaternion and runtime timestamp.
+    // InnoDB tables are required for the transactional guarantee.
+    $conn->begin_transaction();
+    try {
+        $must = static function (mysqli $conn, string $sql): void {
+            if (!$conn->query($sql)) {
+                throw new RuntimeException('Docking state write failed: '.$conn->error);
+            }
+        };
+        $must($conn, "UPDATE command_module SET value=1 WHERE attribute='dock'");
+        if ($conn->affected_rows < 0) throw new RuntimeException('Dock latch write failed');
+        $must($conn,
+            "UPDATE telemetry SET value = CASE attribute
+                WHEN 'x' THEN {$cmPosition[0]}
+                WHEN 'y' THEN {$cmPosition[1]}
+                WHEN 'z' THEN {$cmPosition[2]}
+                WHEN 'delta_x' THEN {$cmVelocity[0]}
+                WHEN 'delta_y' THEN {$cmVelocity[1]}
+                WHEN 'delta_z' THEN {$cmVelocity[2]}
+             END
+             WHERE attribute IN ('x','y','z','delta_x','delta_y','delta_z')"
+        );
+        moonSimStoreVehicleQuaternion($conn, 'LM', $cmQuaternion);
+        $must($conn,
+            "UPDATE docking_runtime
+             SET redock_inhibit_until=NULL,
+                 last_capture_at=NOW(6)
+             WHERE id=1"
+        );
+        $conn->commit();
+    } catch (Throwable $e) {
+        $conn->rollback();
+        throw $e;
+    }
 
     return true;
 }
