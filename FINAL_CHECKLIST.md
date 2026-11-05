@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 40 implemented in source, 12 remaining (76.9%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 42 implemented in source, 10 remaining (80.8%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -71,8 +71,8 @@
 
 ## 11. Cockpit and mission operations
 - [x] Preserve original Apollo-style control pages, DSKY and added specialist operator stations.
-- [ ] Unify Ground, Pilot, Commander and LM navigation paths and mission status/error displays.
-- [ ] Connect calculated targets and guidance status to cockpit/manual controls without replacing original physics.
+- [x] Unify Ground, Pilot, Commander and LM navigation paths and mission status/error displays. **Shared station-navigation component linked to FIDO, Commander, Pilot, LM ascent/docking, CSM burn and return stations; existing station status instruments preserved.**
+- [x] Connect calculated targets and guidance status to cockpit/manual controls without replacing original physics. **FIDO TEI candidate transfers phase, direction, duration into crew SPS form for review only; manual confirmation remains mandatory and physical worker unchanged.**
 - [ ] Validate authentication, operator authorization and HTTPS for all control surfaces.
 
 ## 12. Flight history and diagnosis
