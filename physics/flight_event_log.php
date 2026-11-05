@@ -53,6 +53,19 @@ function moonSimRecordFlightTransitions(mysqli $conn): void
       if(!$q||!($record=$q->fetch_assoc()))continue;
       foreach($record as $key=>$value)$state[strtoupper($table).'.'.$key]=(string)$value;
     }
+    // Observe real AGC/burn guidance transitions, never synthesize a mission event.
+    $rows=$conn->query("SELECT program_number FROM CMprogram_register LIMIT 1");
+    if($rows && ($row=$rows->fetch_assoc()))$state['AGC.program_number']=(string)$row['program_number'];
+    $rows=$conn->query("SELECT phase,status FROM mission_burn_plan WHERE id=1");
+    if($rows && ($row=$rows->fetch_assoc())){
+        $state['BURN.phase']=(string)$row['phase'];
+        $state['BURN.status']=(string)$row['status'];
+    }
+    $rows=$conn->query("SELECT chute_state,crew_survives FROM reentry_state WHERE id=1");
+    if($rows && ($row=$rows->fetch_assoc())){
+        $state['ENTRY.chute']=(string)$row['chute_state'];
+        $state['ENTRY.crew_survives']=(string)$row['crew_survives'];
+    }
     ksort($state);
     $current = json_encode($state, JSON_THROW_ON_ERROR);
     $priorResult = $conn->query("SELECT mission_epoch,snapshot_json FROM flight_event_observed WHERE id=1");
