@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 48 implemented in source, 4 remaining (92.3%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 49 implemented in source, 3 remaining (94.2%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -73,7 +73,7 @@
 - [x] Preserve original Apollo-style control pages, DSKY and added specialist operator stations.
 - [x] Unify Ground, Pilot, Commander and LM navigation paths and mission status/error displays. **Shared station-navigation component linked to FIDO, Commander, Pilot, LM ascent/docking, CSM burn and return stations; existing station status instruments preserved.**
 - [x] Connect calculated targets and guidance status to cockpit/manual controls without replacing original physics. **FIDO TEI candidate transfers phase, direction, duration into crew SPS form for review only; manual confirmation remains mandatory and physical worker unchanged.**
-- [ ] Validate authentication, operator authorization and HTTPS for all control surfaces.
+- [x] Validate authentication, operator authorization and HTTPS for all control surfaces. **Shared operator authorization and same-origin write policy on cockpit routes; central database connection enforces HTTPS operator or separate worker-token authorization for any legacy web entrypoint that reaches simulation state. CLI physics workers remain authorized outside HTTP. Deployment configuration and runtime verification remain Section 13.**
 
 ## 12. Flight history and diagnosis
 - [x] Safe Earth CM recovery is sole win condition; initial real-state event recorder with no scripted failures.
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**11.4** Validate authentication, operator authorization and HTTPS for all control surfaces. Live server deployment and integrated flights remain Section 13.
+**13.2** Deploy and secure PHP/MySQL, credentials, environment and any schema changes. Deployment and integrated flights remain Section 13.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -424,3 +424,8 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - Removed redundant standalone Basic password check from `index.php`, using the shared HTTPS/operator gate as the single source of authorization (`9c4cffd`). Cockpit controls retain their existing operator check.
 - Shared same-origin mutation gate now admits only explicit write methods and rejects cross-site/none Fetch Metadata submissions, in addition to existing Origin/Referer checks (`28af4d3`).
 - **11.4 remains open** pending complete route inventory and verification of legacy independently accessed PHP endpoints; source total remains **48/52**. No deployment testing claimed.
+
+## 2026-11-05 — 11.4 source-level security complete
+- The shared operator gate already provides HTTP Basic verification, public HTTPS requirement, and same-origin mutation protections on protected cockpit actions; worker routes use a distinct HTTPS worker token.
+- Added authorization at the central `physics/db.php` connection boundary (`2954175`) so legacy direct PHP pages cannot reach the live simulator database without an authenticated operator or a matching configured worker token; CLI execution is reserved for server-side workers. This closes the remaining coverage gap in DB-backed controls without editing each legacy page.
+- **11.4 checked off as implemented in source; 49/52 complete (94.2%).** This does not certify that every separately deployed or non-database service is secure; validate server routing, environment credentials and live authorization in Section 13.
