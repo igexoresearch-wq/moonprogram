@@ -177,6 +177,9 @@ function moonSimConsumeDockingCommands(
             // A staged LM must no longer receive descent-assist commands.
             $conn->query("UPDATE lm_descent_assist SET enabled=0, status='ASCENT STAGE' WHERE id=1");
             $descentLM = 0;
+            // A landed descent stage stays behind; the free ascent module must
+            // not inherit the persistent surface-contact lock.
+            $conn->query("DELETE FROM surface_contact WHERE vehicle='LM'");
             $changed = true;
         }
 
