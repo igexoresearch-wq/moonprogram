@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**3.3** Integrate TLI guidance and manual execution with AGC/DSKY, attitude and physical engines.
+**6.4** Validate LM launch-to-orbit performance and stage-state persistence (source-level reproducible lifecycle scenario). Next: **7.4** Verify rendezvous guidance, proximity safety and physical docking lifecycle. Live server deployment remains Section 13.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -353,3 +353,8 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - **Docking:** Real capture predicate, relative closure limits, orientation constraints and separation state are connected to physics; additional proximity boundary checks in existing regression coverage.
 - **CM recovery:** Source regression now covers CM service-module separation requirement, hard LM touchdown and safe CM contact. Reentry shield and parachute gates remain part of persistent impact adjudication and reset clears reentry state.
 - These three lifecycle verification objectives remain unchecked pending a reproducible source-level scenario that actually exercises their full state transitions; server deployment is not a completion criterion.
+
+## 2026-11-04 — LM ascent / docking production-state hardening
+- **6.4:** LM ascent guidance now commits the APS cutoff, persistent guidance disable, and ORBIT_CUTOFF flight event atomically with a row lock to prevent duplicate event creation from overlapping workers (commit `4c0abb7`). Existing stage-persistence regression checks remain. Full reproducible launch-to-orbit lifecycle execution is not yet established, so 6.4 remains unchecked.
+- **7.4:** Physical CM/LM capture now encloses dock latch, LM position/velocity snap, quaternion storage and capture timestamp in one database transaction; errors roll back the capture (commit `b82161d`). Existing physical capture predicates and regression tests remain. A reproducible end-to-end rendezvous and persisted docking scenario remains to be demonstrated; 7.4 stays unchecked.
+- No deployed simulator or live-server flight test claimed. Frozen total remains **43/52 implemented**, 9 pending.
