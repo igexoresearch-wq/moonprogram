@@ -14,7 +14,7 @@ $stmt->bind_param('i',$id);$stmt->execute();$sample=$stmt->get_result()->fetch_a
 <h1>RECORDED FLIGHT / SNAPSHOT REVIEW</h1>
 <p>Read-only playback. Selecting a recorded second does not move the simulated spacecraft.</p>
 <?php if($sample):?>
-<p>Sample #<?=htmlspecialchars((string)$sample['id'])?>; MET <?=htmlspecialchars((string)$sample['met'])?></p>
+<p>Mission run <?=htmlspecialchars((string)$sample['run_id'])?> / Sample #<?=htmlspecialchars((string)$sample['id'])?>; MET <?=htmlspecialchars((string)$sample['met'])?></p>
 <pre><?php foreach(['cm_x','cm_y','cm_z','cm_vx','cm_vy','cm_vz','cm_fuel','lm_fuel','burn_status'] as $col)echo htmlspecialchars($col.': '.(string)$sample[$col],ENT_QUOTES)."\n";?></pre>
 <p><a href="?id=<?=max(1,(int)$sample['id']-1)?>">PREVIOUS</a> |
 <a href="?id=<?=(int)$sample['id']+1?>">NEXT</a></p>
