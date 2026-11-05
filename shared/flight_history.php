@@ -16,5 +16,5 @@ function moonSimRecordFlightHistory(mysqli $db):void{
  $status=(string)($plan?$plan->fetch_assoc()['status']:'NONE');
  $stmt=$db->prepare("INSERT INTO flight_history(met,cm_x,cm_y,cm_z,cm_vx,cm_vy,cm_vz,cm_fuel,lm_fuel,burn_status) VALUES(?,?,?,?,?,?,?,?,?,?)");
  $v=[(float)($cm['x']??0),(float)($cm['y']??0),(float)($cm['z']??0),(float)($cm['delta_x']??0),(float)($cm['delta_y']??0),(float)($cm['delta_z']??0),(float)($cm['fuel']??0),(float)($lm['fuel']??0)];
- $stmt->bind_param('idddddddds',$t,...$v,$status);$stmt->execute();
+ $stmt->bind_param('idddddddds',$t,$v[0],$v[1],$v[2],$v[3],$v[4],$v[5],$v[6],$v[7],$status);$stmt->execute();
 }
