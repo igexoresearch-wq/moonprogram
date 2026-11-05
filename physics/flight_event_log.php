@@ -40,6 +40,19 @@ function moonSimRecordFlightTransitions(mysqli $conn): void
     if ($rows) while ($row=$rows->fetch_assoc()) {
         $state['ENGINE.'.$row['engine_stage'].'.'.$row['engine_name']] = (string)$row['status'];
     }
+    // Record observed guidance/burn status transitions in the same mission epoch.
+    foreach ([
+      'mission_burn_plan'=>['phase','status','ignition_met','cutoff_met'],
+      'lm_ascent_guidance'=>['enabled','status','target_altitude_m'],
+      'lm_docking_guidance'=>['enabled','status'],
+    ] as $table=>$columns) {
+      $result=$conn->query("SHOW TABLES LIKE '".$table."'");
+      if(!$result||$result->num_rows===0)continue;
+      $columnsSql=implode(',',array_map(static fn($v)=>"`".$v."`",$columns));
+      $q=$conn->query("SELECT ".$columnsSql." FROM ".$table." WHERE id=1 LIMIT 1");
+      if(!$q||!($record=$q->fetch_assoc()))continue;
+      foreach($record as $key=>$value)$state[strtoupper($table).'.'.$key]=(string)$value;
+    }
     ksort($state);
     $current = json_encode($state, JSON_THROW_ON_ERROR);
     $priorResult = $conn->query("SELECT mission_epoch,snapshot_json FROM flight_event_observed WHERE id=1");
