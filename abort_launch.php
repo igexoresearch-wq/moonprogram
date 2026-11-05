@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // This panel is included from pilot.php, which already owns the database
 // connection.  Do not create a second connection or keep credentials here.
 

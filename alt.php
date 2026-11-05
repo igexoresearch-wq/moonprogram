@@ -1,5 +1,8 @@
 <?php
 
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 $earthCenter = [10000000000.0, 10000000000.0, 10000000000.0];
 $earthRadius = 6371000.0;
 $moonRadius = 1737100.0;

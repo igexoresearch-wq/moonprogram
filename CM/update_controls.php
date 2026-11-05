@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 require 'db.php';
 
 header('Content-Type: application/json'); // Ensure proper JSON output

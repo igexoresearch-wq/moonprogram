@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch system statuses for IDs 1-10, including radar (ID 5)
 $systems = [];
 $master_alarm_triggered = false;

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Initialize a flag to check if redirection is needed
 $needs_redirect = false;
 // Handle button actions (POST request)

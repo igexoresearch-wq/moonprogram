@@ -1,6 +1,9 @@
 <?php
 
 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Extract the ones place (4)
 $onesPlace = floor($yawCM) % 10;
 
