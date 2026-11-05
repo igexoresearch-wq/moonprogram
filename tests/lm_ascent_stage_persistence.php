@@ -24,4 +24,10 @@ if(moonSimAscentStagePersistenceCheck($bad,$cm,$event,$radius+100000,$radius)['p
 $bad=$event;$bad['fuel_kg']=INF;
 if(moonSimAscentStagePersistenceCheck($telemetry,$cm,$bad,$radius+100000,$radius)['pass'])
  throw new RuntimeException('Failed to reject corrupt cutoff log');
+$aps=['Ascent Engine'=>'OFF'];
+if(!moonSimAscentStagePersistenceCheck($telemetry,$cm,$event,$radius+100000,$radius,$aps)['pass'])
+ throw new RuntimeException('APS OFF engine-state persistence failed');
+if(moonSimAscentStagePersistenceCheck($telemetry,$cm,$event,$radius+100000,$radius,
+ ['Ascent Engine'=>'ON'])['pass'])
+ throw new RuntimeException('Failed to reject burning APS after insertion');
 echo "PASS: staged ascent state and cutoff event consistency\\n";
