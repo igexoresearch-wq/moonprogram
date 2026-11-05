@@ -36,9 +36,26 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
   $clock=$conn->query("SELECT seconds FROM mission_clock WHERE id=1");
   $time=$clock?$clock->fetch_assoc():null;
   $met=(int)($time['seconds']??0);$fuel=sprintf('%.7f',(float)$lm['fuel_ascent']);
-  $conn->query("INSERT INTO lm_ascent_flight_log(mission_second,event_name,fuel_kg,descent_attached) VALUES($met,'ORBIT_CUTOFF',$fuel,0)");
-  $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
-  $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='ORBIT INSERTION CUTOFF' WHERE id=1");
+  // Persist cutoff, throttle shutdown and evidence as one state transition.
+  // Lock the guidance row so simultaneous worker invocations cannot
+  // produce duplicate ORBIT_CUTOFF events.
+  $conn->begin_transaction();
+  try {
+   $lock=$conn->query("SELECT enabled FROM lm_ascent_guidance WHERE id=1 FOR UPDATE");
+   if(!$lock)throw new RuntimeException('Cannot lock LM ascent guidance');
+   $row=$lock->fetch_assoc();
+   if(!$row||(int)$row['enabled']!==1){$conn->rollback();return;}
+   if(!$conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')"))
+    throw new RuntimeException('Cannot cut off APS guidance');
+   if(!$conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='ORBIT INSERTION CUTOFF' WHERE id=1"))
+    throw new RuntimeException('Cannot persist insertion cutoff');
+   if(!$conn->query("INSERT INTO lm_ascent_flight_log(mission_second,event_name,fuel_kg,descent_attached) VALUES($met,'ORBIT_CUTOFF',$fuel,0)"))
+    throw new RuntimeException('Cannot record LM insertion event');
+   $conn->commit();
+  } catch(Throwable $e) {
+   $conn->rollback();
+   throw $e;
+  }
   return;
  }
  if(!$target['ascent_possible']){
