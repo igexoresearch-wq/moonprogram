@@ -1,8 +1,7 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
-
-declare(strict_types=1);
 session_start();
 $pw=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
 if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){
