@@ -15,5 +15,5 @@ $rows=$conn->query('SELECT met,cm_x,cm_y,cm_z,cm_vx,cm_vy,cm_vz,cm_fuel,lm_fuel,
 <?php $events=$conn->query("SELECT mission_seconds,event_key,old_value,new_value FROM flight_event_log ORDER BY id DESC LIMIT 100");?>
 <table border="1"><tr><th>MET</th><th>Event</th><th>Previous</th><th>Observed</th></tr>
 <?php if($events)while($e=$events->fetch_assoc()):?><tr><?php foreach($e as $value):?><td><?=htmlspecialchars((string)$value,ENT_QUOTES)?></td><?php endforeach;?></tr><?php endwhile;?></table>
-<a href="flight_report.php">MISSION REPORT</a>
+<a href="flight_report.php">MISSION REPORT</a> | <a href="flight_replay.php">READ-ONLY REPLAY</a>
 </body></html>
