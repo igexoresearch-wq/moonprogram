@@ -28,14 +28,13 @@ function moonSimMissionOutcome(
     if (!is_finite($impact) || $impact>12.0) {
         return ['state'=>'LOSS','win'=>false,'reason'=>'Earth impact speed is not survivable under the simulator envelope.'];
     }
-    // Chute-state data may be unavailable for legacy sessions. Require
-    // deployed mains for a verified win instead of silently assuming them.
+    // A verified win requires an actual main-chute and crew-survival record.
     if ($chuteState !== 'MAIN') {
         return ['state'=>'UNCONFIRMED','win'=>false,'reason'=>'Earth touchdown recorded, but main-parachute deployment was not verified.'];
     }
-    if ($reentryState !== null &&
-        ((float)($reentryState['shield_integrity'] ?? 0) <= 0 ||
-         (int)($reentryState['crew_survives'] ?? 0) !== 1)) {
+    if ($reentryState === null ||
+        (float)($reentryState['shield_integrity'] ?? 0) <= 0 ||
+        (int)($reentryState['crew_survives'] ?? 0) !== 1) {
         return ['state'=>'LOSS','win'=>false,'reason'=>'Reentry survival evidence prevents safe recovery.'];
     }
     return ['state'=>'EARTH_RECOVERY','win'=>true,'reason'=>'Command Module landed safely on Earth with main parachutes deployed.'];
