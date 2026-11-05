@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch fuel value from the telemetry table
 $fuel = "N/A";
 $sql = "SELECT value FROM telemetry WHERE attribute = 'fuel' LIMIT 1";

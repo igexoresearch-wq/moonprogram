@@ -1,5 +1,8 @@
 <?php
 
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 require_once __DIR__ . '/shared/docking_commands.php';
 
 $needs_redirect = false;
