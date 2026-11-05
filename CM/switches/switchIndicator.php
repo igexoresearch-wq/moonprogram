@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../../shared/operator_security.php';
+moonSimRequireOperator();
 $result = $conn->query("SELECT status FROM CMswitches WHERE name = '$switch_name'");
 $status = ($result && $row = $result->fetch_assoc()) ? $row['status'] : 0;
 ?>

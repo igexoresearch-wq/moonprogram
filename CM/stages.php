@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
+?>
 <table class="stage-table">
     <tr>
         <td id="stage1">Stage 1</td>

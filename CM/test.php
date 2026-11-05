@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
+?>
 <table><tr><td>
 <!DOCTYPE html>
 <html lang="en">

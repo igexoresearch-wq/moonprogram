@@ -1,4 +1,7 @@
 <?php 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 $audioFile = 'staging.mp3';?>
  <audio id="audioPlayer" src="<?php echo $audioFile; ?>" preload="auto"></audio>
 <?php
