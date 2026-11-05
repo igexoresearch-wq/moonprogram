@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 $servername = "localhost";
 $username = "victorywebproductions";
 $password = "CHANGE_ME";

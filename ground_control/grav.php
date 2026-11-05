@@ -1,5 +1,8 @@
 <?php
 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Function to compute total energy (kinetic + gravitational potential)
 function compute_total_energy($x, $y, $z, $dx, $dy, $dz, $earth_x, $earth_y, $earth_z, $moon_x, $moon_y, $moon_z, $G, $M_earth, $M_moon) {
     // Compute distances from Earth and Moon

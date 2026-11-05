@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 /*
  * Ground-control constants wrapper.
  * Ground calculations must use the exact same physical values as flight physics.

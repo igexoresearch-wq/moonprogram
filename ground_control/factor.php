@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 include 'db.php'; // Ensure this file contains your database connection
 include 'variables.php';
 include 'constants.php';

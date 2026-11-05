@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Constants
 define("G", 6.67430e-11); // Gravitational constant (m^3 kg^-1 s^-2)
 define("TIME_STEP", 1); // Time step for simulation (1 second)
@@ -76,5 +79,5 @@ if ($moonFinalAngle < 0) $moonFinalAngle += 360; // Normalize
 
 // Output results
 echo "Time for CM to reach Moon's distance: " . gmdate("H:i:s", (int)$simulationTime) . " (seconds: $simulationTime)\n";
-echo "Moon's angular position at that time: " . number_format($moonFinalAngle, 2) . "¡Æ\n";
+echo "Moon's angular position at that time: " . number_format($moonFinalAngle, 2) . "Â¡Ã†\n";
 ?>

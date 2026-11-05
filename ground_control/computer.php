@@ -1,3 +1,7 @@
+<?php
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,7 +128,7 @@
             $k_radians = atan($numerator / $denominator);
             $k_degrees = rad2deg($k_radians);
             $k_degrees = (360 - ($y - $k_degrees));
-            echo "<div class='result'>Angle K: " . number_format($k_degrees, 2) . "¡Æ</div>";
+            echo "<div class='result'>Angle K: " . number_format($k_degrees, 2) . "Â¡Ã†</div>";
         }
         ?>
 
