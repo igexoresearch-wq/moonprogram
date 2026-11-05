@@ -22,7 +22,9 @@ if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(ran
 <style>.channel{background:#1e342a;color:#a7d1ad;padding:15px;margin:5px;border:2px solid #526}.channel.selected{border-color:#ffcf63;color:#ffcf63}</style>
 <script>
 const button=document.getElementById('talk'),state=document.getElementById('state');
-let selected='TRAJECTORY';
+let selected='TRAJECTORY';let previousCalls=0;
+function ping(){const a=new (window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator(),g=a.createGain();o.frequency.value=650;g.gain.value=.025;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.13);setTimeout(()=>a.close(),500);}
+
 document.querySelectorAll('.channel').forEach(b=>b.addEventListener('click',()=>{
  selected=b.dataset.channel;
  document.querySelectorAll('.channel').forEach(x=>x.classList.toggle('selected',x===b));
@@ -32,7 +34,10 @@ document.querySelector('[data-channel="TRAJECTORY"]').click();
 setInterval(async()=>{
  if(false)return;
  try{const r=await fetch('ground_radio_pending.php',{cache:'no-store'});const data=await r.json();
- document.getElementById('alert').style.display=(data.pending||[]).length?'block':'none';}catch(e){}
+ const calls=(data.pending||[]).length;
+ if(calls>previousCalls)try{ping()}catch(e){}
+ previousCalls=calls;
+ document.getElementById('alert').style.display=calls?'block':'none';}catch(e){}
 },2500);
 async function pickUpCapcom(){
  try{
