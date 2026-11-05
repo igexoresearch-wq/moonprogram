@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireWorker();
 
 set_time_limit(0);
 ignore_user_abort(true);
