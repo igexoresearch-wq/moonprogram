@@ -53,9 +53,9 @@ function moonSimLunarAscentPropagate(
    $half[$i]=$v[$i]+$acc[$i]*$dt/2.0;
    $next[$i]=$r[$i]+$half[$i]*$dt;
   }
-  $spent+=$flow*$dt;
   $nm=moonSimVectorMagnitude($next);
   if($nm<=$radius-0.5){$contact=true;break;}
+  $spent+=$flow*$dt;
   for($i=0;$i<3;$i++){
    $a1=-$mu*$next[$i]/($nm**3)+$thrust*$dir[$i]/($mass-$spent);
    $v[$i]=$half[$i]+$a1*$dt/2.0;
