@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
+
 $moonOperator=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
 if($moonOperator===''||!hash_equals($moonOperator,(string)($_SERVER['PHP_AUTH_PW']??''))){
  header('WWW-Authenticate: Basic realm="Moon Simulator"');
