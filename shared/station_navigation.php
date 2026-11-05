@@ -8,5 +8,6 @@ function moonSimStationNav(string $active=''):void{
   $border=$name===$active?'2px solid #f3ce79':'1px solid #546951';
   echo '<a href="'.htmlspecialchars($path,ENT_QUOTES).'" style="display:inline-block;padding:7px;color:#dcebbe;border:'.$border.';margin:3px">'.htmlspecialchars($name,ENT_QUOTES).'</a>';
  }
+ echo '<form method="post" action="logout.php" style="display:inline-block;margin:3px"><button type="submit" style="padding:7px;background:#5b332f;color:white;border:1px solid #cc9288;cursor:pointer">LOG OUT</button></form>';
  echo '</nav>';
 }
