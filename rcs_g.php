@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 include_once __DIR__ . '/shared/physical_constants.php';
 
 $result = $conn->query(

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch guidance data for IDs 1-10
 $guidance_data = [];
 $result = $conn->query("SELECT id, noun, verb FROM guidance WHERE id BETWEEN 1 AND 10");

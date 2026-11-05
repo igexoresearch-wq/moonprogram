@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
+
 require __DIR__ . '/physics/db.php';
 require_once __DIR__ . '/shared/mission_outcome.php';
 require_once __DIR__ . '/shared/orbital_mechanics.php';

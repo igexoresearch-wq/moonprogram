@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
+
 // Mission selection changes the active simulation. Fail closed without an
 // operator password provisioned outside this public repository.
 $operatorPassword = getenv('MOON_OPERATOR_PASSWORD');
