@@ -24,7 +24,7 @@ $abortEvents=$conn->query("SELECT COUNT(*) AS n FROM flight_event_log WHERE miss
 $abortObserved=(int)($abortEvents?$abortEvents->fetch_assoc()['n']??0:0)>0;
 $lmObjectives=$conn->query("SELECT COUNT(*) AS n FROM flight_event_log WHERE mission_epoch=(SELECT MAX(mission_epoch) FROM flight_event_log) AND event_key='LM.descent' AND new_value='0'");
 $lmAscentObserved=(int)($lmObjectives?$lmObjectives->fetch_assoc()['n']??0:0)>0;
-$events=$conn->query("SELECT mission_seconds,event_key,old_value,new_value FROM flight_event_log ORDER BY id DESC LIMIT 100");
+$events=$conn->query("SELECT mission_seconds,event_key,old_value,new_value FROM flight_event_log WHERE mission_epoch=(SELECT MAX(mission_epoch) FROM flight_event_log) ORDER BY id DESC LIMIT 100");
 ?><!doctype html><html><title>Mission Review</title><body style="background:#121c16;color:#d9e7c9;font:17px monospace;padding:30px">
 <h1>MISSION REVIEW / TELEMETRY REPORT</h1>
 <p>This report summarizes recorded state. It does not assert mission success or diagnose an unrecorded abort.</p>
