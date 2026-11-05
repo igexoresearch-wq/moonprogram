@@ -5,7 +5,8 @@ moonSimRequireOperator();
 // Initialize a flag to check if redirection is needed
 $needs_redirect = false;
 // Handle button actions (POST request)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD']??'GET') === 'POST') {
+    moonSimRequireSameOriginMutation();
     // Process form submission
     if (isset($_POST['noun'])) {
         $conn->query("UPDATE guidance SET noun = '1', verb = 'X' WHERE id = 11");
