@@ -16,9 +16,10 @@ $cmSm=$conn->query("SELECT value FROM command_module WHERE attribute='service_mo
 $sm=(int)($cmSm?$cmSm->fetch_assoc()['value']??0:1)===1;
 $cmEsc=$conn->query("SELECT value FROM command_module WHERE attribute='escape' LIMIT 1");
 $escape=(int)($cmEsc?$cmEsc->fetch_assoc()['value']??0:1)===1;
-$entry=$conn->query("SELECT chute_state FROM reentry_state WHERE id=1");
-$chute=$entry?($entry->fetch_assoc()['chute_state']??null):null;
-$outcome=moonSimMissionOutcome($contact,$sm,$escape,$chute);
+$entry=$conn->query("SELECT chute_state,shield_integrity,crew_survives FROM reentry_state WHERE id=1");
+$reentry=$entry?$entry->fetch_assoc():null;
+$chute=$reentry['chute_state']??null;
+$outcome=moonSimMissionOutcome($contact,$sm,$escape,$chute,$reentry);
 $events=$conn->query("SELECT mission_seconds,event_key,old_value,new_value FROM flight_event_log ORDER BY id DESC LIMIT 100");
 ?><!doctype html><html><title>Mission Review</title><body style="background:#121c16;color:#d9e7c9;font:17px monospace;padding:30px">
 <h1>MISSION REVIEW / TELEMETRY REPORT</h1>
