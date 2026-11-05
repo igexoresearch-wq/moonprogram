@@ -154,3 +154,6 @@ moonSimSaturnStageTransitions($conn, (int)($Guidance_Computer_SWITCH ?? 0)===1);
 require_once __DIR__ . '/flight_event_log.php';
 moonSimRecordFlightTransitions($conn);
 ?>
+
+require_once __DIR__.'/../shared/flight_history.php';
+moonSimRecordFlightHistory($conn);
