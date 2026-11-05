@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 /* LM descent navigation display derived from live telemetry, not a camera. */
 require_once __DIR__.'/shared/lm_landing_estimate.php';
 require_once __DIR__.'/shared/physical_constants.php';

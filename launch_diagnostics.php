@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
+
 /**
  * Launch AGC and Saturn engine inventory. Read-only. Never executes stored
  * guidance code or writes simulator state.
