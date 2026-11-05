@@ -18,7 +18,7 @@ function moonSimAscentValidationCase(array $p,array $v,array $moonP,array $moonV
 /** Verify staged flight telemetry snapshot and flight event after a cutoff.
  * Pure input arrays allow local checks without contacting production DB. */
 function moonSimAscentStagePersistenceCheck(array $telemetry,array $cm,array $event,
- float $minimumPeriluneM,float $moonRadius):array{
+ float $minimumPeriluneM,float $moonRadius,?array $engines=null):array{
  $fail=[];
  // A missing, corrupt or nonfinite value must not look like a valid cutoff.
  foreach(['descent','fuel_ascent','thrust'] as $key){
@@ -42,6 +42,10 @@ function moonSimAscentStagePersistenceCheck(array $telemetry,array $cm,array $ev
  if((int)($event['descent_attached']??1)!==0)$fail[]='Recorded stage attached';
  if(abs((float)($event['fuel_kg']??-999)-(float)($telemetry['fuel_ascent']??0))>1.0)
   $fail[]='Logged APS fuel mismatch';
+ if($engines!==null){
+  $aps=strtoupper(trim((string)($engines['Ascent Engine']??'')));
+  if($aps!=='OFF')$fail[]='APS engine remains on at insertion cutoff';
+ }
  if($minimumPeriluneM<$moonRadius+30000)$fail[]='Unsafe lunar perilune';
  return ['pass'=>$fail===[],'violations'=>$fail];
 }
