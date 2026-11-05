@@ -23,12 +23,12 @@ function moonSimRecordFlightHistory(mysqli $db):void{
    $db->query('UPDATE flight_history_run SET run_id=run_id+1 WHERE id=1');
    $run['run_id']++;
  }
- $runId=(int)$run['run_id']; // bounded persistent snapshot cadence
+ $runId=(int)$run['run_id']; // one immutable snapshot per completed second
  $plan=$db->query("SELECT status FROM mission_burn_plan WHERE id=1");
  $status=(string)($plan?$plan->fetch_assoc()['status']:'NONE');
- $recent=$db->query('SELECT met FROM flight_history ORDER BY id DESC LIMIT 1');
+ $recent=$db->query('SELECT met FROM flight_history WHERE run_id='.(int)$runId.' ORDER BY id DESC LIMIT 1');
  $last=$recent?$recent->fetch_assoc():null;
- if($last!==null&&(int)$last['met']===$t&&(int)$run['last_met']===$t)return;
+ if($last!==null&&(int)$last['met']===$t)return;
  $stmt=$db->prepare("INSERT INTO flight_history(run_id,met,cm_x,cm_y,cm_z,cm_vx,cm_vy,cm_vz,cm_fuel,lm_fuel,burn_status) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
  $v=[(float)($cm['x']??0),(float)($cm['y']??0),(float)($cm['z']??0),(float)($cm['delta_x']??0),(float)($cm['delta_y']??0),(float)($cm['delta_z']??0),(float)($cm['fuel']??0),(float)($lm['fuel']??0)];
  $stmt->bind_param('iidddddddds',$runId,$t,$v[0],$v[1],$v[2],$v[3],$v[4],$v[5],$v[6],$v[7],$status);$stmt->execute();
