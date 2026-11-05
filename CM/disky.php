@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Initialize variables
 $current_noun = 0;
 $current_verb = 0;

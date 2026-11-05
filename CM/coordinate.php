@@ -1,5 +1,8 @@
 <?php 
 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 function calculate_angle($xs, $ys) {
     // Origin adjustment
     $origin = 10000000000;

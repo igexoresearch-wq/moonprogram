@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch stage statuses from command_module
 $stage_query = $conn->query("SELECT attribute, value FROM command_module WHERE attribute IN ('stage1', 'stage2', 'stage3')");
 $stages = [];

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 /*
  * CSM cockpit constants wrapper.
  * Uses the same physical data and derived-state calculations as physics.

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch the row where execute = 1
 $result = $conn->query("SELECT nonmonic FROM CMguidance WHERE execute = 1 LIMIT 1");
 $row = $result ? $result->fetch_assoc() : null;
