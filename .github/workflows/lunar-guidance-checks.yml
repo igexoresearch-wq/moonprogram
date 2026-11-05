@@ -22,6 +22,8 @@ jobs:
           find physics shared tests -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
       - name: Docking capture
         run: php tests/docking_capture_checks.php
+      - name: LM ascent safety interlocks
+        run: php tests/lm_ascent_safety_checks.php
       - name: Powered lunar ascent
         run: php tests/lm_powered_ascent_checks.php
       - name: Stage persistence
