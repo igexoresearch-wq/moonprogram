@@ -3,6 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/../shared/lm_ascent_targets.php';
 require_once __DIR__.'/../shared/ascent_guidance_math.php';
 require_once __DIR__.'/attitude.php';
+require_once __DIR__.'/../shared/lm_ascent_safety.php';
 function moonSimLmAscentGuidanceStep(mysqli $conn):void {
  $conn->query("CREATE TABLE IF NOT EXISTS lm_ascent_guidance (id TINYINT UNSIGNED PRIMARY KEY,enabled TINYINT NOT NULL DEFAULT 0,status VARCHAR(100) NOT NULL DEFAULT 'MANUAL',target_altitude_m DOUBLE NOT NULL DEFAULT 100000)");
  $conn->query("INSERT IGNORE INTO lm_ascent_guidance(id) VALUES(1)");
@@ -65,7 +66,7 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
  // An advisory ideal-delta-v fuel estimate is not proof that an ongoing
  // ascent is infeasible. Protect actual engine/fuel/staging state instead;
  // the estimated reserve is displayed to the crew as guidance only.
- if($target['initial_thrust_to_weight']<=1.0 && $target['altitude_m']<10000.0){
+ if(moonSimLmAscentMustInhibitForLowThrust($target)){
   // Insufficient near-surface APS thrust-to-weight cannot sustain launch.
   // In orbit, T/W > 1 is not required, and estimated fuel reserve is advisory.
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='INFEASIBLE: MANUAL CONTROL' WHERE id=1");
