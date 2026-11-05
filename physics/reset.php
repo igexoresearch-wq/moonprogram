@@ -172,6 +172,12 @@ $conn->query(
      WHERE id=1"
 );
 
+// Start a distinct recorded flight while retaining earlier mission history.
+$runTable=$conn->query("SHOW TABLES LIKE 'flight_history_run'");
+if($runTable && $runTable->num_rows>0){
+ $conn->query("UPDATE flight_history_run SET run_id=run_id+1,last_met=-900 WHERE id=1");
+}
+
 // Quaternion orientation is derived again from the reset pitch/yaw/roll values
 // on the first active physics step.
 if (function_exists('moonSimResetAttitudeState')) {
