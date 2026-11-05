@@ -167,7 +167,6 @@ $conn->query(
          heat_flux_w_m2=0,
          heat_load_j_m2=0,
          aero_deceleration_g=0,
-         heat_load_j_m2=0,
          shield_integrity=1,
          crew_survives=1
      WHERE id=1"
