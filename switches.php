@@ -13,7 +13,8 @@ if (!$conn) {
     die("Database connection failed.");
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if (($_SERVER['REQUEST_METHOD']??'GET') === 'POST') {
+    moonSimRequireSameOriginMutation();
     if (isset($_POST['toggle_id'])) {
         $toggle_id = (int)$_POST['toggle_id'];
 
