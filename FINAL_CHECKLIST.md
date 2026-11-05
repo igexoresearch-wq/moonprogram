@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 46 implemented in source, 6 remaining (88.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 47 implemented in source, 5 remaining (90.4%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -77,7 +77,7 @@
 
 ## 12. Flight history and diagnosis
 - [x] Safe Earth CM recovery is sole win condition; initial real-state event recorder with no scripted failures.
-- [ ] Expand actual telemetry/event history to guidance, burns, orbital markers and reproducible flight replay.
+- [x] Expand actual telemetry/event history to guidance, burns, orbital markers and reproducible flight replay. **The physics worker records authoritative per-second state frames, observed guidance/burn/engine events and derived orbital markers; SHA-256 checked, run-isolated read-only replay reproduces recorded flight state without rewriting the live simulation.**
 - [x] Present in-flight event timeline and accessible postflight/abort/failure report. **Authenticated flight_timeline.php displays real CM/LM state snapshots and observed stage/engine/abort transitions; flight_report.php summarizes recorded mission samples and actual event evidence without inventing outcomes. FIDO links both pages.**
 - [ ] Verify objective/recovery/abort distinctions, manual recovery and no hidden state repair.
 
@@ -410,3 +410,7 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 ## 2026-11-05 — Public HTTP operator credential protection
 - Updated `shared/operator_security.php` to reject non-loopback plaintext HTTP before evaluating Basic operator credentials (`6adedab`). This now protects even read-only pages that call `moonSimRequireOperator(false)`. Loopback developer requests remain permitted; production must terminate HTTPS correctly at the PHP environment.
 - This closes a concrete credential-exposure path, but **11.4 remains open** until every legacy control endpoint is included in the shared gate and operator authorization is complete. 12.2 and 12.4 also remain open. Frozen count **46/52**.
+
+## 2026-11-05 — 12.2 source implementation completed
+- `shared/flight_replay_store.php` and the physics-worker `shared/flight_history.php` hook now capture immutable, per-second complete authoritative frames, event transitions, guidance/burn/engine state, orbital markers, and a SHA-256 checksum. `flight_replay.php` navigates and exports recorded frames per run without mutating spacecraft state. This is deterministic **recorded-flight replay**, not a claim of re-simulating the physics integrator from initial conditions. Under the frozen source-implementation acceptance criteria, 12.2 is checked off; live flight/deployment remains Section 13.
+- 11.4 and 12.4 remain open pending full endpoint authorization inventory and manual-recovery state audit. **47/52 source complete (90.4%).**
