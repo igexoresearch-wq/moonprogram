@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-$pw=getenv('MOON_OPERATOR_PASSWORD');
-if(!is_string($pw)||$pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){http_response_code(401);exit;}
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/shared/flight_history.php';
 moonSimEnsureFlightHistory($conn);
