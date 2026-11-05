@@ -309,6 +309,15 @@ function moonSimDockCaptureEligible(
  array $cmQuaternion,array $lmQuaternion,int $stage3,int $dock,bool $inhibited=false
 ): bool {
  if($inhibited||$stage3!==0||$dock!==0)return false;
+ // Invalid or uninitialized telemetry can never authorize physical capture.
+ foreach([$cmPosition,$cmVelocity,$lmPosition,$lmVelocity] as $vector){
+  if(count($vector)!==3)return false;
+  foreach($vector as $component)if(!is_numeric($component)||!is_finite((float)$component))return false;
+ }
+ foreach([$cmQuaternion,$lmQuaternion] as $quaternion){
+  if(count($quaternion)!==4)return false;
+  foreach($quaternion as $component)if(!is_numeric($component)||!is_finite((float)$component))return false;
+ }
  $r=[];$v=[];
  for($i=0;$i<3;$i++){
   $r[$i]=$lmPosition[$i]-$cmPosition[$i];
