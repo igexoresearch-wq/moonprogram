@@ -419,3 +419,8 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - 12.4: Physical contact persistence now keeps terminal CRASHED status both in the contact record and in the immediate CM/LM telemetry updates, preventing silent resurrection on a later contact pass (`5112505`). Mission-outcome classifier and report already separate abort and lunar events from the sole actual Earth CM recovery win. Manual crew control remains independent; no recovery state is synthesized. **12.4 source complete**, flight validation deferred to Section 13.
 - 11.4: Legacy `switches.php` now calls the common same-origin mutation guard for switches, program abort, LM abort, and undocking POSTs (`f90117e`). The DSKY and shared operator gate are already protected. A complete inventory of every legacy control endpoint still cannot be certified from the inspected files; keep 11.4 open rather than claiming unverified universal coverage.
 - Frozen total **48/52 (92.3%)**, 4 remain. Next source task: 11.4. No live-server testing required for source completion.
+
+## 2026-11-05 — 11.4 central authorization consolidation
+- Removed redundant standalone Basic password check from `index.php`, using the shared HTTPS/operator gate as the single source of authorization (`9c4cffd`). Cockpit controls retain their existing operator check.
+- Shared same-origin mutation gate now admits only explicit write methods and rejects cross-site/none Fetch Metadata submissions, in addition to existing Origin/Referer checks (`28af4d3`).
+- **11.4 remains open** pending complete route inventory and verification of legacy independently accessed PHP endpoints; source total remains **48/52**. No deployment testing claimed.
