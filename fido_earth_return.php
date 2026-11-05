@@ -62,6 +62,14 @@ try{
 <form method="get"><button name="study" value="TEI">SEARCH TRANS-EARTH DEPARTURE</button>
 <button name="study" value="RETURN">SEARCH RETURN COURSE CORRECTIONS</button><button name="study" value="ABORT">ABORT RETURN STUDY</button></form>
 <h2>LIVE EARTH ENTRY REFERENCE</h2><pre><?=erOut(json_encode($entryReference??[],JSON_PRETTY_PRINT))?></pre>
+<?php
+$burnCandidate=$answer['candidate']??null;
+if(is_array($burnCandidate)&&isset($burnCandidate['direction_xyz'],$burnCandidate['duration_seconds'])){
+ $d=$burnCandidate['direction_xyz'];
+ $params=http_build_query(['phase'=>'TEI','duration'=>(int)round($burnCandidate['duration_seconds']),'x'=>$d[0],'y'=>$d[1],'z'=>$d[2]]);
+ echo '<p><a href="csm_burn_control.php?'.htmlspecialchars($params,ENT_QUOTES,'UTF-8').'" style="color:#edcc8a">TRANSFER CALCULATED TEI TO MANUAL CREW REVIEW (NOT ARMED)</a></p>';
+}
+?>
 <?php if($error):?><p>NO SOLUTION: <?=erOut($error)?></p><?php endif;?>
 <?php if($answer):?><pre><?=erOut(json_encode($answer,JSON_PRETTY_PRINT))?></pre><?php endif;?>
 <p>Flight Director: verify time, direction, SPS fuel and predicted corridor before requesting crew action.</p>
