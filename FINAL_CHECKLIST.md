@@ -388,3 +388,9 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - 7.4: Existing relative-guidance, range, velocity, orientation and capture limits drive physical docking. Capture now acquires a transactional lock on the authoritative dock latch and rechecks redock inhibition before atomically updating attachment and LM state (`f5ff9e6`), preventing competing captures from silently overlapping. **Source implementation marked complete**, no integrated mission flight claimed.
 - 9.4: Existing reentry survival, reset and contact code retained. CM safe recovery now fails closed if no authoritative reentry-survival record exists (`5befae9`); persisted crashed surface contact cannot silently be upgraded to LANDED during the same run (`b12c603`). **Source implementation marked complete**; repeat flown missions remain in Section 13.
 - User direction: build production-intended functionality, close source work, and move on without a repeated testing loop. Source completion is **46/52 (88.5%)**, remaining 6. CI or deployed flight success is not claimed.
+
+## 2026-11-05 — Next three source objectives development
+- 11.4: Flight replay now uses the shared operator-security gate (`cd3371e`); comprehensive control-surface security coverage is not yet established.
+- 12.2: Flight snapshots are now recorded each simulated second rather than only every 30 seconds (`d8f9b43`), preserving finer source telemetry history. Deterministic physics re-execution remains unfinished.
+- 12.4: Recovery/abort report distinctions remain open; no source implementation was committed in this pass.
+- Source checklist remains 46/52. No deployed validation claimed.
