@@ -9,7 +9,8 @@ function moonSimMissionOutcome(
     ?array $cmContact,
     bool $serviceModuleAttached,
     bool $escapeTowerAttached,
-    ?string $chuteState
+    ?string $chuteState,
+    ?array $reentryState = null
 ): array {
     if ($cmContact === null) {
         return ['state'=>'IN_FLIGHT','win'=>false,'reason'=>'Earth recovery has not occurred.'];
@@ -31,6 +32,11 @@ function moonSimMissionOutcome(
     // deployed mains for a verified win instead of silently assuming them.
     if ($chuteState !== 'MAIN') {
         return ['state'=>'UNCONFIRMED','win'=>false,'reason'=>'Earth touchdown recorded, but main-parachute deployment was not verified.'];
+    }
+    if ($reentryState !== null &&
+        ((float)($reentryState['shield_integrity'] ?? 0) <= 0 ||
+         (int)($reentryState['crew_survives'] ?? 0) !== 1)) {
+        return ['state'=>'LOSS','win'=>false,'reason'=>'Reentry survival evidence prevents safe recovery.'];
     }
     return ['state'=>'EARTH_RECOVERY','win'=>true,'reason'=>'Command Module landed safely on Earth with main parachutes deployed.'];
 }
