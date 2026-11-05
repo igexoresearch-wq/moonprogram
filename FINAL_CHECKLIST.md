@@ -406,3 +406,7 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - History: fixed per-second snapshot duplicate detection to use the active mission run rather than a cross-run last snapshot (`cfd8e55`). Per-run readonly browsing is already in place. This is **recorded-state replay**, not deterministic 0.1-second re-integration, so 12.2 is still open.
 - Security: central HTTPS/password protection covers primary stations and flight reports, but legacy control-route inventory and authorization checks remain unverified in source; 11.4 remains open.
 - Recovery distinctions source reporting is substantially complete, but a comprehensive manual-recovery/no-hidden-repair audit is not established; 12.4 stays open rather than claiming verification that did not occur. **46/52** source objectives remain checked. No live-server tests are a prerequisite for source completion.
+
+## 2026-11-05 — Public HTTP operator credential protection
+- Updated `shared/operator_security.php` to reject non-loopback plaintext HTTP before evaluating Basic operator credentials (`6adedab`). This now protects even read-only pages that call `moonSimRequireOperator(false)`. Loopback developer requests remain permitted; production must terminate HTTPS correctly at the PHP environment.
+- This closes a concrete credential-exposure path, but **11.4 remains open** until every legacy control endpoint is included in the shared gate and operator authorization is complete. 12.2 and 12.4 also remain open. Frozen count **46/52**.
