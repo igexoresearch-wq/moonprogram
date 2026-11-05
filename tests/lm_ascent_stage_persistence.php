@@ -15,4 +15,13 @@ if(moonSimAscentStagePersistenceCheck($telemetry,$cm,$bad,$radius+100000,$radius
  throw new RuntimeException('Failed to catch fuel disagreement');
 if(moonSimAscentStagePersistenceCheck($telemetry,$cm,$event,$radius+20000,$radius)['pass'])
  throw new RuntimeException('Failed to catch perilune hazard');
-echo "PASS: staged ascent state and cutoff event consistency\n";
+$bad=$telemetry;$bad['fuel_ascent']=NAN;
+if(moonSimAscentStagePersistenceCheck($bad,$cm,$event,$radius+100000,$radius)['pass'])
+ throw new RuntimeException('Failed to reject nonfinite APS fuel');
+$bad=$telemetry;unset($bad['thrust']);
+if(moonSimAscentStagePersistenceCheck($bad,$cm,$event,$radius+100000,$radius)['pass'])
+ throw new RuntimeException('Failed to reject missing thrust state');
+$bad=$event;$bad['fuel_kg']=INF;
+if(moonSimAscentStagePersistenceCheck($telemetry,$cm,$bad,$radius+100000,$radius)['pass'])
+ throw new RuntimeException('Failed to reject corrupt cutoff log');
+echo "PASS: staged ascent state and cutoff event consistency\\n";
