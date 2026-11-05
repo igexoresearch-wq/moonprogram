@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Constants
 define('EARTH_RADIUSS', 6371000); // Earth's radius in meters
 define('MUU', 3.986004418e14); // Earth's gravitational parameter (m^3/s^2)

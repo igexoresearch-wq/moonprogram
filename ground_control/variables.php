@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch values from 'command_module'
 $result = $conn->query("SELECT attribute, value FROM command_module");
 if ($result->num_rows > 0) {

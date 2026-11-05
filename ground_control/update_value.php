@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 include 'db.php';
 
 $attribute_name = "factor"; // Change this to match the actual attribute

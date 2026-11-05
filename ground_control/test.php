@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 include 'db.php';
 
 // Standard deviation and mean values from your previous results
