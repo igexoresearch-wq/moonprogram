@@ -347,3 +347,9 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - CM recovery: deterministic contact classification checks added; previous reentry heat/chute persistence and reset implementations retained.
 - Operator security: central HTTPS/basic operator gate applied across primary CM/LM/FIDO/radio screens and radio endpoints; strict-types order repaired. Reverse-proxy HTTPS configuration and the remaining legacy control URLs still require audit.
 - No live deployment or integrated flight test was claimed; source-completion checkboxes left unchanged until the full source acceptance conditions can be established.
+
+## 2026-11-04 — Source work on first three remaining objectives
+- **LM ascent:** Physical separation clears both LM contact record and landed-system latch; LM guided ascent now relinquishes control when fuel/thrust feasibility fails rather than continuing an impossible 100% burn.
+- **Docking:** Real capture predicate, relative closure limits, orientation constraints and separation state are connected to physics; additional proximity boundary checks in existing regression coverage.
+- **CM recovery:** Source regression now covers CM service-module separation requirement, hard LM touchdown and safe CM contact. Reentry shield and parachute gates remain part of persistent impact adjudication and reset clears reentry state.
+- These three lifecycle verification objectives remain unchecked pending a reproducible source-level scenario that actually exercises their full state transitions; server deployment is not a completion criterion.
