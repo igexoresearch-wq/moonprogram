@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Calculate percentage
 $rcsPercentage = round(($RCSCM / 3368) * 100);
 

@@ -1,4 +1,7 @@
 <?php 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Check if the register is full
 $registerFullQuery = $conn->query("SELECT COUNT(*) AS count FROM CMprogram_register WHERE program_number != 0 AND seconds IS NOT NULL");
 $registerFull = $registerFullQuery && $registerFullQuery->fetch_assoc()['count'] == 5;

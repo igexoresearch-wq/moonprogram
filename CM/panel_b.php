@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 require_once __DIR__ . '/../shared/docking_commands.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

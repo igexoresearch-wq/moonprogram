@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 require 'db.php'; // Ensure database connection
 
 // Verb-to-Column Mapping

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // PHP Variables for Altitude Chart
 $earth_radius_alt = 13652279.3; // Earth radius in meters
 $arch_thickness_alt = 110000; // Atmosphere extension in meters

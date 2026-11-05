@@ -1,6 +1,9 @@
 <?php
 
 
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch data from entry_tracker
 $query = "SELECT label, noun, verb, conditions FROM entry_tracker WHERE panel = 1";
 $result = $conn->query($query);
