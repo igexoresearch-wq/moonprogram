@@ -394,3 +394,9 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - 12.2: Flight snapshots are now recorded each simulated second rather than only every 30 seconds (`d8f9b43`), preserving finer source telemetry history. Deterministic physics re-execution remains unfinished.
 - 12.4: Recovery/abort report distinctions remain open; no source implementation was committed in this pass.
 - Source checklist remains 46/52. No deployed validation claimed.
+
+## 2026-11-05 — Security, replay and physical recovery implementation continuation
+- Security: mission report (`e2eab1c`) and timeline (`f25b1c8`) now use the common operator gate with HTTPS required; replay likewise requires HTTPS and remains read-only (`3b8054c`). A comprehensive inventory of all legacy control endpoints remains outstanding for 11.4.
+- History: existing one-second physical snapshots are retained. Replay previous/next links now query within the selected persistent run instead of crossing reset boundaries (`3b8054c`). A complete deterministic physics re-execution still remains outstanding for 12.2.
+- Recovery: mission report uses the existing physical contact/capsule-condition outcome classifier (`0edb35b`), distinguishing recorded Earth recovery from events or abort commands. Full audit of every recovery/manual-abort state change remains outstanding for 12.4.
+- No live-server testing or deployment performed; checklist remains 46/52 until each remaining source objective is genuinely finished.
