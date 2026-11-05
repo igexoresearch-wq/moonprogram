@@ -45,7 +45,7 @@ $r=$conn->query("SELECT * FROM mission_burn_plan WHERE id=1");
 $plan=$r?$r->fetch_assoc():null;
 function out($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 ?><!doctype html><html><head><meta charset="utf-8"><title>CSM Burn Control</title>
-<style>body{background:#14191b;color:#d8dfd6;font:18px monospace;padding:25px;max-width:750px;margin:auto}input,button{background:#30383b;color:#fff;padding:12px;margin:6px;border:1px solid #90968c}label{display:block}</style></head><body>
+<style>body{background:#14191b;color:#d8dfd6;font:18px monospace;padding:25px;max-width:750px;margin:auto}input,button{background:#30383b;color:#fff;padding:12px;margin:6px;border:1px solid #90968c}label{display:block}</style></head><body><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('CSM BURNS'); ?>
 <h1>CSM / BURN CONTROL</h1><p>Physical S-IVB or SPS burn; AGC-on and attitude alignment required. Enter verified FIDO numbers. This does not calculate the maneuver.</p>
 <p><?=out($message)?></p><p>CURRENT PLAN: <?=out($plan['status']??'NONE')?> / PHASE <?=out($plan['phase']??'---')?> / IGNITION MET <?=out($plan['ignition_met']??'---')?> / CUTOFF MET <?=out($plan['cutoff_met']??'---')?></p>
 <form method="post"><input type="hidden" name="csrf" value="<?=out($_SESSION['moon_burn_csrf'])?>">
