@@ -22,7 +22,6 @@ function moonSimSessionStart(): void {
 }
 function moonSimCookiePath():string {
  // operator_security.php resides in moon/shared regardless of entry point.
- $prefix=str_replace('\\','/',dirname((string)($_SERVER['SCRIPT_NAME']??'/moon/index.php')));
  $authRoot=realpath(__DIR__.'/..');
  $webRoot=realpath((string)($_SERVER['DOCUMENT_ROOT']??''));
  if($authRoot&&$webRoot&&str_starts_with($authRoot,$webRoot)){
