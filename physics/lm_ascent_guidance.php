@@ -21,6 +21,7 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
     (float)($lm['fuel_ascent']??0)<=0||(int)($lm['crash']??0)!==0){
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='INHIBITED' WHERE id=1");
   $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Lunar Module' AND engine_name='Ascent Engine'");
   return;
  }
  include __DIR__.'/../shared/physical_constants.php';
@@ -71,6 +72,7 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
   // In orbit, T/W > 1 is not required, and estimated fuel reserve is advisory.
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='INFEASIBLE: MANUAL CONTROL' WHERE id=1");
   $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
+  $conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Lunar Module' AND engine_name='Ascent Engine'");
   return;
  }
  $rates=moonSimAscentBodyRates(moonSimLoadVehicleQuaternion($conn,'LM'),$target['reference_thrust_direction_xyz'],2.0);
