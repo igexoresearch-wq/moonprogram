@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
