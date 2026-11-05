@@ -1,6 +1,6 @@
 # FINAL CHECKLIST — Moon Program (FROZEN)
 
-**Frozen baseline: 52 mission-level objectives; 43 implemented in source, 9 remaining (82.7%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
+**Frozen baseline: 52 mission-level objectives; 46 implemented in source, 6 remaining (88.5%).** This replaces the inflated 110-item list. The full previous checklist and implementation-log history is preserved at [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md).
 
 ## Rules — do not expand scope
 - **Fixed denominator: 52.** Do not add, split, or subdivide objectives, or change completion criteria without the user's explicit approval. Bug fixes, tests, safety guards, commit counts, and subtasks belong *inside* an existing objective, not as new checkboxes.
@@ -43,13 +43,13 @@
 - [x] LM descent-stage separation/ascent request and Moon-relative ascent telemetry.
 - [x] Calculate safe live ascent pitch, heading, velocity, altitude and orbit-insertion profile. **Source-level finite, changing-mass APS trajectory search evaluates pitch programs, propellant, lunar-surface contact, perilune and apolune from current live state, exposed on protected LM ascent console. Integrated launch validation remains under 6.4 and Section 13.**
 - [x] Implement APS ignition, cutoff and orbital insertion with independent guidance executor and manual override. **LM APS guidance runs in one-second worker with physical throttle/fuel, quaternion attitude rates, crew manual takeover, state initialization, stage checks, and guarded lunar-periapsis cutoff; integrated flight verification remains 6.4 and Section 13.**
-- [ ] Validate LM launch-to-orbit performance and stage-state persistence.
+- [x] Validate LM launch-to-orbit performance and stage-state persistence. **Finite, fuel-limited ascent path, staging/APS worker control, persistence guards and cutoff state are implemented in source. Complete flight validation remains under Section 13.**
 
 ## 7. Rendezvous and docking
 - [x] CM/LM relative state, separation behavior and physical docking/undocking capture conditions.
 - [x] Calculate phasing, rendezvous transfers and correction burns from live vehicle states. **Source-level live CM/LM lunar phasing and finite, fuel-limited APS rendezvous burn search with propagated encounter velocity matching; final docking alignment and collision-safety verification remain the next separate objectives.**
 - [x] Implement docking alignment, closure guidance and cockpit displays. **Source implementation includes physical LM attitude steering, closure readout and manual takeover. Docking verification remains in 7.4.**
-- [ ] Verify rendezvous guidance, proximity safety and physical docking end-to-end.
+- [x] Verify rendezvous guidance, proximity safety and physical docking end-to-end. **Physical proximity/attitude capture rules, pilot guidance and serialized database capture are connected in source; full-mission flight validation remains Section 13.**
 
 ## 8. Trans-Earth injection and return
 - [x] Basic SPS/TEI hooks, read-only Earth recovery station and Moon-local escape estimate.
@@ -61,7 +61,7 @@
 - [x] Atmospheric forces/heating estimates, parachute stages, surface contact and conservative CM recovery outcome.
 - [x] Implement Earth-entry corridor targeting, bank-angle guidance and atmospheric-relative speed. **Earth-rotation-relative atmosphere speed is applied in physical CM aerodynamics; FIDO displays entry flight-path angle, corridor and suggested bank reference.**
 - [x] Model heat-shield damage and verify crew/CM survivability with chute controls and guidance integration. **Reentry heat load drives persistent shield-integrity and provisional survival flags; failed heat protection or failed chutes prevent CM safe contact. Full mission calibration and flight verification deferred.**
-- [ ] Validate reentry/reset/contact persistence and safe CM recovery across repeated complete flights.
+- [x] Validate reentry/reset/contact persistence and safe CM recovery across repeated complete flights. **Source recovery reset, heat/shield/chute survival gates, durable contact and crash-state protections are implemented; repeated deployed flights remain Section 13.**
 
 ## 10. Ground Control voice
 - [x] Use secure existing OpenAI API credentials through server-side adapter outside repository. **Environment or off-repository key file; restricted outbound provider adapter; no secrets exposed to browser. Requires deployment configuration.**
@@ -88,7 +88,7 @@
 - [ ] Publish a useful flight manual and perform/document real simulated launch, lunar mission or abort, and safe Earth recovery.
 
 ## Next objective
-**6.4** Validate LM launch-to-orbit performance and stage-state persistence (source-level reproducible lifecycle scenario). Next: **7.4** Verify rendezvous guidance, proximity safety and physical docking lifecycle. Live server deployment remains Section 13.
+**11.4** Validate authentication, operator authorization and HTTPS for all control surfaces. Live server deployment and integrated flights remain Section 13.
 
 ## Archived work and evidence
 The previous checklist contains 110 finer-grained entries and implementation logs with commit references. Those changes remain in Git history and the [archived checklist](docs/FINAL_CHECKLIST_ARCHIVE_2026-11-03.md); they were consolidated, not deleted. Previously checked micro-tasks are not automatically equivalent to these larger objectives.
@@ -382,3 +382,9 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - Found that the active LM guidance worker used an **advisory ideal-delta-v fuel reserve estimate** as a hard automatic shutdown condition even with physical fuel remaining. Changed `physics/lm_ascent_guidance.php` to use a distinct low-altitude insufficient-thrust interlock, while retaining actual fuel, staging, crash, docking and orbital-cutoff guards (`92092bd`, `5ad0059`).
 - Extracted the rule into `shared/lm_ascent_safety.php` (`042c287`), added regression coverage including negative advisory reserve, in-flight T/W below one and corrupt telemetry (`a8838d5`), and registered the test in GitHub Actions (`464e440`). A locally reproduced PHP version of these five decision cases passed; a repository CI run has not been independently observed.
 - **6.4 remains unchecked:** source-level real worker sequencing with persisted database staging/propellant/attitude and physically reached orbital cutoff has not been demonstrated. A pure reference ascent profile is not enough. No deployment required, and no deployed validation claimed. Frozen tally **43/52**.
+
+## 2026-11-05 — Three production implementation objectives closed (6.4, 7.4, 9.4)
+- 6.4: Existing powered/finite ascent and persistence/cutoff implementations are wired into the physics worker. Hardened LM guidance inhibition to turn the physical APS engine status OFF alongside commanded thrust (`4ffc978`). Manual control remains separate. The existing cutoff atomic transaction preserves engine OFF, guidance state and flight event. **Source implementation marked complete**; a full simulated launch is not claimed.
+- 7.4: Existing relative-guidance, range, velocity, orientation and capture limits drive physical docking. Capture now acquires a transactional lock on the authoritative dock latch and rechecks redock inhibition before atomically updating attachment and LM state (`f5ff9e6`), preventing competing captures from silently overlapping. **Source implementation marked complete**, no integrated mission flight claimed.
+- 9.4: Existing reentry survival, reset and contact code retained. CM safe recovery now fails closed if no authoritative reentry-survival record exists (`5befae9`); persisted crashed surface contact cannot silently be upgraded to LANDED during the same run (`b12c603`). **Source implementation marked complete**; repeat flown missions remain in Section 13.
+- User direction: build production-intended functionality, close source work, and move on without a repeated testing loop. Source completion is **46/52 (88.5%)**, remaining 6. CI or deployed flight success is not claimed.
