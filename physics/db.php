@@ -1,19 +1,10 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-// Database connection parameters
-$servername = "localhost"; // Replace with your database server name
-$username = "victorywebproductions";       // Replace with your database username
-$password = "CHANGE_ME";           // Replace with your database password
-$dbname = "moonland"; // Replace with your database name
-
-// Establish connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-
-?>
+declare(strict_types=1);
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+$servername=(string)(getenv('MOON_DB_HOST')?:'localhost');
+$username=(string)(getenv('MOON_DB_USER')?:'');
+$password=(string)(getenv('MOON_DB_PASSWORD')?:'');
+$dbname=(string)(getenv('MOON_DB_NAME')?:'moonland');
+if($username===''||$password===''){http_response_code(503);throw new RuntimeException('Database not configured');}
+$conn=new mysqli($servername,$username,$password,$dbname);
+$conn->set_charset('utf8mb4');
