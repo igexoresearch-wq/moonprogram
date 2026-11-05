@@ -340,3 +340,10 @@ Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes
 - History recordings are separated by run_id; reset advances the run while retaining prior physical snapshots, and repeat writes at one mission second are deduplicated.
 - Timeline and replay display the originating run. AGC program, burn status, LM guidance and entry transitions come from physical state observation, not invented events.
 - **Incomplete:** recorded-snapshot browsing is not full deterministic re-execution of every 0.1-second physics step, so the reproducible flight replay objective remains unchecked. No live-server validation was claimed.
+
+## 2026-11-04 — Four priority objectives: source audit and fixes
+- LM ascent: physical LM staging now releases the retained LM lunar contact so the ascent module can move under real physics; deterministic orbit-insertion regression case committed in `tests/flight_source_regression.php`.
+- Docking: relative closure/proximity safety code reviewed and deterministic fast-closure/capture-envelope checks added to the regression source.
+- CM recovery: deterministic contact classification checks added; previous reentry heat/chute persistence and reset implementations retained.
+- Operator security: central HTTPS/basic operator gate applied across primary CM/LM/FIDO/radio screens and radio endpoints; strict-types order repaired. Reverse-proxy HTTPS configuration and the remaining legacy control URLs still require audit.
+- No live deployment or integrated flight test was claimed; source-completion checkboxes left unchanged until the full source acceptance conditions can be established.
