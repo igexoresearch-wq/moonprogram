@@ -180,6 +180,7 @@ function moonSimConsumeDockingCommands(
             // A landed descent stage stays behind; the free ascent module must
             // not inherit the persistent surface-contact lock.
             $conn->query("DELETE FROM surface_contact WHERE vehicle='LM'");
+            $conn->query("UPDATE systems SET status=0 WHERE system='landed'");
             $changed = true;
         }
 
