@@ -2,11 +2,6 @@
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
 
-$moonOperator=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
-if($moonOperator===''||!hash_equals($moonOperator,(string)($_SERVER['PHP_AUTH_PW']??''))){
- header('WWW-Authenticate: Basic realm="Moon Simulator"');
- http_response_code(401);exit('Operator login required');
-}
 // Database connection info
 require __DIR__.'/physics/db.php';
 
