@@ -118,7 +118,7 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
             <?php include 'abort_launch.php'; ?>
         </div>
     </div>
-</body>
+<a href="crew_radio.php" style="position:fixed;bottom:12px;right:12px;background:#172e22;color:#efdf96;padding:12px;z-index:9999">CAPCOM RADIO</a></body>
     <script>
     setTimeout(() => {
         window.location.reload();
