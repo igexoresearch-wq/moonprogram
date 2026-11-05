@@ -31,4 +31,40 @@ requireAscent(moonSimAscentStagePersistenceCheck($telemetry,$cm,$event,
 $bad=$telemetry;$bad['descent']=1;
 requireAscent(!moonSimAscentStagePersistenceCheck($bad,$cm,$event,
  $radius+100000.0,$radius)['pass'],'Attached descent stage blocks validation');
-echo "This verifies powered initial ascent and persistence predicates, NOT complete orbital insertion or database transactions.".PHP_EOL;
+
+/*
+ * Complete fuel-limited reference trajectory from lunar liftoff into a
+ * bound orbit. Unlike the short liftoff check, orbital acceptance uses
+ * the propagated postburn elements, not a fabricated circular state.
+ */
+$insertion=moonSimLunarAscentProfileSearch(
+ $start,$velocity,$zero,$zero,$mu,$radius,$wet,$fuel,$thrust,$isp,100000.0
+);
+requireAscent(!$insertion['lunar_impact'],'Full reference ascent avoids lunar impact');
+requireAscent($insertion['lunar_bound'],'Full reference ascent reaches bound lunar orbit');
+requireAscent($insertion['final_perilune_altitude_m']>=30000,
+ 'Full reference ascent maintains safe lunar periapsis');
+requireAscent($insertion['final_apolune_altitude_m']!==null,
+ 'Full reference ascent has finite lunar apoapsis');
+requireAscent($insertion['fuel_consumed_kg']>0 &&
+ $insertion['fuel_consumed_kg']<=$fuel,'Full ascent respects APS fuel mass');
+requireAscent($insertion['burn_duration_s']>20.0,
+ 'Full ascent includes sustained powered flight');
+$remaining=$fuel-$insertion['fuel_consumed_kg'];
+$telemetry=['descent'=>0,'fuel_ascent'=>$remaining,'thrust'=>0];
+$event=['event_name'=>'ORBIT_CUTOFF','descent_attached'=>0,'fuel_kg'=>$remaining];
+requireAscent(moonSimAscentStagePersistenceCheck(
+ $telemetry,$cm,$event,$radius+$insertion['final_perilune_altitude_m'],$radius
+)['pass'],'Actual postburn orbit state passes ascent-stage cutoff invariants');
+$unsafe=$telemetry;$unsafe['descent']=1;
+requireAscent(!moonSimAscentStagePersistenceCheck(
+ $unsafe,$cm,$event,$radius+$insertion['final_perilune_altitude_m'],$radius
+)['pass'],'Unseparated descent stage fails postburn verification');
+echo 'Full APS reference burn: '.json_encode([
+ 'burn_s'=>$insertion['burn_duration_s'],
+ 'fuel_used_kg'=>$insertion['fuel_consumed_kg'],
+ 'perilune_m'=>$insertion['final_perilune_altitude_m'],
+ 'apolune_m'=>$insertion['final_apolune_altitude_m']
+ ],JSON_THROW_ON_ERROR).PHP_EOL;
+echo "Reference trajectory uses same finite-ascent model as planner; DB worker lifecycle is independently validated at deployment.".PHP_EOL;
+
