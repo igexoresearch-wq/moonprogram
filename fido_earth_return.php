@@ -57,7 +57,7 @@ try{
  }
 }catch(Throwable $e){$error=$e->getMessage();}
 ?><!doctype html><html><meta charset="utf-8"><title>FIDO Earth Return</title>
-<body style="background:#0d1511;color:#d2e7ce;font:16px monospace;margin:30px auto;max-width:850px">
+<body style="background:#0d1511;color:#d2e7ce;font:16px monospace;margin:30px auto;max-width:850px"><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('EARTH RETURN'); ?>
 <h1>FIDO / EARTH RETURN</h1><p>Ground computer predictions, not automatic burns.</p>
 <form method="get"><button name="study" value="TEI">SEARCH TRANS-EARTH DEPARTURE</button>
 <button name="study" value="RETURN">SEARCH RETURN COURSE CORRECTIONS</button><button name="study" value="ABORT">ABORT RETURN STUDY</button></form>
