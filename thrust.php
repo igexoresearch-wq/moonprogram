@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Fetch the thrust value from the telemetry table
 $thrust = 0;
 $result = $conn->query("SELECT value FROM telemetry WHERE attribute = 'thrust' LIMIT 1");

@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Database connection
 $host = "localhost";
 $db_user = "victorywebproductions";

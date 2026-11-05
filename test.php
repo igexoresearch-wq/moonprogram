@@ -1,6 +1,9 @@
 <?php
 
 
+
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
 // Check if there is enough RCS fuel
 if ($RCSCM < 1) {
     echo "Insufficient RCS fuel to perform the maneuver.";
