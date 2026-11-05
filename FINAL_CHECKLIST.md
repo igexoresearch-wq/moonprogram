@@ -330,3 +330,8 @@ The previous checklist contains 110 finer-grained entries and implementation log
 - Added pending CAPCOM call routing, voice-only FIDO specialist selector, and browser-held push-to-talk. Crew voice is routed to CAPCOM rather than specialists.
 - FIDO's CAPCOM selector plays the oldest queued crew request over audio and acknowledges it. Per-specialist previous reply is preserved for say-again/readback questions.
 - This is a source implementation milestone, not full two-way CAPCOM-mediated crew communication: forwarding Flight Director-approved ground instructions to the correct crew console and specialist numerical solver dispatch remain open. No production deployment or full mission test was performed.
+
+## 2026-11-04 — Source-completion versus live validation
+User confirmed that feature checkmarks are determined by implementation and connection in source, **not** passing a live-server test. Source validation can use static inspection, isolated executable tests, and deterministic calculation tests. Deployed end-to-end flights are tracked separately; they must not be described as passed when unperformed. No checkbox changes on the basis of live testing alone.
+
+Source work: published `docs/FLIGHT_OPERATIONS_MANUAL.md`; recorder now observes AGC program, burn phase/status and entry recovery states; commander and pilot landing pages now require operator authentication. Flight replay still samples rather than rerunning the full physics integration, and the separate history/replay objective remains open until its completeness criterion is met.
