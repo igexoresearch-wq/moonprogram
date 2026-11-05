@@ -1,17 +1,6 @@
 <?php
 // Database connection info
-$servername = "localhost";
-$username = "victorywebproductions";
-$password = "CHANGE_ME";
-$dbname = "moonland"; 
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require __DIR__.'/physics/db.php';
 
 // Fetch telemetry data
 $telemetry_data = [];
