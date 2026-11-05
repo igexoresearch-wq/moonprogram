@@ -196,7 +196,7 @@ function moonSimRecordSurfaceContact(
          )
          ON DUPLICATE KEY UPDATE
             body=VALUES(body),
-            contact_state=VALUES(contact_state),
+            contact_state=IF(contact_state='CRASHED','CRASHED',VALUES(contact_state)),
             normal_x=VALUES(normal_x),
             normal_y=VALUES(normal_y),
             normal_z=VALUES(normal_z),
