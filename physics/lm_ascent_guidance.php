@@ -47,6 +47,10 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
    if(!$row||(int)$row['enabled']!==1){$conn->rollback();return;}
    if(!$conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')"))
     throw new RuntimeException('Cannot cut off APS guidance');
+   // APS ignition state must agree with the persisted zero-throttle cutoff
+   // on the very same physical step, not one simulation tick later.
+   if(!$conn->query("UPDATE EngineStatus SET status='OFF' WHERE engine_stage='Lunar Module' AND engine_name='Ascent Engine'"))
+    throw new RuntimeException('Cannot persist APS engine shutdown');
    if(!$conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='ORBIT INSERTION CUTOFF' WHERE id=1"))
     throw new RuntimeException('Cannot persist insertion cutoff');
    if(!$conn->query("INSERT INTO lm_ascent_flight_log(mission_second,event_name,fuel_kg,descent_attached) VALUES($met,'ORBIT_CUTOFF',$fuel,0)"))
