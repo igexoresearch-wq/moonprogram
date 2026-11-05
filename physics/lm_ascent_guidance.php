@@ -62,9 +62,12 @@ function moonSimLmAscentGuidanceStep(mysqli $conn):void {
   }
   return;
  }
- if(!$target['ascent_possible']){
-  // Propellant exhaustion or insufficient APS T/W must not continue commanding
-  // an automatic full-throttle ascent that cannot reach a safe orbit.
+ // An advisory ideal-delta-v fuel estimate is not proof that an ongoing
+ // ascent is infeasible. Protect actual engine/fuel/staging state instead;
+ // the estimated reserve is displayed to the crew as guidance only.
+ if($target['initial_thrust_to_weight']<=1.0 && $target['altitude_m']<10000.0){
+  // Insufficient near-surface APS thrust-to-weight cannot sustain launch.
+  // In orbit, T/W > 1 is not required, and estimated fuel reserve is advisory.
   $conn->query("UPDATE lm_ascent_guidance SET enabled=0,status='INFEASIBLE: MANUAL CONTROL' WHERE id=1");
   $conn->query("UPDATE telemetry SET value=0 WHERE attribute IN ('thrust','pitch_rate','yaw_rate','roll_rate')");
   return;
