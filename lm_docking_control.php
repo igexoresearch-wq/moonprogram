@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__.'/shared/operator_security.php';
+moonSimRequireOperator();
+
 declare(strict_types=1);
 session_start();
 $secret=getenv('MOON_OPERATOR_PASSWORD');
