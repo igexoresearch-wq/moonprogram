@@ -106,7 +106,7 @@ main{max-width:1000px;margin:auto}pre{white-space:pre-wrap}table{border-collapse
 td{padding:7px 18px 7px 0;border-bottom:1px solid #1b371e}td:last-child{text-align:right;color:#d2f9b5}
 a,button{background:none;border:1px solid #396d41;color:#b4f3ac;font:inherit;padding:9px;cursor:pointer}
 h1{font-size:21px;letter-spacing:2px}h2{font-size:17px}section{margin:24px 0}strong{color:#ffad8a}
-</style></head><body><main><h1>FLIGHT DYNAMICS OFFICER // FIDO</h1>
+</style></head><body><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('FIDO'); ?><main><h1>FLIGHT DYNAMICS OFFICER // FIDO</h1>
 <p>TRACKING / EARTH REFERENCE &nbsp;&nbsp; NO EXTERNAL CAMERA</p><p><a href="ground.php">GROUND</a> <a href="orbit_maneuver.php">ADVISOR</a></p>
 <section><h2>TELEMETRY STREAM</h2><table>
 <?php foreach($fields as $key=>$value):?><tr><td><?=fidoDisplay($key)?></td><td><?=fidoDisplay($value)?></td></tr><?php endforeach;?></table></section>
