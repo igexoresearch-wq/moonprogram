@@ -44,7 +44,7 @@ if(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
 $q=$conn->query("SELECT * FROM lm_ascent_guidance WHERE id=1");$row=$q?$q->fetch_assoc():[];
 function ascentOut($x):string{return htmlspecialchars((string)$x,ENT_QUOTES,'UTF-8');}
 ?><!doctype html><html><head><meta charset="utf-8"><title>LM Ascent</title>
-<style>body{background:#131811;color:#d4e4c8;font:17px monospace;max-width:740px;margin:30px auto}button,input{padding:12px;background:#354335;color:white;border:1px solid #74866c}</style></head><body>
+<style>body{background:#131811;color:#d4e4c8;font:17px monospace;max-width:740px;margin:30px auto}button,input{padding:12px;background:#354335;color:white;border:1px solid #74866c}</style></head><body><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('LM ASCENT'); ?>
 <h1>LM APS — ASCENT GUIDANCE</h1><p><a href="?study=1">CALCULATE LIVE FINITE ASCENT PROFILE</a></p>
 <?php if($ascentError):?><p>PROFILE NOT AVAILABLE: <?=ascentOut($ascentError)?></p><?php endif;?>
 <?php if($ascentPlan):?><h2>APS FLIGHT PROFILE / REFERENCE ONLY</h2><pre><?=ascentOut(json_encode($ascentPlan,JSON_PRETTY_PRINT))?></pre><?php endif;?><p>STATUS: <?=ascentOut($row['status']??'---')?>. Normal thrust, propellant and quaternion attitude dynamics apply. The pilot may disengage anytime.</p>
