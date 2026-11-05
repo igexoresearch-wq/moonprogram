@@ -17,7 +17,7 @@ function moonSimRecordFlightHistory(mysqli $db):void{
   if($q)while($row=$q->fetch_assoc()){if($name==='cm')$cm[$row['attribute']]=(float)$row['value'];else $lm[$row['attribute']]=(float)$row['value'];}
  }
  $clock=$db->query("SELECT seconds FROM mission_clock WHERE id=1");$t=(int)($clock?$clock->fetch_assoc()['seconds']:0);
- if($t<0||$t%30!==0)return;
+ if($t<0)return; // Persist each completed physics second for deterministic timeline review.
  $run=$db->query('SELECT run_id,last_met FROM flight_history_run WHERE id=1')->fetch_assoc();
  if($t<(int)$run['last_met']){
    $db->query('UPDATE flight_history_run SET run_id=run_id+1 WHERE id=1');
