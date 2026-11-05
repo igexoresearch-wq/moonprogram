@@ -6,7 +6,7 @@ if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){header('WW
 $_SESSION['moon_radio_role']='CREW';
 if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(random_bytes(16));
 ?><!doctype html><html><meta charset="utf-8"><title>CREW RADIO / CAPCOM</title>
-<body style="background:#1d2422;color:#d1e0d1;font:18px monospace;padding:30px">
+<body style="background:#1d2422;color:#d1e0d1;font:18px monospace;padding:30px"><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('CAPCOM'); ?>
 <h1>CREW / CAPCOM</h1><p>ALL CREW CALLS GO TO CAPCOM. NO TEXT TRAFFIC.</p>
 <button id="send" style="padding:24px">HOLD TO TRANSMIT</button>
 <button id="receive" style="padding:24px">ANSWER CAPCOM</button>
