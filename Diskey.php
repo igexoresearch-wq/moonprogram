@@ -14,12 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->query("UPDATE guidance SET noun = 'X', verb = '1' WHERE id = 11");
         $needs_redirect = true;
     } elseif (isset($_POST['key'])) {
+        $key = (string)$_POST['key'];
+        if (!preg_match('/^[0-9]$/D', $key)) { http_response_code(400); exit('Invalid DSKY key'); }
         $result = $conn->query("SELECT noun, verb FROM guidance WHERE id = 11");
         $row = $result->fetch_assoc();
         if ($row['noun'] === '1') {
-            $conn->query("UPDATE guidance SET noun = CONCAT(CASE WHEN noun = 'X' THEN '' ELSE noun END, '{$_POST['key']}') WHERE id = 13");
+            $conn->query("UPDATE guidance SET noun = CONCAT(CASE WHEN noun = 'X' THEN '' ELSE noun END, '{$key}') WHERE id = 13");
         } elseif ($row['verb'] === '1') {
-            $conn->query("UPDATE guidance SET verb = CONCAT(CASE WHEN verb = 'X' THEN '' ELSE verb END, '{$_POST['key']}') WHERE id = 13");
+            $conn->query("UPDATE guidance SET verb = CONCAT(CASE WHEN verb = 'X' THEN '' ELSE verb END, '{$key}') WHERE id = 13");
         }
         $needs_redirect = true;
     } elseif (isset($_POST['negative'])) {
@@ -44,9 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $conn->query("SELECT noun, verb FROM guidance WHERE id = 13");
         $row = $result->fetch_assoc();
         $target_id = intval($row['noun']);
-        $new_verb = $row['verb'];
+        $new_verb = (string)$row['verb'];
+        if (!preg_match('/^[A-Z0-9-]{1,12}$/D', $new_verb)) { http_response_code(400); exit('Invalid DSKY command'); }
+        if ($target_id < 1 || $target_id > 50) { http_response_code(400); exit('Invalid DSKY register'); }
         if ($target_id > 0) {
-            $conn->query("UPDATE guidance SET verb = '{$new_verb}' WHERE id = {$target_id}");
+            $stmt = $conn->prepare('UPDATE guidance SET verb=? WHERE id=?');
+            $stmt->bind_param('si', $new_verb, $target_id);
+            $stmt->execute();
         }
         $conn->query("UPDATE guidance SET noun = 'X', verb = 'X' WHERE id = 11");
         $conn->query("UPDATE guidance SET noun = 'X', verb = 'X' WHERE id = 13");
