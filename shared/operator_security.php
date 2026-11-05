@@ -25,8 +25,12 @@ function moonSimRequireOperator(bool $control=true): void {
 /** Defense in depth for legacy cockpit forms and AJAX controls. */
 function moonSimRequireSameOriginMutation(): void {
  if (PHP_SAPI==='cli') return;
+ $method=strtoupper((string)($_SERVER['REQUEST_METHOD']??'GET'));
+ if(!in_array($method,['POST','PUT','PATCH','DELETE'],true)){
+  http_response_code(405);exit('Unsupported control mutation method');
+ }
  $site=strtolower((string)($_SERVER['HTTP_SEC_FETCH_SITE']??''));
- if ($site==='cross-site') {http_response_code(403);exit('Cross-site control denied');}
+ if (in_array($site,['cross-site','none'],true)) {http_response_code(403);exit('Cross-site control denied');}
  $host=strtolower((string)($_SERVER['HTTP_HOST']??''));
  $host=preg_replace('/:\\d+$/','',$host);
  $requestScheme=(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off')?'https':'http';
