@@ -419,6 +419,19 @@ function moonSimTryDockCapture(
     // InnoDB tables are required for the transactional guarantee.
     $conn->begin_transaction();
     try {
+        // Serialize competing capture/undock commands against the dock latch.
+        $latchResult=$conn->query("SELECT value FROM command_module WHERE attribute='dock' FOR UPDATE");
+        $latch=$latchResult?$latchResult->fetch_assoc():null;
+        if(!$latch || (int)$latch['value']!==0) {
+            $conn->rollback();
+            return false;
+        }
+        $runtimeLock=$conn->query("SELECT redock_inhibit_until > NOW(6) AS inhibited FROM docking_runtime WHERE id=1 FOR UPDATE");
+        $runtimeState=$runtimeLock?$runtimeLock->fetch_assoc():null;
+        if(!$runtimeState || (int)($runtimeState['inhibited']??0)===1) {
+            $conn->rollback();
+            return false;
+        }
         $must = static function (mysqli $conn, string $sql): void {
             if (!$conn->query($sql)) {
                 throw new RuntimeException('Docking state write failed: '.$conn->error);
