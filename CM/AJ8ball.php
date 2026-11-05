@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__.'/../shared/operator_security.php';
+moonSimRequireOperator();
 header('Content-Type: application/json'); // Ensure proper JSON response
 include 'db.php'; // Ensure correct database connection
 
