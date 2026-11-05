@@ -49,8 +49,8 @@ function out($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 <h1>CSM / BURN CONTROL</h1><p>Physical S-IVB or SPS burn; AGC-on and attitude alignment required. Enter verified FIDO numbers. This does not calculate the maneuver.</p>
 <p><?=out($message)?></p><p>CURRENT PLAN: <?=out($plan['status']??'NONE')?> / PHASE <?=out($plan['phase']??'---')?> / IGNITION MET <?=out($plan['ignition_met']??'---')?> / CUTOFF MET <?=out($plan['cutoff_met']??'---')?></p>
 <form method="post"><input type="hidden" name="csrf" value="<?=out($_SESSION['moon_burn_csrf'])?>">
-<label>Burn type <select name="phase"><option value="TLI">TLI / S-IVB</option><option value="MCC">MIDCOURSE / SPS</option><option value="LOI">LUNAR ORBIT INSERTION / SPS</option><option value="TEI">TRANS EARTH INJECTION / SPS</option></select></label><label>Ignition delay (seconds, minimum 90) <input type="number" name="delay" min="90" required></label>
-<label>Burn duration (seconds) <input type="number" name="duration" min="10" max="900" required></label>
-<?php foreach(['x','y','z'] as $axis):?><label>Direction <?=strtoupper($axis)?> <input type="number" step="any" name="<?=$axis?>" required></label><?php endforeach;?>
+<label>Burn type <select name="phase" id="burn-phase"><option value="TLI">TLI / S-IVB</option><option value="MCC">MIDCOURSE / SPS</option><option value="LOI">LUNAR ORBIT INSERTION / SPS</option><option value="TEI">TRANS EARTH INJECTION / SPS</option></select></label><label>Ignition delay (seconds, minimum 90) <input type="number" name="delay" min="90" required></label>
+<label>Burn duration (seconds) <input type="number" name="duration" min="10" max="900" value="<?=out($prefill['duration'])?>" required></label>
+<?php foreach(['x','y','z'] as $axis):?><label>Direction <?=strtoupper($axis)?> <input type="number" step="any" name="<?=$axis?>" value="<?=out($prefill[$axis])?>" required></label><?php endforeach;?>
 <button name="action" value="arm">ARM VERIFIED MANEUVER</button><button name="action" value="cancel" formnovalidate>CANCEL / ENGINE CUTOFF</button>
-</form><a href="index.php" style="color:#a9caab">RETURN TO COCKPIT</a></body></html>
+</form><script>document.getElementById('burn-phase').value=<?=json_encode($prefill['phase'])?>;</script><a href="index.php" style="color:#a9caab">RETURN TO COCKPIT</a></body></html>
