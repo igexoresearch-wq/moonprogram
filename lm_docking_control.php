@@ -20,7 +20,7 @@ if(($_SERVER['REQUEST_METHOD']??'GET')==='POST'){
 $r=$conn->query("SELECT enabled,status FROM lm_docking_guidance WHERE id=1");$state=$r?$r->fetch_assoc():[];
 function dgEscape($x):string{return htmlspecialchars((string)$x,ENT_QUOTES,'UTF-8');}
 ?><!doctype html><html><meta charset="utf-8"><title>LM Docking Guidance</title>
-<body style="background:#0c130c;color:#cbe4c2;font:17px monospace;max-width:750px;margin:30px auto">
+<body style="background:#0c130c;color:#cbe4c2;font:17px monospace;max-width:750px;margin:30px auto"><?php require_once __DIR__.'/shared/station_navigation.php'; moonSimStationNav('LM DOCKING'); ?>
 <h1>LM / DOCKING ALIGNMENT</h1>
 <p>STATUS: <?=dgEscape($state['status']??'UNAVAILABLE')?></p>
 <p>The autopilot can align the LM attitude toward the CSM. Closing speed and translation remain pilot-controlled through existing RCS. Physical docking requires the existing capture constraints.</p>
