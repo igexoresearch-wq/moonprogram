@@ -20,6 +20,19 @@ function moonSimAscentValidationCase(array $p,array $v,array $moonP,array $moonV
 function moonSimAscentStagePersistenceCheck(array $telemetry,array $cm,array $event,
  float $minimumPeriluneM,float $moonRadius):array{
  $fail=[];
+ // A missing, corrupt or nonfinite value must not look like a valid cutoff.
+ foreach(['descent','fuel_ascent','thrust'] as $key){
+  if(!array_key_exists($key,$telemetry)||!is_numeric($telemetry[$key])||!is_finite((float)$telemetry[$key]))
+   $fail[]='Invalid ascent telemetry: '.$key;
+ }
+ foreach(['dock','stage3'] as $key){
+  if(!array_key_exists($key,$cm)||!is_numeric($cm[$key])||!is_finite((float)$cm[$key]))
+   $fail[]='Invalid CSM stage telemetry: '.$key;
+ }
+ if(!isset($event['fuel_kg'])||!is_numeric($event['fuel_kg'])||!is_finite((float)$event['fuel_kg']))
+  $fail[]='Invalid event fuel record';
+ if(!is_finite($minimumPeriluneM)||!is_finite($moonRadius)||$moonRadius<=0)
+  $fail[]='Invalid orbit geometry';
  if((int)($telemetry['descent']??1)!==0)$fail[]='Descent stage still attached';
  if((int)($cm['dock']??1)!==0)$fail[]='LM still docked';
  if((int)($cm['stage3']??1)!==0)$fail[]='Saturn stage still attached';
