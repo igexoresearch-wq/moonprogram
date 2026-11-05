@@ -178,6 +178,13 @@ function moonSimRecordSurfaceContact(
             $state='CRASHED';
         }
     }
+    // A recorded fatal contact is terminal until an explicit simulation reset.
+    // Keep the in-memory classification aligned with the persisted latch.
+    $prior=$conn->prepare("SELECT contact_state FROM surface_contact WHERE vehicle=? LIMIT 1");
+    $prior->bind_param('s',$vehicle);
+    $prior->execute();
+    $previous=$prior->get_result()->fetch_assoc();
+    if($previous && $previous['contact_state']==='CRASHED')$state='CRASHED';
     $vehicleEsc = $conn->real_escape_string($vehicle);
     $bodyEsc = $conn->real_escape_string($body);
     $stateEsc = $conn->real_escape_string($state);
