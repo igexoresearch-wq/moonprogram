@@ -107,7 +107,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $Guidance_Computer_SWITCH == 1) {  
     } elseif (isset($_POST['execute'])) {
         // Execute action
         $current_noun = intval($conn->query("SELECT hold FROM CMguidance WHERE id = 4")->fetch_assoc()['hold']);
-        if ($current_noun == 2) {
+        // V37 selects a computer program. Keep the existing faceplate and
+        // preserve the original DSKY register conventions.
+        if ($current_verb === 37 && $current_noun >= 0 && $current_noun <= 99) {
+            $program = $current_noun;
+            $available = [0,9,10,16,17,18,19,20,23,25,28,29,30,31,32,33,34,35,36,37,38,39,40];
+            if (!in_array($program,$available,true)) {
+                http_response_code(400);
+                exit('AGC program not available: P'.sprintf('%02d',$program));
+            }
+            $stmt = $conn->prepare('UPDATE CMprogram_register SET program_number=?, seconds=NULL WHERE id=1');
+            $stmt->bind_param('i',$program);
+            $stmt->execute();
+        } else         if ($current_noun == 2) {
              $conn->query("UPDATE CMguidance SET execute = 0");
             $conn->query("UPDATE CMguidance SET execute = 1 WHERE id = 2");
         } elseif ($current_noun > 0) {
