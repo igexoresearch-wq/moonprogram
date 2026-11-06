@@ -107,6 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $Guidance_Computer_SWITCH == 1) {  
     } elseif (isset($_POST['execute'])) {
         // Execute action
         $current_noun = intval($conn->query("SELECT hold FROM CMguidance WHERE id = 4")->fetch_assoc()['hold']);
+        $current_verb = (int)($conn->query("SELECT hold FROM CMguidance WHERE id = 5")->fetch_assoc()['hold'] ?? 0);
         // V37 selects a computer program. Keep the existing faceplate and
         // preserve the original DSKY register conventions.
         if ($current_verb === 37 && $current_noun >= 0 && $current_noun <= 99) {
