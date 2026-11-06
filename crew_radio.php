@@ -1,9 +1,6 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';moonSimRequireOperator();
-session_start();
-$pw=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
-if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??''))){header('WWW-Authenticate: Basic realm="Moon Simulator"');http_response_code(401);exit;}
 $_SESSION['moon_radio_role']='CREW';
 if(!isset($_SESSION['moon_voice_csrf']))$_SESSION['moon_voice_csrf']=bin2hex(random_bytes(16));
 ?><!doctype html><html><meta charset="utf-8"><title>CREW RADIO / CAPCOM</title>
