@@ -63,9 +63,13 @@ function moonSimRequireOperator(bool $control=true):void {
   }
   $_SESSION['last_activity']=time();
  }
- header('Cache-Control: no-store');
- header('X-Content-Type-Options: nosniff');
- header('Referrer-Policy: same-origin');
+ // Header policies are emitted by the entry page before HTML begins.
+ // Instrument fragments may invoke this guard again after output starts.
+ if(!headers_sent()){
+  header('Cache-Control: no-store');
+  header('X-Content-Type-Options: nosniff');
+  header('Referrer-Policy: same-origin');
+ }
  if($control&&!in_array(strtoupper((string)($_SERVER['REQUEST_METHOD']??'GET')),['GET','HEAD','OPTIONS'],true))
   moonSimRequireSameOriginMutation();
 }
