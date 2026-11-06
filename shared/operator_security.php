@@ -30,7 +30,7 @@ function moonSimSessionStart():void {
  session_start();
 }
 function moonSimLoginUrl():string {
- return '/backoffice5/login.php';
+ return '/backoffice5/';
 }
 function moonSimSwcAuthAvailable():bool {
  $auth=moonSimSwcRoot().'/backoffice5/dbfiles/auth.php';
