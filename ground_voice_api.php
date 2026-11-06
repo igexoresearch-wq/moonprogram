@@ -2,13 +2,11 @@
 declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
-session_start();
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 function voiceFail(int $code,string $reason):never{http_response_code($code);echo json_encode(['error'=>$reason]);exit;}
 if(($_SERVER['REQUEST_METHOD']??'')!=='POST')voiceFail(405,'POST required');
-$pw=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
-if($pw===''||!hash_equals($pw,(string)($_SERVER['PHP_AUTH_PW']??'')))voiceFail(401,'Operator required');
 if(!hash_equals((string)($_SESSION['moon_voice_csrf']??''),(string)($_POST['csrf']??'')))voiceFail(403,'Invalid session token');
 $file=$_FILES['audio']??null;
 if(!$file||($file['error']??1)!==UPLOAD_ERR_OK||($file['size']??0)>4000000)voiceFail(400,'Recording rejected');
