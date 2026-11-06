@@ -81,6 +81,7 @@ if ($altitude < 10000) { $opacity = 0;}
     </style>
 </head>
 <body>
+<?php require_once __DIR__.'/../shared/station_navigation.php'; moonSimStationNav('CM COMPUTER','../'); ?>
     <link rel="preload" as="image" href="earth.png">
     <div class="main-container">
         <div class="side-div">
@@ -115,6 +116,7 @@ if ($altitude < 10000) { $opacity = 0;}
         exit();
     }
     ?>
+<?php require_once __DIR__.'/../shared/console_radio.php'; moonSimConsoleRadio('CREW','../'); ?>
 </body>
 
 </html>
