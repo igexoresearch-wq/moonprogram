@@ -1,18 +1,18 @@
 <?php
 declare(strict_types=1);
-// All web-facing control routes eventually load this central DB connection.
-// Apply the authorization boundary here as well as at individual pages so
-// a missed legacy PHP endpoint cannot bypass operator/worker permissions.
 require_once __DIR__.'/../shared/operator_security.php';
-if (PHP_SAPI !== 'cli') {
- if (isset($_SERVER['HTTP_X_MOON_WORKER_TOKEN'])) moonSimRequireWorker();
+if(PHP_SAPI!=='cli'){
+ if(isset($_SERVER['HTTP_X_MOON_WORKER_TOKEN']))moonSimRequireWorker();
  else moonSimRequireOperator();
 }
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-$servername=(string)(getenv('MOON_DB_HOST')?:'localhost');
-$username=(string)(getenv('MOON_DB_USER')?:'');
-$password=(string)(getenv('MOON_DB_PASSWORD')?:'');
-$dbname=(string)(getenv('MOON_DB_NAME')?:'moonland');
-if($username===''||$password===''){http_response_code(503);throw new RuntimeException('Database not configured');}
-$conn=new mysqli($servername,$username,$password,$dbname);
+// SWC's production root db.php is the single source of database credentials.
+// Both schemas use the same MySQL account, but this connection selects moonland.
+$swcDb=moonSimSwcRoot().'/db.php';
+if(!is_file($swcDb)){http_response_code(503);throw new RuntimeException('SWC root db.php not found');}
+require_once $swcDb;
+if(!isset($db_host,$db_user,$db_password)||$db_user===''||$db_password===''){
+ http_response_code(503);throw new RuntimeException('SWC database credentials unavailable');
+}
+mysqli_report(MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT);
+$conn=new mysqli((string)$db_host,(string)$db_user,(string)$db_password,'moonland');
 $conn->set_charset('utf8mb4');
