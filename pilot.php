@@ -110,6 +110,7 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
             <?php include 'abort_launch.php'; ?>
         </div>
     </div>
+<?php require_once __DIR__.'/shared/console_operations.php'; moonSimConsoleOperations('LM'); ?>
 <?php require_once __DIR__.'/shared/console_radio.php'; moonSimConsoleRadio('CREW'); ?></body>
     <script>
     setTimeout(() => {
