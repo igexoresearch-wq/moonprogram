@@ -1,5 +1,16 @@
 <?php
 include_once 'physics/functions.php';
+/**
+ * A program number may only resolve to a reviewed on-disk program module.
+ * Never evaluate PHP text stored in CMguidance.program.
+ */
+function moonSimCmProgramModule(int $programNumber): ?string {
+ static $allowed=[9,10,25,28,29,30,31,32,33,34,35,36,37,38,39,40];
+ if(!in_array($programNumber,$allowed,true))return null;
+ $path=__DIR__.'/prog/'.$programNumber.'.php';
+ return is_file($path)?$path:null;
+}
+
 require_once __DIR__ . '/../shared/mission_profiles.php';
 $activeMissionProfile = moonSimActiveMissionProfile($conn);
 $activeMissionEvents = $activeMissionProfile ? moonSimMissionLaunchEvents($conn, (int)$activeMissionProfile['id']) : [];
@@ -40,7 +51,7 @@ if ($Guidance_Computer_SWITCH == 1) {
                 // Physical Saturn commands and P23 ascent guidance are owned by the central physics worker,
                 // but AGC register timers must still advance normally.
                 if (($program_number < 16 || $program_number > 20) && $program_number !== 23) {
-                    eval("?> $programCode <?php ");
+                    if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
                 }
             }
             if ($seconds != -1) {
@@ -65,7 +76,7 @@ if ($Guidance_Computer_SWITCH == 1) {
                 // Physical Saturn commands are owned by the central physics worker,
                 // but AGC register timers must still advance normally.
                 if (($program_number < 16 || $program_number > 20) && $program_number !== 23) {
-                    eval("?> $programCode <?php ");
+                    if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
                 }
             }
             if ($seconds != -1) {
@@ -90,7 +101,7 @@ if ($Guidance_Computer_SWITCH == 1) {
                 // Physical Saturn commands are owned by the central physics worker,
                 // but AGC register timers must still advance normally.
                 if (($program_number < 16 || $program_number > 20) && $program_number !== 23) {
-                    eval("?> $programCode <?php ");
+                    if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
                 }
             }
             if ($seconds != -1) {
@@ -115,7 +126,7 @@ if ($Guidance_Computer_SWITCH == 1) {
                 // Physical Saturn commands are owned by the central physics worker,
                 // but AGC register timers must still advance normally.
                 if (($program_number < 16 || $program_number > 20) && $program_number !== 23) {
-                    eval("?> $programCode <?php ");
+                    if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
                 }
             }
             if ($seconds != -1) {
@@ -140,7 +151,7 @@ if ($Guidance_Computer_SWITCH == 1) {
                 // Physical Saturn commands are owned by the central physics worker,
                 // but AGC register timers must still advance normally.
                 if (($program_number < 16 || $program_number > 20) && $program_number !== 23) {
-                    eval("?> $programCode <?php ");
+                    if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
                 }
             }
             if ($seconds != -1) {
@@ -166,7 +177,7 @@ if ($Guidance_Computer_SWITCH == 1) {
         $programQuery = $conn->query("SELECT program FROM CMguidance WHERE execute = 1 AND id NOT IN (16,17,18,19,20,23) ORDER BY id ASC LIMIT 1");
         if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
             $programCode = $programRow['program'];
-            eval("?> $programCode <?php ");
+            if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
         }
     }
     
