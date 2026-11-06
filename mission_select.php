@@ -3,18 +3,6 @@ declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
 
-// Mission selection changes the active simulation. Fail closed without an
-// operator password provisioned outside this public repository.
-$operatorPassword = getenv('MOON_OPERATOR_PASSWORD');
-$providedPassword = (string)($_SERVER['PHP_AUTH_PW'] ?? '');
-if (!is_string($operatorPassword) || $operatorPassword === ''
-    || !hash_equals($operatorPassword, $providedPassword)) {
-    header('WWW-Authenticate: Basic realm="Moon Simulator Mission Control"');
-    http_response_code(401);
-    header('Content-Type: text/plain; charset=utf-8');
-    exit('Mission Control authentication required. Configure MOON_OPERATOR_PASSWORD on the server.');
-}
-session_start();
 require __DIR__ . '/physics/db.php';
 require_once __DIR__ . '/shared/mission_profiles.php';
 moonSimEnsureMissionProfileTables($conn);
