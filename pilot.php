@@ -110,10 +110,10 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
             <?php include 'abort_launch.php'; ?>
         </div>
     </div>
-<a href="crew_radio.php" style="position:fixed;bottom:12px;right:12px;background:#172e22;color:#efdf96;padding:12px;z-index:9999">CAPCOM RADIO</a></body>
+<?php require_once __DIR__.'/shared/console_radio.php'; moonSimConsoleRadio('CREW'); ?></body>
     <script>
     setTimeout(() => {
-        window.location.reload();
+        if(document.getElementById('moon-radio-toggle')?.getAttribute('aria-expanded')!=='true') window.location.reload();
     }, 5000); // Refresh every 5000ms (5 seconds)
     </script>
 </html>
