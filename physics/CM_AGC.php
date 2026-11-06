@@ -150,10 +150,13 @@ if ($Guidance_Computer_SWITCH == 1) {
     // Execute one queued command per guidance second in stable ID order.
     // Multiple pending commands must not stall the queue.
     if ($count >= 1) {
-        $programQuery = $conn->query("SELECT program FROM CMguidance WHERE execute = 1 AND id NOT IN (16,17,18,19,20,23) ORDER BY id ASC LIMIT 1");
+        $programQuery = $conn->query("SELECT id FROM CMguidance WHERE execute=1 AND id NOT IN (16,17,18,19,20,23) ORDER BY id ASC LIMIT 1");
         if ($programQuery && $programRow = $programQuery->fetch_assoc()) {
-            $programCode = $programRow['program'];
-            if(($moonProgramModule=moonSimCmProgramModule($program_number))!==null){include $moonProgramModule;}
+            $queuedProgramNumber=(int)$programRow['id'];
+            $moonProgramModule=moonSimCmProgramModule($queuedProgramNumber);
+            if($moonProgramModule!==null){include $moonProgramModule;}
+            else {error_log('Moon AGC: unsupported queued program P'.$queuedProgramNumber);}
+            $conn->query('UPDATE CMguidance SET execute=0 WHERE id='.$queuedProgramNumber);
         }
     }
     
