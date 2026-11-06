@@ -4,8 +4,9 @@ require_once __DIR__.'/shared/operator_security.php';
 moonSimSessionStart();
 header('Cache-Control: no-store');
 header('X-Content-Type-Options: nosniff');
-$secret=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
-$operator=(string)(getenv('MOON_OPERATOR_USER')?:'operator');
+$credentials=moonSimOperatorCredentials();
+$secret=$credentials['password'];
+$operator=$credentials['username'];
 $error='';
 if($secret===''){http_response_code(503);exit('Operator password is not configured on server');}
 if(!isset($_SESSION['moon_login_csrf']))$_SESSION['moon_login_csrf']=bin2hex(random_bytes(32));
