@@ -2,11 +2,6 @@
 declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
-session_start();
-$secret=getenv('MOON_OPERATOR_PASSWORD');
-if(!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PHP_AUTH_PW']??''))){
- header('WWW-Authenticate: Basic realm="Moon Simulator"');http_response_code(401);exit('Operator authorization required');
-}
 require __DIR__.'/physics/db.php';
 if(!isset($_SESSION['lm_docking_csrf']))$_SESSION['lm_docking_csrf']=bin2hex(random_bytes(16));
 $conn->query("CREATE TABLE IF NOT EXISTS lm_docking_guidance(id TINYINT PRIMARY KEY,enabled TINYINT NOT NULL DEFAULT 0,status VARCHAR(90) NOT NULL DEFAULT 'MANUAL')");
