@@ -2,17 +2,8 @@
 
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
-// Database connection
-$servername = "localhost";
-$username = "victorywebproductions";
-$password = "CHANGE_ME";
-$dbname = "moonland";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// Use the shared Moonland connection supplied by the parent station.
+require_once __DIR__.'/physics/db.php';
 
 // Check system status
 $systemQuery = "SELECT status FROM systems WHERE id = 4";
@@ -44,7 +35,7 @@ if ($systemStatus == 1) {
     $data = null;
 }
 
-$conn->close();
+// Do not close the shared connection: other cockpit instruments still need it.
 
 ?>
 
