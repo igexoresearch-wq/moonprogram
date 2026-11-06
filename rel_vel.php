@@ -2,17 +2,8 @@
 
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
-// Database connection
-$host = "localhost";
-$db_user = "victorywebproductions";
-$db_pass = "CHANGE_ME";
-$db_name = "moonland";
-
-$connection = new mysqli($host, $db_user, $db_pass, $db_name);
-
-if ($connection->connect_error) {
-    die("Connection failed: " . $connection->connect_error);
-}
+require_once __DIR__.'/physics/db.php';
+$connection = $conn;
 
 // Fetch docking status from command_module
 $dockingStatus = 0;
@@ -64,7 +55,7 @@ if ($dockingStatus == 1) {
     $scaledRelativeSpeed = $relativeSpeed * 10; // Scale for -100 to 100 gauge
 }
 
-$connection->close();
+// Shared database connection remains open for other cockpit instruments.
 
 function computeGaugePercentage($metric, $minimum, $maximum) {
     $percentage = round((($metric - $minimum) / ($maximum - $minimum)) * 100);
