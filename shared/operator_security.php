@@ -1,6 +1,28 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * Private, update-proof credentials: create moon_operator_config.php one
+ * directory ABOVE your document root (e.g. alongside public_html).
+ * This file is intentionally never committed to the public repository.
+ */
+function moonSimOperatorCredentials(): array {
+ $username=(string)(getenv('MOON_OPERATOR_USER')?:'operator');
+ $password=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
+ $root=(string)($_SERVER['DOCUMENT_ROOT']??'');
+ if($root!=='' && is_dir($root)){
+  $file=dirname(realpath($root)?:$root).'/moon_operator_config.php';
+  if(is_file($file)){
+   $config=require $file;
+   if(is_array($config)){
+    $username=(string)($config['username']??$username);
+    $password=(string)($config['password']??$password);
+   }
+  }
+ }
+ return ['username'=>$username,'password'=>$password];
+}
+
 /** All simulator web stations share one PHP session and login page. */
 function moonSimSecureTransport(): bool {
  return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!=='off')
@@ -38,8 +60,8 @@ function moonSimLoginUrl():string {
 function moonSimRequireOperator(bool $control=true):void {
  if(PHP_SAPI==='cli')return;
  moonSimSessionStart();
- $expected=(string)(getenv('MOON_OPERATOR_PASSWORD')?:'');
- if($expected===''){http_response_code(503);exit('Operator login not configured');}
+ $credentials=moonSimOperatorCredentials();
+ if($credentials['password']===''){http_response_code(503);exit('Operator login not configured');}
  if(empty($_SESSION['moon_authenticated'])||!is_string($_SESSION['moon_identity']??null)
     || (int)($_SESSION['moon_auth_time']??0)<time()-43200) {
   if(strtoupper((string)($_SERVER['REQUEST_METHOD']??'GET'))!=='GET'){
