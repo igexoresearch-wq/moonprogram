@@ -7,12 +7,6 @@ moonSimRequireOperator();
  * Launch AGC and Saturn engine inventory. Read-only. Never executes stored
  * guidance code or writes simulator state.
  */
-$secret=getenv('MOON_OPERATOR_PASSWORD');
-if (!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PHP_AUTH_PW']??''))) {
-    header('WWW-Authenticate: Basic realm="Moon Simulator"');
-    http_response_code(401);
-    exit('Operator authentication required');
-}
 require __DIR__.'/physics/db.php';
 header('Content-Type: text/html; charset=utf-8');
 function safeLaunch(string $v):string{return htmlspecialchars($v,ENT_QUOTES,'UTF-8');}
