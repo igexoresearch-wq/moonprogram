@@ -3,11 +3,7 @@ declare(strict_types=1);
 require_once __DIR__.'/shared/operator_security.php';
 moonSimRequireOperator();
 
-session_start();
-$secret=getenv('MOON_OPERATOR_PASSWORD');
-if(!is_string($secret)||$secret===''||!hash_equals($secret,(string)($_SERVER['PHP_AUTH_PW']??''))){
- header('WWW-Authenticate: Basic realm="Moon Simulator"');http_response_code(401);exit('Operator login required');
-}
+
 require __DIR__.'/physics/db.php';
 require_once __DIR__.'/physics/lm_descent_assist.php';
 require_once __DIR__.'/shared/lm_landing_estimate.php';
