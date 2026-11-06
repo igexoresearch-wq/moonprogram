@@ -2,17 +2,11 @@
 
 require_once __DIR__.'/../shared/operator_security.php';
 moonSimRequireOperator();
-// Database connection details
-$dbHost = 'localhost';
-$dbName = 'moonland';
-$dbUser = 'victorywebproductions';
-$dbPass = 'CHANGE_ME';
+// Load SWC credentials and connect only to the Moonland schema.
+require_once __DIR__.'/../physics/db.php';
+$pdo = new PDO('mysql:host='.$db_host.';dbname=moonland;charset=utf8mb4', $db_user, $db_password, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 
 try {
-    // Establish database connection
-    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
     // Fetch x, y, z values for command_module
     $queryCommandModule = "SELECT attribute, value FROM command_module WHERE attribute IN ('x', 'y', 'z','pitch','roll','yaw')";
     $stmtCommandModule = $pdo->query($queryCommandModule);
