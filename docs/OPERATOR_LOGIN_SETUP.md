@@ -1,51 +1,44 @@
-# One login for the whole Moon Program
+# Moon Program: Standard Window Cleaning login and database
 
-All simulator web stations use `shared/operator_security.php`, which starts the
-same `MOON_SIM_SESSION` PHP session. The single login form is `login.php`.
-The simulation's cron/physics worker continues to use its separate worker token.
+Moon is installed at `/moon` inside the Standard Window Cleaning web root.
 
-## One-time GoDaddy/cPanel setup
+**No Moon-specific login, password, or database credentials.**
 
-1. In cPanel **File Manager**, identify the website **document root**
-   (usually `/home/ACCOUNT/public_html`).
-2. Go **one folder above** that document root
-   (usually `/home/ACCOUNT/`, **not** `public_html`).
-3. Create the file `moon_operator_config.php` there with the following
-   contents, replacing the placeholder. Do NOT add this file to GitHub:
+## Authentication
 
-```php
-<?php
-return [
-    'username' => 'operator',
-    'password' => 'CHOOSE_A_LONG_UNIQUE_PASSWORD_HERE',
-];
-```
+- All Moon pages use `moon/shared/operator_security.php`.
+- The guard reads the existing Back Office 5 `SWCSESSION` session and, when present
+  with its own required DB include, executes
+  `/backoffice5/dbfiles/auth.php` → `require_login()`.
+- The canonical SWC login is used for sign-in; `/moon/login.php` forwards to
+  `/backoffice5/login.php`. If production's SWC login is at another URL,
+  update **only** `moonSimLoginUrl()` in the shared security file.
+- The guard supports an SWC session check if the production auth.php's own
+  `dbfiles/db.php` dependency is absent (it is not in the Customer Relations
+  repository snapshot). This fallback does not create Moon credentials.
+- `moon/logout.php` logs out of the shared SWC session, not just Moon.
+- Worker token authentication remains independent for web-triggered physics;
+  CLI cron remains independent of browser login.
 
-4. Save it. Restrict file permissions to the hosting account if your
-   host supports this (e.g. 0600), and confirm it is outside the public
-   document root. Never send this file or its password in chat.
-5. Upload the latest GitHub Moon Program code. The private configuration
-   file stays in place, even if the entire `moon` website folder is replaced.
-6. Visit `/moon/login.php`. Log in as `operator` with that password.
+## Database
 
-The private file takes priority over `MOON_OPERATOR_PASSWORD` and
-`MOON_OPERATOR_USER` environment variables, which remain usable as a fallback.
-If the file is in the wrong directory and no environment password is configured,
-login safely reports `Operator password is not configured on server`.
-For custom document roots, place the file immediately in the *parent* of the
-actual `DOCUMENT_ROOT`, not necessarily the hosting home directory.
+`moon/physics/db.php` loads `../db.php` from the SWC website root.
+The live file defines `$db_host`, `$db_user`, `$db_password`; the connection
+selects MySQL schema `moonland` with that account.
+The Customer Relations GitHub copy of root db.php loads database credentials
+from environment values; production must already have those configured.
+This does not add or change passwords or create database tables.
 
-## Behavior
+## Deployment
 
-- No individual cockpit, calculation, radio, or mission station should
-  perform an independent Basic Authentication password challenge.
-- A successful login creates the session. All simulator pages share that
-  browser session (each person signs in once on their own browser).
-- Logout removes the session.
-- Unauthenticated control POST requests receive 401 rather than following
-  a login redirect, so they cannot accidentally execute when signed out.
-- The database is configured independently using `MOON_DB_*` environment
-  variables in `physics/db.php`. This file only solves operator access.
-- If browser-native password prompts still appear after this deployment,
-  investigate Apache/cPanel Directory Privacy or other `.htaccess` Basic
-  Auth rules. Those are separate from the Moon Program PHP login.
+Upload a fresh Moon repository folder into the same SWC web root as
+`db.php` and `backoffice5/`. No separate config file is needed.
+Open the SWC login, sign in, then visit `/moon/index.php`.
+
+**Important:** Verify the actual production paths and SWC login endpoint.
+GitHub contains `Root/backoffice5/dbfiles/auth.php` and `Root/db.php`,
+but not `Root/backoffice5/dbfiles/db.php` or the canonical login page.
+If production differs, deployment integration may require adjusting one
+shared path; do not edit individual cockpit pages.
+
+Source audit/commits are not live-server integration tests.
