@@ -112,7 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $Guidance_Computer_SWITCH == 1) {  
         // preserve the original DSKY register conventions.
         if ($current_verb === 37 && $current_noun >= 0 && $current_noun <= 99) {
             $program = $current_noun;
-            $available = [0,9,10,16,17,18,19,20,23,25,28,29,30,31,32,33,34,35,36,37,38,39,40];
+            // A program must have an implemented handler. Database records
+            // alone are not evidence that a program can execute.
+            require_once __DIR__.'/../shared/cm_program_catalog.php';
+            $available = moonSimCmSelectablePrograms();
             if (!in_array($program,$available,true)) {
                 http_response_code(400);
                 exit('AGC program not available: P'.sprintf('%02d',$program));
