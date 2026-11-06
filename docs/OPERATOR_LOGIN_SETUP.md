@@ -11,7 +11,7 @@ Moon is installed at `/moon` inside the Standard Window Cleaning web root.
   with its own required DB include, executes
   `/backoffice5/dbfiles/auth.php` → `require_login()`.
 - The canonical SWC login is used for sign-in; `/moon/login.php` forwards to
-  `/backoffice5/login.php`. If production's SWC login is at another URL,
+  `/backoffice5/`. If production's SWC login is at another URL,
   update **only** `moonSimLoginUrl()` in the shared security file.
 - The guard supports an SWC session check if the production auth.php's own
   `dbfiles/db.php` dependency is absent (it is not in the Customer Relations
