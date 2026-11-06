@@ -154,5 +154,6 @@ $play_sound = ($telemetry_data['pitch_rate'] != 0 || $telemetry_data['roll_rate'
         if(document.getElementById('moon-radio-toggle')?.getAttribute('aria-expanded')!=='true') window.location.reload();
     }, 5000); // Refresh every 5000ms (5 seconds)
     </script>
+<?php require_once __DIR__.'/shared/console_operations.php'; moonSimConsoleOperations('CM'); ?>
 <?php require_once __DIR__.'/shared/console_radio.php'; moonSimConsoleRadio('CREW'); ?></body>
 </html>
