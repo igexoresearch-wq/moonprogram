@@ -62,7 +62,15 @@ function moonV2Physics(mysqli $db,float $dt=1.0):void {
   foreach($objects as $id=>$o){
    if($id===1||(int)$o['active']!==1||isset($updates[$id])||(int)$o['dependent']!==1)continue;
    $parent=(int)($o['dependency']??0);if(!isset($updates[$parent]))continue;
-   $up=$updates[$parent];$updates[$id]=['p'=>$up['p'],'v'=>$up['v'],'land'=>$up['land'],'landOffset'=>$up['landOffset'],'att'=>$up['att']];$changed=true;
+   $up=$updates[$parent];
+   // A dependent object's offset is measured rearward along its parent's
+   // forward (+X) attitude axis. Rotated parents carry the child with them.
+   $pitch=deg2rad($up['att'][0]);$yaw=deg2rad($up['att'][2]);
+   $distance=(float)$o['offset_distance'];
+   $forward=[cos($pitch)*cos($yaw),cos($pitch)*sin($yaw),sin($pitch)];
+   $childPosition=[];
+   for($k=0;$k<3;$k++)$childPosition[$k]=$up['p'][$k]-$distance*$forward[$k];
+   $updates[$id]=['p'=>$childPosition,'v'=>$up['v'],'land'=>$up['land'],'landOffset'=>$up['landOffset'],'att'=>$up['att']];$changed=true;
   }
   if(!$changed)break;
  }
