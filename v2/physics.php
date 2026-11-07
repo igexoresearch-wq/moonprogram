@@ -69,7 +69,7 @@ function moonV2Physics(mysqli $db,float $dt=1.0):void {
  $stmt=$db->prepare('UPDATE objects SET x=?,y=?,z=?,delta_x=?,delta_y=?,delta_z=?,pitch=?,roll=?,yaw=?,land=?,land_x=?,land_y=?,land_z=? WHERE id=?');
  foreach($updates as $id=>$u){[$x,$y,$z]=$u['p'];[$vx,$vy,$vz]=$u['v'];[$pitch,$roll,$yaw]=$u['att'];
   $land=$u['land'];$lx=$u['landOffset'][0]??null;$ly=$u['landOffset'][1]??null;$lz=$u['landOffset'][2]??null;
-  $stmt->bind_param('dddddddddIdddi',$x,$y,$z,$vx,$vy,$vz,$pitch,$roll,$yaw,$land,$lx,$ly,$lz,$id);
+  $stmt->bind_param('dddddddddidddi',$x,$y,$z,$vx,$vy,$vz,$pitch,$roll,$yaw,$land,$lx,$ly,$lz,$id);
   $stmt->execute();
  }
 }
