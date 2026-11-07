@@ -4,6 +4,7 @@ declare(strict_types=1);
 require __DIR__ . '/../shared/physical_constants.php';
 require __DIR__ . '/../shared/orbital_mechanics.php';
 require __DIR__ . '/../physics/integrator.php';
+require_once __DIR__ . '/../shared/verlet_kernel.php';
 
 $earth = [$earth_center_x, $earth_center_y, $earth_center_z];
 $mu = $gravitational_constant * $earth_mass;
@@ -24,25 +25,12 @@ function advanceEarthOnlyVerlet(
         0.0
     );
 
-    $newPosition = [
-        $position[0] + $velocity[0]*$dt + 0.5*$a0[0]*$dt*$dt,
-        $position[1] + $velocity[1]*$dt + 0.5*$a0[1]*$dt*$dt,
-        $position[2] + $velocity[2]*$dt + 0.5*$a0[2]*$dt*$dt,
-    ];
-
+    // Exercise the same drift/kick routines used by the live worker.
+    $newPosition = moonSimVerletDrift($position,$velocity,$a0,$dt);
     $a1 = moonSimGravityAcceleration(
-        $newPosition,
-        $earth,
-        [0.0,0.0,0.0],
-        $mu,
-        0.0
+        $newPosition,$earth,[0.0,0.0,0.0],$mu,0.0
     );
-
-    $newVelocity = [
-        $velocity[0] + 0.5*($a0[0]+$a1[0])*$dt,
-        $velocity[1] + 0.5*($a0[1]+$a1[1])*$dt,
-        $velocity[2] + 0.5*($a0[2]+$a1[2])*$dt,
-    ];
+    $newVelocity = moonSimVerletKick($velocity,$a0,$a1,$dt);
 
     return [$newPosition,$newVelocity];
 }
