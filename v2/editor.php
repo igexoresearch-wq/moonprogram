@@ -54,7 +54,22 @@ $stmt->bind_param('s',$console);$stmt->execute();$items=$stmt->get_result()->fet
 Width <input name="width" type="number" value="320" min="80" max="1000">
 Height <input name="height" type="number" value="220" min="80" max="1000"></p>
 <p>X <input name="x" type="number" value="20"> Y <input name="y" type="number" value="70"></p>
-<textarea name="source_html" rows="14" cols="90" required placeholder="<h2>Pitch: <span id='pitch'></span></h2>"></textarea><br>
+<textarea name="source_html" rows="14" cols="90" required placeholder="<h2>Pitch: <span id='pitch'></span></h2>">&lt;style&gt;
+body{margin:0;background:#111;color:#b8ffce;font:18px monospace;padding:15px}
+.label{color:#aaa} .readout{font-size:26px}
+&lt;/style&gt;
+&lt;h3&gt;ATTITUDE&lt;/h3&gt;
+&lt;p&gt;<span class="label">PITCH</span> <span id="p" class="readout">--</span>°&lt;/p&gt;
+&lt;p&gt;<span class="label">ROLL</span> <span id="r" class="readout">--</span>°&lt;/p&gt;
+&lt;p&gt;<span class="label">YAW</span> <span id="y" class="readout">--</span>°&lt;/p&gt;
+&lt;script&gt;
+addEventListener('message',e=&gt;{
+ if(e.data?.type!=='moon-telemetry')return;
+ const o=e.data.self;
+ for(const [key,value] of [['p',o.pitch],['r',o.roll],['y',o.yaw]])
+  document.getElementById(key).textContent=Number(value).toFixed(2);
+});
+&lt;/script&gt;</textarea><br>
 <button name="action" value="paste">Save and add instrument</button></form>
 <p>Pasted gauges receive a <code>moon-telemetry</code> message every second: <code>event.data.self.pitch</code>, <code>roll</code>, <code>yaw</code>, and rates. A gauge can be placed on either vehicle's console.</p>
 </body></html>
