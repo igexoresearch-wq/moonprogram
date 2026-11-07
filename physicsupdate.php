@@ -36,6 +36,14 @@ include_once 'physics/attitude.php';
 include_once 'physics/rcs.php';
 include_once 'physics/contact.php';
 include_once 'physics/docking.php';
+require_once __DIR__.'/physics/worker_preflight.php';
+$moonStartupIssues=moonSimWorkerPreflight($conn);
+if($moonStartupIssues!==[]){
+ error_log('Moon worker blocked: '.implode('; ',$moonStartupIssues));
+ if(PHP_SAPI!=='cli'){http_response_code(503);header('Content-Type: text/plain; charset=utf-8');echo 'Moon database startup incomplete. See server error log.';}
+ exit(1);
+}
+
 
 // Keep the original once-per-minute worker design, but guarantee that only one
 // worker can advance the universe at a time.
