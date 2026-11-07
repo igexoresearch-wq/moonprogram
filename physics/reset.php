@@ -37,13 +37,20 @@ $updates = [
     ['attribute' => 'engine_on', 'value' => '0'],
 ];
 
-$stmt = $conn->prepare("UPDATE command_module SET value = ? WHERE attribute = ?");
-foreach ($updates as $update) {
-    $value = $update['value'];
-    $attribute = $update['attribute'];
-    $stmt->bind_param('ss', $value, $attribute);
-    $stmt->execute();
+function moonSimResetAttributes(mysqli $db,string $table,array $values):void {
+ if(!in_array($table,['command_module','telemetry'],true))throw new InvalidArgumentException('Invalid reset table');
+ $lookup=$db->prepare("SELECT 1 FROM ".$table." WHERE attribute=? LIMIT 1");
+ $update=$db->prepare("UPDATE ".$table." SET value=? WHERE attribute=?");
+ $insert=$db->prepare("INSERT INTO ".$table." (attribute,value) VALUES (?,?)");
+ foreach($values as $row){
+  $attribute=(string)$row['attribute'];$value=(string)$row['value'];
+  $lookup->bind_param('s',$attribute);$lookup->execute();
+  $exists=$lookup->get_result()->fetch_row()!==null;
+  if($exists){$update->bind_param('ss',$value,$attribute);$update->execute();}
+  else{$insert->bind_param('ss',$attribute,$value);$insert->execute();}
+ }
 }
+moonSimResetAttributes($conn,'command_module',$updates);
 
 // The original database misspells this attribute as "excape_fuel".
 // Update either spelling so old and corrected database snapshots both reset.
@@ -78,13 +85,7 @@ $updates = [
     ['attribute' => 'crash', 'value' => '0'],
 ];
 
-$stmt = $conn->prepare("UPDATE telemetry SET value = ? WHERE attribute = ?");
-foreach ($updates as $update) {
-    $value = $update['value'];
-    $attribute = $update['attribute'];
-    $stmt->bind_param('ss', $value, $attribute);
-    $stmt->execute();
-}
+moonSimResetAttributes($conn,'telemetry',$updates);
 
 // Restore original LM/general system availability, but leave the simulator OFF
 // until the operator explicitly starts the mission.
@@ -143,13 +144,20 @@ $conn->query(
          probability = 10000"
 );
 
-$conn->query("TRUNCATE TABLE CMtelemetry");
+function moonSimResetClearTable(mysqli $db,string $table):void {
+ static $allowed=['CMtelemetry','rcs_pulse_queue','surface_contact','docking_command_queue'];
+ if(!in_array($table,$allowed,true))return;
+ $name=$db->real_escape_string($table);
+ $check=$db->query("SHOW TABLES LIKE '".$name."'");
+ if($check && $check->num_rows>0)$db->query("DELETE FROM ".$table);
+}
+moonSimResetClearTable($conn,'CMtelemetry');
 
 // Runtime command/contact tables are optional on older databases. Failed
 // TRUNCATE calls are harmless until their migration/self-creation occurs.
-$conn->query("TRUNCATE TABLE rcs_pulse_queue");
-$conn->query("TRUNCATE TABLE surface_contact");
-$conn->query("TRUNCATE TABLE docking_command_queue");
+moonSimResetClearTable($conn,'rcs_pulse_queue');
+moonSimResetClearTable($conn,'surface_contact');
+moonSimResetClearTable($conn,'docking_command_queue');
 $conn->query(
     "UPDATE docking_runtime
      SET redock_inhibit_until=NULL,
