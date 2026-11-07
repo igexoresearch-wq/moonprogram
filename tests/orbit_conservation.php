@@ -159,11 +159,24 @@ $elliptical=runOrbitRegression(
     3.0*$periodElliptical
 );
 
+// Repeat the circular orbit around a zero-centered Earth. This detects
+// precision problems caused by the legacy 10-billion-unit origin offset.
+$zeroEarth=[0.0,0.0,0.0];
+$zeroCentered=runOrbitRegression(
+    'Earth-only circular orbit (zero-centered precision reference)',
+    [$rCircular,0.0,0.0],
+    $velCircular,
+    $zeroEarth,
+    $mu,
+    $dt,
+    3.0*$periodCircular
+);
+
 $relativeTolerance=1.0e-8;
 $eccentricityAbsoluteTolerance=1.0e-8;
 $failed=false;
 
-foreach([$circular,$elliptical] as $metrics){
+foreach([$circular,$elliptical,$zeroCentered] as $metrics){
     if(
         $metrics['energy']>$relativeTolerance
         || $metrics['h']>$relativeTolerance
